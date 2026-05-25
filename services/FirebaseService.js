@@ -65,3 +65,25 @@ export const getUserGroups = async (userUid) => {
     throw error;
   }
 };
+
+export const getGroupMemberTokens = async (groupId, excludeUid) => {
+  try {
+    const groupDoc = await getDoc(doc(db, 'groups', groupId));
+    if (!groupDoc.exists()) return [];
+
+    const members = groupDoc.data().members || [];
+    const tokens = [];
+
+    for (const memberUid of members) {
+      if (memberUid === excludeUid) continue; // Don't send to self
+      const userDoc = await getDoc(doc(db, 'users', memberUid));
+      if (userDoc.exists() && userDoc.data().expoPushToken) {
+        tokens.push(userDoc.data().expoPushToken);
+      }
+    }
+    return tokens;
+  } catch (error) {
+    console.error("Error fetching member tokens: ", error);
+    return [];
+  }
+};

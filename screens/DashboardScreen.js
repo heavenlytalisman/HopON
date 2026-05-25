@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { auth } from '../firebaseConfig';
-import { getUserGroups, createGroup, joinGroup } from '../services/FirebaseService';
+import { getUserGroups, createGroup, joinGroup, getGroupMemberTokens } from '../services/FirebaseService';
+import { registerForPushNotificationsAsync, sendPushNotification } from '../services/NotificationService';
 
 const GAMES = [
   { id: '1', name: 'Valorant', color: '#FA4454' },
@@ -20,6 +21,7 @@ export default function DashboardScreen({ route }) {
 
   useEffect(() => {
     loadGroups();
+    registerForPushNotificationsAsync();
   }, []);
 
   const loadGroups = async () => {
@@ -59,13 +61,31 @@ export default function DashboardScreen({ route }) {
     }
   };
 
-  const handleHopOn = () => {
+  const handleHopOn = async () => {
     if (!selectedGroup) {
-      Alert.alert('Error', 'Please select a group first!');
+      Alert.alert('Error', 'Please select a squad first!');
       return;
     }
-    // Logic to send push notification alert to the group (Phase 3 next step)
-    Alert.alert('Alert Sent!', `Notified ${selectedGroup.name} to hop on ${selectedGame.name}!`);
+    
+    Alert.alert('Alert Sent!', `Notifying ${selectedGroup.name} to hop on ${selectedGame.name}...`);
+    
+    try {
+      const tokens = await getGroupMemberTokens(selectedGroup.id, auth.currentUser.uid);
+      if (tokens.length === 0) {
+         console.log("No other members have push tokens registered.");
+         return;
+      }
+      
+      const title = `🎮 Hop ON!`;
+      const body = `${nickname} is calling the squad to play ${selectedGame.name}!`;
+      
+      // Send to all members
+      const promises = tokens.map(token => sendPushNotification(token, title, body));
+      await Promise.all(promises);
+      
+    } catch (error) {
+      console.error("Error sending push notifications", error);
+    }
   };
 
   return (
