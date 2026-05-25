@@ -29,7 +29,7 @@ export default function LoginScreen({ navigation }) {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.logoContainer}>
-          <Text style={styles.title}>SquadUp</Text>
+          <Text style={styles.title}>HopON</Text>
           <Text style={styles.subtitle}>Enter the arena.</Text>
         </View>
 

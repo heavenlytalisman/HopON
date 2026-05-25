@@ -77,10 +77,7 @@ export default function DashboardScreen({ navigation }) {
         {/* Top Header matching Mockup */}
         <View style={styles.topBar}>
           <Image source={{ uri: 'https://i.pravatar.cc/150?u=a042581f4e29026704z' }} style={styles.myAvatar} />
-          <Text style={styles.headerTitle}>SquadUp</Text>
-          <TouchableOpacity>
-            <Ionicons name="settings-outline" size={24} color="#64748B" />
-          </TouchableOpacity>
+          <Text style={styles.headerTitle}>HopON</Text>
         </View>
 
         <Text style={styles.pageTitle}>Your Squads</Text>

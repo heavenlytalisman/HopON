@@ -13,6 +13,8 @@ import FriendsScreen from './screens/FriendsScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import SquadDetailScreen from './screens/SquadDetailScreen';
 
+import HopOnRoomScreen from './screens/HopOnRoomScreen';
+
 import { FeedIcon, SquadIcon, UsersIcon } from './components/CustomIcons';
 
 const Stack = createNativeStackNavigator();
@@ -76,6 +78,11 @@ export default function App() {
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="SquadDetail" component={SquadDetailScreen} />
+        <Stack.Screen 
+          name="HopOnRoom" 
+          component={HopOnRoomScreen}
+          options={{ presentation: 'fullScreenModal' }} // Make it feel like a call taking over the screen
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -17,9 +17,7 @@ export default function SquadDetailScreen({ route, navigation }) {
           <Ionicons name="arrow-back" size={24} color="#2C5282" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{squadName}</Text>
-        <TouchableOpacity style={styles.settingsButton}>
-          <Ionicons name="settings-outline" size={24} color="#64748B" />
-        </TouchableOpacity>
+        <View style={styles.headerRight} />
       </View>
 
       {/* Chat Area */}
@@ -72,7 +70,10 @@ export default function SquadDetailScreen({ route, navigation }) {
           <Text style={styles.lobbyBadgeText}>Lobby waiting: 3/4</Text>
         </View>
 
-        <TouchableOpacity style={styles.hopOnButton} onPress={handleHopOn}>
+        <TouchableOpacity 
+          style={styles.hopOnButton} 
+          onPress={() => navigation.navigate('HopOnRoom', { squadName })}
+        >
           <Ionicons name="flash" size={32} color="#FFF" style={styles.hopOnIcon} />
           <Text style={styles.hopOnText}>HOP ON</Text>
         </TouchableOpacity>

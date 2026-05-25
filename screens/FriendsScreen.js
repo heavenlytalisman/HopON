@@ -39,9 +39,6 @@ export default function FriendsScreen() {
         <Text style={styles.friendName}>{item.name}</Text>
         <Text style={styles.friendHandle}>{item.handle}</Text>
       </View>
-      <TouchableOpacity style={styles.actionButton}>
-        <Ionicons name="chatbubble-ellipses-outline" size={20} color="#2C5282" />
-      </TouchableOpacity>
     </View>
   );
 
@@ -204,15 +201,5 @@ const styles = StyleSheet.create({
   friendHandle: {
     fontSize: 14,
     color: '#94A3B8',
-  },
-  actionButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F8FAFC',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
   },
 });

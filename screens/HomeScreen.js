@@ -117,10 +117,7 @@ export default function HomeScreen({ route }) {
     <View style={styles.headerContainer}>
       <View style={styles.topBar}>
         <Image source={{ uri: 'https://i.pravatar.cc/150?u=a042581f4e29026704z' }} style={styles.myAvatar} />
-        <Text style={styles.headerTitle}>SquadUp</Text>
-        <TouchableOpacity>
-          <Ionicons name="settings-outline" size={24} color="#64748B" />
-        </TouchableOpacity>
+        <Text style={styles.headerTitle}>HopON</Text>
       </View>
       
       <View style={styles.composeBox}>
