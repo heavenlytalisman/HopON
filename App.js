@@ -13,6 +13,8 @@ import FriendsScreen from './screens/FriendsScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import SquadDetailScreen from './screens/SquadDetailScreen';
 
+import { FeedIcon, SquadIcon, ChatIcon } from '../components/CustomIcons';
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -28,26 +30,35 @@ function MainTabs({ navigation }) {
             <View style={styles.headerProfilePic} />
           </TouchableOpacity>
         ),
-        tabBarStyle: { backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#F1F5F9', elevation: 10, height: 60, paddingBottom: 8 },
+        tabBarStyle: { backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#F1F5F9', elevation: 10, height: 65, paddingBottom: 10, paddingTop: 10 },
         tabBarActiveTintColor: '#2C5282',
         tabBarInactiveTintColor: '#94A3B8',
-        tabBarLabelStyle: { fontWeight: '600', fontSize: 11 },
+        tabBarLabelStyle: { fontWeight: '600', fontSize: 11, marginTop: 4 },
       })}
     >
       <Tab.Screen 
         name="Home" 
         component={HomeScreen} 
-        options={{ title: 'Home' }}
+        options={{ 
+          title: 'Feed',
+          tabBarIcon: ({ color, size }) => <FeedIcon color={color} size={size} />
+        }}
       />
       <Tab.Screen 
         name="Friends" 
         component={FriendsScreen} 
-        options={{ title: 'Friends' }}
+        options={{ 
+          title: 'Chat',
+          tabBarIcon: ({ color, size }) => <ChatIcon color={color} size={size} />
+        }}
       />
       <Tab.Screen 
         name="Squads" 
         component={DashboardScreen} 
-        options={{ title: 'Squads' }}
+        options={{ 
+          title: 'Squads',
+          tabBarIcon: ({ color, size }) => <SquadIcon color={color} size={size} />
+        }}
       />
     </Tab.Navigator>
   );

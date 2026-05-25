@@ -1,6 +1,6 @@
 import { auth, db } from '../firebaseConfig';
 import { signInAnonymously } from 'firebase/auth';
-import { doc, setDoc, getDoc, collection, addDoc, updateDoc, arrayUnion, getDocs, query, where } from 'firebase/firestore';
+import { doc, setDoc, getDoc, collection, addDoc, updateDoc, arrayUnion, getDocs, query, where, onSnapshot, orderBy, serverTimestamp } from 'firebase/firestore';
 
 // Auth Services
 export const loginAnonymously = async (nickname) => {
@@ -86,4 +86,31 @@ export const getGroupMemberTokens = async (groupId, excludeUid) => {
     console.error("Error fetching member tokens: ", error);
     return [];
   }
+};
+
+// Feed Services
+export const createPost = async (postData) => {
+  try {
+    const docRef = await addDoc(collection(db, 'posts'), {
+      ...postData,
+      likes: 0,
+      comments: 0,
+      reposts: 0,
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error("Error creating post: ", error);
+    throw error;
+  }
+};
+
+export const subscribeToFeed = (callback) => {
+  const q = query(collection(db, 'posts'), orderBy('timestamp', 'desc'));
+  return onSnapshot(q, (querySnapshot) => {
+    const posts = [];
+    querySnapshot.forEach((doc) => {
+      posts.push({ id: doc.id, ...doc.data() });
+    });
+    callback(posts);
+  });
 };
