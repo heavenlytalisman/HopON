@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, SafeAreaView } from 'react-native';
-import { loginAnonymously } from '../services/FirebaseService';
-import FirebaseService from '../services/FirebaseService';
+import { loginAnonymously, updateUserPushToken } from '../services/FirebaseService';
 import { registerForPushNotificationsAsync } from '../services/NotificationService';
 import { auth } from '../firebaseConfig';
 
@@ -21,7 +20,7 @@ export default function LoginScreen({ navigation }) {
       // Get push token and save to Firestore
       const token = await registerForPushNotificationsAsync();
       if (token) {
-        await FirebaseService.updateUserPushToken(user.uid, token);
+        await updateUserPushToken(user.uid, token);
       }
 
       navigation.replace('MainTabs', { 
