@@ -38,6 +38,59 @@ export const createGroup = async (groupName, creatorUid) => {
   }
 };
 
+export const updateUserPushToken = async (userId, token) => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      pushToken: token,
+      updatedAt: new Date().toISOString()
+    });
+    console.log('Push token saved to Firestore for user:', userId);
+  } catch (error) {
+    console.error('Error saving push token:', error);
+  }
+};
+
+export const searchUsersByHandle = async (handleQuery) => {
+  try {
+    // For a simple substring match in Firestore (prefix match)
+    const usersRef = collection(db, 'users');
+    const q = query(
+      usersRef, 
+      where('nickname', '>=', handleQuery),
+      where('nickname', '<=', handleQuery + '\uf8ff')
+    );
+    
+    const querySnapshot = await getDocs(q);
+    const results = [];
+    querySnapshot.forEach((doc) => {
+      results.push({ id: doc.id, ...doc.data() });
+    });
+    
+    return results;
+  } catch (error) {
+    console.error('Error searching users:', error);
+    return [];
+  }
+};
+
+export const sendFriendRequest = async (senderId, receiverId) => {
+  try {
+    const friendRequestsRef = collection(db, 'friend_requests');
+    await addDoc(friendRequestsRef, {
+      senderId: senderId,
+      receiverId: receiverId,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
+    console.log('Friend request sent from', senderId, 'to', receiverId);
+    return true;
+  } catch (error) {
+    console.error('Error sending friend request:', error);
+    return false;
+  }
+};
+
 export const joinGroup = async (groupId, userUid) => {
   try {
     const groupRef = doc(db, 'groups', groupId);

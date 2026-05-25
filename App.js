@@ -13,10 +13,21 @@ import FriendsScreen from './screens/FriendsScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import SquadDetailScreen from './screens/SquadDetailScreen';
 
+import * as Notifications from 'expo-notifications';
+
 import HopOnRoomScreen from './screens/HopOnRoomScreen';
 import IncomingAlertScreen from './screens/IncomingAlertScreen';
 
 import { FeedIcon, SquadIcon, UsersIcon } from './components/CustomIcons';
+
+// Ensure notifications show up even when the app is active
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();

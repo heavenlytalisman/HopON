@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, SafeAreaView } from 'react-native';
 import { loginAnonymously } from '../services/FirebaseService';
+import FirebaseService from '../services/FirebaseService';
+import { registerForPushNotificationsAsync } from '../services/NotificationService';
+import { auth } from '../firebaseConfig';
 
 export default function LoginScreen({ navigation }) {
   const [nickname, setNickname] = useState('');
@@ -13,7 +16,14 @@ export default function LoginScreen({ navigation }) {
     }
     setLoading(true);
     try {
-      await loginAnonymously(nickname.trim());
+      const user = await loginAnonymously(nickname.trim());
+      
+      // Get push token and save to Firestore
+      const token = await registerForPushNotificationsAsync();
+      if (token) {
+        await FirebaseService.updateUserPushToken(user.uid, token);
+      }
+
       navigation.replace('MainTabs', { 
         screen: 'Home', 
         params: { nickname: nickname.trim() } 

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, FlatList, TextInput, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { searchUsersByHandle, sendFriendRequest } from '../services/FirebaseService';
+import { auth } from '../firebaseConfig';
 
 const DUMMY_FRIENDS = [
   {
@@ -28,17 +30,45 @@ const DUMMY_FRIENDS = [
 
 export default function FriendsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  const handleSearch = async (text) => {
+    setSearchQuery(text);
+    if (text.length > 2) {
+      setIsSearching(true);
+      const results = await searchUsersByHandle(text);
+      setSearchResults(results);
+    } else {
+      setIsSearching(false);
+      setSearchResults([]);
+    }
+  };
+
+  const handleAddFriend = async (userId) => {
+    if (auth.currentUser) {
+      const success = await sendFriendRequest(auth.currentUser.uid, userId);
+      if (success) {
+        alert('Friend request sent!');
+      }
+    }
+  };
 
   const renderFriend = ({ item }) => (
     <View style={styles.friendCard}>
       <View style={styles.avatarContainer}>
-        <Image source={{ uri: item.avatar }} style={styles.avatar} />
+        <Image source={{ uri: item.avatar || 'https://i.pravatar.cc/150' }} style={styles.avatar} />
         {item.isOnline && <View style={styles.onlineBadge} />}
       </View>
       <View style={styles.friendInfo}>
-        <Text style={styles.friendName}>{item.name}</Text>
-        <Text style={styles.friendHandle}>{item.handle}</Text>
+        <Text style={styles.friendName}>{item.nickname || item.name}</Text>
+        <Text style={styles.friendHandle}>{item.nickname ? `@${item.nickname}` : item.handle}</Text>
       </View>
+      {isSearching && (
+        <TouchableOpacity style={styles.addButtonSmall} onPress={() => handleAddFriend(item.id)}>
+          <Ionicons name="person-add" size={16} color="#FFF" />
+        </TouchableOpacity>
+      )}
     </View>
   );
 
@@ -56,7 +86,7 @@ export default function FriendsScreen() {
             placeholder="Search by username..."
             placeholderTextColor="#94A3B8"
             value={searchQuery}
-            onChangeText={setSearchQuery}
+            onChangeText={handleSearch}
           />
         </View>
         <TouchableOpacity style={styles.addButton}>
@@ -65,9 +95,11 @@ export default function FriendsScreen() {
       </View>
 
       <View style={styles.listContainer}>
-        <Text style={styles.sectionTitle}>My Squad ({DUMMY_FRIENDS.length})</Text>
+        <Text style={styles.sectionTitle}>
+          {isSearching ? `Search Results (${searchResults.length})` : `My Squad (${DUMMY_FRIENDS.length})`}
+        </Text>
         <FlatList
-          data={DUMMY_FRIENDS}
+          data={isSearching ? searchResults : DUMMY_FRIENDS}
           keyExtractor={(item) => item.id}
           renderItem={renderFriend}
           contentContainerStyle={styles.listContent}
@@ -201,5 +233,14 @@ const styles = StyleSheet.create({
   friendHandle: {
     fontSize: 14,
     color: '#94A3B8',
+  },
+  addButtonSmall: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#10B981',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
   },
 });

@@ -1,12 +1,32 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { sendPushNotification } from '../services/NotificationService';
+import { auth, db } from '../firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function SquadDetailScreen({ route, navigation }) {
-  const squadName = route?.params?.squadName || 'Neon Knights';
+  const { squadName } = route.params;
 
-  const handleHopOn = () => {
-    alert(`Notifying ${squadName} to HOP ON!`);
+  const handleHopOn = async () => {
+    navigation.navigate('HopOnRoom', { squadName });
+
+    try {
+      if (auth.currentUser) {
+        const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+        const userData = userDoc.data();
+        if (userData && userData.pushToken) {
+          await sendPushNotification(
+            userData.pushToken,
+            `HOP ON: ${squadName}`,
+            `${userData.nickname || 'Someone'} is deploying an alert to the squad!`,
+            { screen: 'IncomingAlert' }
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Error sending push alert:', error);
+    }
   };
 
   return (
@@ -72,7 +92,7 @@ export default function SquadDetailScreen({ route, navigation }) {
 
         <TouchableOpacity 
           style={styles.hopOnButton} 
-          onPress={() => navigation.navigate('HopOnRoom', { squadName })}
+          onPress={handleHopOn}
         >
           <Ionicons name="flash" size={32} color="#FFF" style={styles.hopOnIcon} />
           <Text style={styles.hopOnText}>HOP ON</Text>
