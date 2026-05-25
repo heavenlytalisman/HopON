@@ -23,7 +23,33 @@ export const loginAnonymously = async (nickname) => {
   }
 };
 
-// Group Services
+// Auth & Profile Services
+export const getUserProfile = async (userId) => {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    if (userDoc.exists()) {
+      return userDoc.data();
+    }
+    return null;
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    return null;
+  }
+};
+
+export const updateUserProfile = async (userId, data) => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      ...data,
+      updatedAt: new Date().toISOString()
+    });
+    return true;
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    return false;
+  }
+};
 export const createGroup = async (groupName, creatorUid) => {
   try {
     const docRef = await addDoc(collection(db, 'groups'), {
