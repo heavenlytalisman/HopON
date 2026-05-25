@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, FlatList, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, FlatList, ActivityIndicator, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { auth } from '../firebaseConfig';
-import { getUserGroups, createGroup, joinGroup } from '../services/FirebaseService';
+import { getUserGroups } from '../services/FirebaseService';
 
 export default function DashboardScreen({ navigation }) {
   const [groups, setGroups] = useState([]);
-  const [newGroupName, setNewGroupName] = useState('');
-  const [joinGroupId, setJoinGroupId] = useState('');
   const [loading, setLoading] = useState(true);
+
+  // Mock data for the UI if firebase is empty/offline for UI demo
+  const MOCK_SQUADS = [
+    { id: '1', name: 'valorant-comp', members: 12, online: 4 },
+    { id: '2', name: 'apex-legends-casual', members: 3, online: 0 },
+    { id: '3', name: 'announcements', members: 46, readOnly: true },
+  ];
 
   useEffect(() => {
     loadGroups();
@@ -18,33 +23,11 @@ export default function DashboardScreen({ navigation }) {
     setLoading(true);
     try {
       const userGroups = await getUserGroups(auth.currentUser.uid);
-      setGroups(userGroups);
+      setGroups(userGroups.length > 0 ? userGroups : MOCK_SQUADS);
     } catch (error) {
-      Alert.alert('Error', 'Could not load groups.');
+      setGroups(MOCK_SQUADS); // Fallback for UI demo
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleCreateGroup = async () => {
-    if (!newGroupName.trim()) return;
-    try {
-      await createGroup(newGroupName.trim(), auth.currentUser.uid);
-      setNewGroupName('');
-      loadGroups();
-    } catch (error) {
-      Alert.alert('Error', error.message);
-    }
-  };
-
-  const handleJoinGroup = async () => {
-    if (!joinGroupId.trim()) return;
-    try {
-      await joinGroup(joinGroupId.trim(), auth.currentUser.uid);
-      setJoinGroupId('');
-      loadGroups();
-    } catch (error) {
-      Alert.alert('Error', error.message);
     }
   };
 
@@ -54,53 +37,57 @@ export default function DashboardScreen({ navigation }) {
       onPress={() => navigation.navigate('SquadDetail', { squadId: item.id, squadName: item.name })}
     >
       <View style={styles.groupIcon}>
-        <Text style={styles.groupIconText}>#</Text>
+        {item.readOnly ? (
+          <Ionicons name="megaphone-outline" size={18} color="#2C5282" />
+        ) : (
+          <Text style={styles.groupIconText}>#</Text>
+        )}
       </View>
       <View style={styles.groupInfo}>
         <Text style={styles.groupName}>{item.name}</Text>
-        <Text style={styles.groupId}>ID: {item.id}</Text>
+        {item.readOnly ? (
+          <Text style={styles.groupSubtitle}>Read only • {item.members} members</Text>
+        ) : (
+          <Text style={styles.groupSubtitle}>
+            <Text style={{ color: item.online > 0 ? '#10B981' : '#94A3B8' }}>● {item.online} online</Text> • {item.members} members
+          </Text>
+        )}
       </View>
-      <Ionicons name="chevron-forward" size={20} color="#B5BAC1" />
+      
+      {item.readOnly ? (
+        <Ionicons name="lock-closed-outline" size={20} color="#94A3B8" />
+      ) : (
+        <View style={styles.avatarsContainer}>
+          <Image source={{ uri: 'https://i.pravatar.cc/150?u=1' }} style={[styles.overlapAvatar, { zIndex: 3 }]} />
+          <Image source={{ uri: 'https://i.pravatar.cc/150?u=2' }} style={[styles.overlapAvatar, { zIndex: 2, marginLeft: -12 }]} />
+          {item.members > 2 && (
+             <View style={[styles.moreAvatar, { zIndex: 1, marginLeft: -12 }]}>
+               <Text style={styles.moreAvatarText}>+{item.members - 2}</Text>
+             </View>
+          )}
+        </View>
+      )}
     </TouchableOpacity>
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        {/* Group Management */}
-        <View style={styles.managementSection}>
-          <Text style={styles.sectionTitle}>Add a Squad</Text>
-          <View style={styles.inputRow}>
-            <TextInput
-              style={styles.input}
-              placeholder="New Squad Name"
-              placeholderTextColor="#80848E"
-              value={newGroupName}
-              onChangeText={setNewGroupName}
-            />
-            <TouchableOpacity style={styles.actionButton} onPress={handleCreateGroup}>
-              <Ionicons name="add" size={20} color="#FFF" />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.inputRow}>
-            <TextInput
-              style={styles.input}
-              placeholder="Join by ID"
-              placeholderTextColor="#80848E"
-              value={joinGroupId}
-              onChangeText={setJoinGroupId}
-            />
-            <TouchableOpacity style={styles.actionButton} onPress={handleJoinGroup}>
-              <Ionicons name="log-in-outline" size={20} color="#FFF" />
-            </TouchableOpacity>
-          </View>
+        
+        {/* Top Header matching Mockup */}
+        <View style={styles.topBar}>
+          <Image source={{ uri: 'https://i.pravatar.cc/150?u=a042581f4e29026704z' }} style={styles.myAvatar} />
+          <Text style={styles.headerTitle}>SquadUp</Text>
+          <TouchableOpacity>
+            <Ionicons name="settings-outline" size={24} color="#64748B" />
+          </TouchableOpacity>
         </View>
 
-        <Text style={styles.sectionTitle}>Your Squads</Text>
+        <Text style={styles.pageTitle}>Your Squads</Text>
+        <Text style={styles.pageSubtitle}>Manage your active groups and channels.</Text>
+
         {loading ? (
-           <ActivityIndicator color="#5865F2" style={{ marginTop: 20 }} />
-        ) : groups.length === 0 ? (
-           <Text style={styles.emptyText}>You haven't joined any squads yet.</Text>
+           <ActivityIndicator color="#2C5282" style={{ marginTop: 40 }} />
         ) : (
           <FlatList
             data={groups}
@@ -111,78 +98,129 @@ export default function DashboardScreen({ navigation }) {
           />
         )}
       </View>
+
+      <TouchableOpacity style={styles.fab}>
+        <Ionicons name="add" size={28} color="#FFF" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#313338' },
-  content: { flex: 1, padding: 16 },
-  managementSection: {
-    backgroundColor: '#2B2D31',
-    padding: 16,
-    borderRadius: 8,
+  container: { flex: 1, backgroundColor: '#F4F7FC' },
+  content: { flex: 1, padding: 20 },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  myAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#E2E8F0',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#2C5282',
+  },
+  pageTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    marginBottom: 4,
+  },
+  pageSubtitle: {
+    fontSize: 14,
+    color: '#64748B',
     marginBottom: 24,
   },
-  sectionTitle: { 
-    fontSize: 12, 
-    fontWeight: 'bold', 
-    color: '#B5BAC1', 
-    textTransform: 'uppercase', 
-    marginBottom: 12 
-  },
-  inputRow: { flexDirection: 'row', marginBottom: 12, alignItems: 'center' },
-  input: { 
-    flex: 1, 
-    backgroundColor: '#1E1F22', 
-    borderRadius: 4, 
-    padding: 12, 
-    color: '#F2F3F5', 
-    marginRight: 8 
-  },
-  actionButton: { 
-    backgroundColor: '#5865F2', 
-    width: 48, 
-    height: 48, 
-    borderRadius: 4, 
-    justifyContent: 'center', 
-    alignItems: 'center' 
-  },
-  emptyText: { color: '#80848E', fontStyle: 'italic', textAlign: 'center', marginTop: 20 },
-  listContainer: { paddingBottom: 20 },
+  listContainer: { paddingBottom: 100 },
   groupCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2B2D31',
+    backgroundColor: '#FFFFFF',
     padding: 16,
-    borderRadius: 8,
-    marginBottom: 8,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#94A3B8',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 2,
   },
   groupIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#1E1F22',
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: '#EBF8FF',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   groupIconText: {
-    color: '#B5BAC1',
-    fontSize: 20,
+    color: '#2C5282',
+    fontSize: 18,
     fontWeight: 'bold',
   },
   groupInfo: {
     flex: 1,
   },
   groupName: {
-    color: '#F2F3F5',
-    fontSize: 16,
-    fontWeight: 'bold',
+    color: '#1E293B',
+    fontSize: 15,
+    fontWeight: '700',
     marginBottom: 2,
   },
-  groupId: {
-    color: '#80848E',
+  groupSubtitle: {
+    color: '#64748B',
     fontSize: 12,
+    fontWeight: '500',
+  },
+  avatarsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  overlapAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  moreAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#E2E8F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  moreAvatarText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#64748B',
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#2C5282',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#2C5282',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
   },
 });

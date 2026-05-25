@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, TextInput, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, SafeAreaView } from 'react-native';
 import { loginAnonymously } from '../services/FirebaseService';
 
 export default function LoginScreen({ navigation }) {
@@ -8,10 +8,9 @@ export default function LoginScreen({ navigation }) {
 
   const handleLogin = async () => {
     if (!nickname.trim()) {
-      Alert.alert('Hold up!', 'Please enter a nickname first.');
+      Alert.alert('Error', 'Please enter a nickname');
       return;
     }
-    
     setLoading(true);
     try {
       await loginAnonymously(nickname.trim());
@@ -29,32 +28,46 @@ export default function LoginScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>HopON</Text>
-        <Text style={styles.subtitle}>Get the squad together.</Text>
+        <View style={styles.logoContainer}>
+          <Text style={styles.title}>SquadUp</Text>
+          <Text style={styles.subtitle}>Enter the arena.</Text>
+        </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Choose a Nickname</Text>
+        <View style={styles.card}>
+          <Text style={styles.label}>Nickname</Text>
           <TextInput
             style={styles.input}
-            placeholder="e.g. xX_Slayer_Xx"
-            placeholderTextColor="#475569"
+            placeholder="Choose your handle..."
+            placeholderTextColor="#94A3B8"
             value={nickname}
             onChangeText={setNickname}
             autoCapitalize="none"
           />
+          
+          <TouchableOpacity 
+            style={styles.primaryButton} 
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={styles.primaryButtonText}>Enter →</Text>
+            )}
+          </TouchableOpacity>
+
+          <View style={styles.dividerContainer}>
+            <View style={styles.divider} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.divider} />
+          </View>
+
+          <TouchableOpacity style={styles.secondaryButton}>
+            <Text style={styles.secondaryButtonText}>Scan Squad Pass</Text>
+          </TouchableOpacity>
         </View>
 
-        <TouchableOpacity 
-          style={[styles.discordButton, loading && styles.buttonDisabled]} 
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#FFF" />
-          ) : (
-            <Text style={styles.buttonText}>Enter Lobby</Text>
-          )}
-        </TouchableOpacity>
+        <Text style={styles.footerText}>By entering, you agree to our terms of service.</Text>
       </View>
     </SafeAreaView>
   );
@@ -63,57 +76,102 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#313338', // Discord Primary
+    backgroundColor: '#FFFFFF',
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     padding: 32,
   },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 48,
+  },
   title: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: '#F2F3F5',
+    fontSize: 42,
+    fontWeight: '800',
+    color: '#2C5282',
     marginBottom: 8,
-    textAlign: 'center',
   },
   subtitle: {
-    fontSize: 18,
-    color: '#B5BAC1',
-    marginBottom: 60,
-    textAlign: 'center',
+    fontSize: 16,
+    color: '#64748B',
   },
-  inputContainer: {
-    marginBottom: 24,
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#E2E8F0',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 24,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#F8FAFC',
+    marginBottom: 32,
   },
   label: {
-    color: '#B5BAC1',
+    color: '#64748B',
     marginBottom: 8,
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: 'bold',
     textTransform: 'uppercase',
   },
   input: {
-    backgroundColor: '#1E1F22', // Discord Tertiary
-    borderRadius: 3,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
     padding: 16,
-    color: '#F2F3F5',
+    color: '#1E293B',
     fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 24,
   },
-  discordButton: {
-    backgroundColor: '#5865F2', // Discord blurple
+  primaryButton: {
+    backgroundColor: '#2C5282',
     paddingVertical: 16,
-    borderRadius: 3,
-    width: '100%',
+    borderRadius: 8,
     alignItems: 'center',
-    marginTop: 12,
+    shadowColor: '#2C5282',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
+  primaryButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#F1F5F9',
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    color: '#94A3B8',
+    fontSize: 14,
+  },
+  secondaryButton: {
+    backgroundColor: '#EBF8FF',
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  secondaryButtonText: {
+    color: '#2C5282',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  footerText: {
+    textAlign: 'center',
+    color: '#94A3B8',
+    fontSize: 12,
   },
 });

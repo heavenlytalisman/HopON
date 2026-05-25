@@ -1,76 +1,85 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import FeedPost from '../components/FeedPost';
-
-const SQUAD_DUMMY_POSTS = [
-  {
-    id: '101',
-    author: {
-      name: 'Riden',
-      handle: '@ridengod',
-      avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704z',
-    },
-    timestamp: '5m',
-    content: 'Who is down for some comp matches tonight? I am 1 game away from ranking up.',
-    likes: 4,
-    comments: 2,
-    reposts: 0,
-  },
-  {
-    id: '102',
-    author: {
-      name: 'ToxicTeammate',
-      handle: '@yellingsince99',
-      avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704y',
-    },
-    timestamp: '1h',
-    content: 'Literally my setup right now:',
-    mediaType: 'meme',
-    mediaData: {
-      url: 'https://i.imgflip.com/1g8my4.jpg', // Reusing dummy meme
-    },
-    likes: 12,
-    comments: 5,
-    reposts: 1,
-  }
-];
 
 export default function SquadDetailScreen({ route, navigation }) {
-  // Use safe fallbacks in case navigation params are missing during dev
-  const squadName = route?.params?.squadName || 'Squad';
+  const squadName = route?.params?.squadName || 'Neon Knights';
 
   const handleHopOn = () => {
     alert(`Notifying ${squadName} to HOP ON!`);
-    // Push notification logic goes here in Phase 6
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#F2F3F5" />
+          <Ionicons name="arrow-back" size={24} color="#2C5282" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{squadName}</Text>
         <TouchableOpacity style={styles.settingsButton}>
-          <Ionicons name="ellipsis-horizontal" size={24} color="#F2F3F5" />
+          <Ionicons name="settings-outline" size={24} color="#64748B" />
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={SQUAD_DUMMY_POSTS}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <FeedPost post={item} />}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
+      {/* Chat Area */}
+      <ScrollView contentContainerStyle={styles.chatContainer}>
+        {/* System Message */}
+        <View style={styles.systemMessageContainer}>
+          <View style={styles.systemMessageBubble}>
+            <Ionicons name="game-controller" size={12} color="#64748B" style={{ marginRight: 6 }} />
+            <Text style={styles.systemMessageText}>Ranked Matchmaking started by @Viper</Text>
+          </View>
+        </View>
 
-      {/* The massive HOP ON Button pinned at the bottom */}
-      <View style={styles.hopOnContainer}>
+        {/* Left Bubble (Viper) */}
+        <View style={styles.messageRow}>
+          <Image source={{ uri: 'https://i.pravatar.cc/150?u=3' }} style={styles.avatar} />
+          <View style={styles.messageContent}>
+            <Text style={styles.senderName}>@Viper</Text>
+            <View style={styles.bubbleLeft}>
+              <Text style={styles.textLeft}>We need one more for the lobby. Who is online?</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Right Bubble (Me) */}
+        <View style={[styles.messageRow, { justifyContent: 'flex-end' }]}>
+          <View style={[styles.messageContent, { alignItems: 'flex-end' }]}>
+            <View style={styles.bubbleRight}>
+              <Text style={styles.textRight}>Give me 5 mins, just finishing up a call.</Text>
+            </View>
+            <Text style={styles.readReceipt}>Read ✓</Text>
+          </View>
+        </View>
+
+        {/* Left Bubble (ApexQueen) */}
+        <View style={styles.messageRow}>
+          <Image source={{ uri: 'https://i.pravatar.cc/150?u=4' }} style={styles.avatar} />
+          <View style={styles.messageContent}>
+            <Text style={styles.senderName}>@ApexQueen</Text>
+            <View style={styles.bubbleLeft}>
+              <Text style={styles.textLeft}>I'm in the lobby now. Setting up the loadout.</Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Bottom Action Area */}
+      <View style={styles.bottomArea}>
+        <View style={styles.lobbyBadge}>
+          <View style={styles.onlineDot} />
+          <Text style={styles.lobbyBadgeText}>Lobby waiting: 3/4</Text>
+        </View>
+
         <TouchableOpacity style={styles.hopOnButton} onPress={handleHopOn}>
-          <Ionicons name="game-controller" size={32} color="#FFF" style={styles.hopOnIcon} />
+          <Ionicons name="flash" size={32} color="#FFF" style={styles.hopOnIcon} />
           <Text style={styles.hopOnText}>HOP ON</Text>
         </TouchableOpacity>
+
+        <Text style={styles.bottomHint}>
+          Instantly join the active voice channel and squad up.
+        </Text>
       </View>
     </SafeAreaView>
   );
@@ -79,62 +88,154 @@ export default function SquadDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#313338', // Discord Primary
+    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E1F22',
-    backgroundColor: '#313338',
+    borderBottomColor: '#F1F5F9',
+    backgroundColor: '#F8FAFC',
   },
   backButton: {
     paddingRight: 16,
   },
   headerTitle: {
     flex: 1,
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#F2F3F5',
+    color: '#2C5282',
+    textAlign: 'center',
   },
   settingsButton: {
     paddingLeft: 16,
   },
-  listContent: {
-    paddingBottom: 120, // Space for the Hop On button
-  },
-  hopOnContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+  chatContainer: {
     padding: 16,
-    paddingBottom: 32, // Safe area padding
-    backgroundColor: 'rgba(49, 51, 56, 0.95)', // Semi-transparent Discord Primary
+    paddingBottom: 20,
+  },
+  systemMessageContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  systemMessageBubble: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+  systemMessageText: {
+    fontSize: 12,
+    color: '#64748B',
+  },
+  messageRow: {
+    flexDirection: 'row',
+    marginBottom: 20,
+  },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 12,
+    backgroundColor: '#E2E8F0',
+  },
+  messageContent: {
+    maxWidth: '75%',
+  },
+  senderName: {
+    fontSize: 12,
+    color: '#64748B',
+    marginBottom: 4,
+    fontWeight: '600',
+  },
+  bubbleLeft: {
+    backgroundColor: '#F1F5F9',
+    padding: 16,
+    borderRadius: 16,
+    borderTopLeftRadius: 4,
+  },
+  textLeft: {
+    color: '#1E293B',
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  bubbleRight: {
+    backgroundColor: '#2C5282',
+    padding: 16,
+    borderRadius: 16,
+    borderTopRightRadius: 4,
+  },
+  textRight: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  readReceipt: {
+    fontSize: 10,
+    color: '#94A3B8',
+    marginTop: 4,
+  },
+  bottomArea: {
+    padding: 24,
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#1E1F22',
+    borderTopColor: '#F1F5F9',
+    alignItems: 'center',
+  },
+  lobbyBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 20,
+  },
+  onlineDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#2C5282',
+    marginRight: 8,
+  },
+  lobbyBadgeText: {
+    fontSize: 12,
+    color: '#2C5282',
+    fontWeight: '600',
   },
   hopOnButton: {
-    backgroundColor: '#23A559', // Discord Green
+    backgroundColor: '#2C5282',
     flexDirection: 'row',
-    paddingVertical: 16,
-    borderRadius: 8,
+    paddingVertical: 18,
+    paddingHorizontal: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 8,
-    shadowColor: '#23A559',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
+    width: '100%',
+    shadowColor: '#2C5282',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 6,
+    marginBottom: 16,
   },
   hopOnIcon: {
     marginRight: 12,
   },
   hopOnText: {
     color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '900',
-    letterSpacing: 2,
+    letterSpacing: 1.5,
+  },
+  bottomHint: {
+    color: '#94A3B8',
+    fontSize: 13,
+    textAlign: 'center',
   },
 });

@@ -15,7 +15,7 @@ export default function FriendsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#313338', // Discord Primary
+    backgroundColor: '#F4F7FC', // Light Theme Background
   },
   content: {
     flex: 1,
@@ -26,11 +26,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#F2F3F5',
+    color: '#1E293B',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#B5BAC1',
+    color: '#64748B',
   },
 });

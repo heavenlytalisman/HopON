@@ -33,7 +33,7 @@ export default function FeedPost({ post }) {
             <Image source={{ uri: mediaData.poster }} style={styles.mediaCover} />
             <View style={styles.mediaInfo}>
               <Text style={styles.mediaTitle}>{mediaData.title}</Text>
-              <Text style={styles.mediaSubtitle}>Watched on Letterboxd • ★ {mediaData.rating}</Text>
+              <Text style={styles.mediaSubtitle}>Letterboxd • ★ {mediaData.rating}</Text>
             </View>
           </View>
         );
@@ -43,9 +43,9 @@ export default function FeedPost({ post }) {
             <Image source={{ uri: mediaData.albumArt }} style={styles.songCover} />
             <View style={styles.mediaInfo}>
               <Text style={styles.songTitle}>{mediaData.title}</Text>
-              <Text style={styles.songArtist}>Spotify • {mediaData.artist}</Text>
+              <Text style={styles.songArtist}>{mediaData.artist}</Text>
             </View>
-            <Ionicons name="play-circle" size={32} color="#1DB954" style={{ marginLeft: 'auto' }} />
+            <Ionicons name="play-circle" size={32} color="#2C5282" style={{ marginLeft: 'auto' }} />
           </View>
         );
       default:
@@ -71,19 +71,19 @@ export default function FeedPost({ post }) {
 
         <View style={styles.actionBar}>
           <TouchableOpacity style={styles.actionIcon}>
-            <Ionicons name="chatbubble-outline" size={20} color="#B5BAC1" />
+            <Ionicons name="chatbubble-outline" size={20} color="#64748B" />
             <Text style={styles.actionCount}>{post.comments || 0}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionIcon}>
-            <Ionicons name="repeat-outline" size={22} color="#B5BAC1" />
+            <Ionicons name="repeat-outline" size={22} color="#64748B" />
             <Text style={styles.actionCount}>{post.reposts || 0}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionIcon}>
-            <Ionicons name="heart-outline" size={22} color="#B5BAC1" />
-            <Text style={styles.actionCount}>{post.likes || 0}</Text>
+            <Ionicons name="heart-outline" size={22} color="#EF4444" />
+            <Text style={[styles.actionCount, { color: '#EF4444' }]}>{post.likes || 0}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionIcon}>
-            <Ionicons name="share-outline" size={22} color="#B5BAC1" />
+            <Ionicons name="share-outline" size={22} color="#64748B" />
           </TouchableOpacity>
         </View>
       </View>
@@ -95,14 +95,22 @@ const styles = StyleSheet.create({
   postContainer: {
     flexDirection: 'row',
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1E1F22',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#94A3B8',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 2,
   },
   avatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#5865F2',
+    backgroundColor: '#E2E8F0',
     marginRight: 12,
   },
   postContent: {
@@ -115,62 +123,64 @@ const styles = StyleSheet.create({
   },
   authorName: {
     fontWeight: 'bold',
-    color: '#F2F3F5',
+    color: '#1E293B',
     fontSize: 16,
     marginRight: 4,
   },
   authorHandle: {
-    color: '#B5BAC1',
+    color: '#64748B',
     fontSize: 14,
   },
   dot: {
-    color: '#B5BAC1',
+    color: '#94A3B8',
     marginHorizontal: 4,
   },
   timestamp: {
-    color: '#B5BAC1',
+    color: '#94A3B8',
     fontSize: 14,
   },
   bodyText: {
-    color: '#F2F3F5',
+    color: '#334155',
     fontSize: 15,
-    lineHeight: 20,
+    lineHeight: 22,
     marginBottom: 12,
   },
   memeImage: {
     width: '100%',
     height: 200,
-    borderRadius: 12,
+    borderRadius: 8,
     marginBottom: 12,
-    backgroundColor: '#2B2D31',
+    backgroundColor: '#F1F5F9',
   },
   mediaCard: {
     flexDirection: 'row',
-    backgroundColor: '#2B2D31',
-    borderRadius: 12,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
     overflow: 'hidden',
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#1E1F22',
+    borderColor: '#E2E8F0',
   },
   songCard: {
     flexDirection: 'row',
-    backgroundColor: '#1E1F22',
-    borderRadius: 12,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
     padding: 12,
     alignItems: 'center',
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   mediaCover: {
     width: 80,
     height: 120,
-    backgroundColor: '#1E1F22',
+    backgroundColor: '#E2E8F0',
   },
   songCover: {
     width: 48,
     height: 48,
     borderRadius: 4,
-    backgroundColor: '#2B2D31',
+    backgroundColor: '#E2E8F0',
     marginRight: 12,
   },
   mediaInfo: {
@@ -179,37 +189,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   mediaTitle: {
-    color: '#F2F3F5',
+    color: '#1E293B',
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 4,
   },
   mediaSubtitle: {
-    color: '#B5BAC1',
+    color: '#64748B',
     fontSize: 14,
   },
   songTitle: {
-    color: '#F2F3F5',
+    color: '#1E293B',
     fontSize: 15,
     fontWeight: 'bold',
   },
   songArtist: {
-    color: '#B5BAC1',
+    color: '#64748B',
     fontSize: 13,
   },
   actionBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 4,
-    marginRight: 32,
+    marginRight: 16,
   },
   actionIcon: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   actionCount: {
-    color: '#B5BAC1',
+    color: '#64748B',
     marginLeft: 6,
     fontSize: 13,
+    fontWeight: '500',
   },
 });

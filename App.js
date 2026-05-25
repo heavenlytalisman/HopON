@@ -19,19 +19,20 @@ const Tab = createBottomTabNavigator();
 function MainTabs({ navigation }) {
   return (
     <Tab.Navigator
-      screenOptions={{
-        headerStyle: { backgroundColor: '#313338', shadowColor: 'transparent', elevation: 0 },
-        headerTintColor: '#F2F3F5',
+      screenOptions={({ route }) => ({
+        headerStyle: { backgroundColor: '#FFFFFF', shadowColor: '#E2E8F0', elevation: 2 },
+        headerTintColor: '#1E293B',
         headerTitleStyle: { fontWeight: 'bold' },
         headerRight: () => (
           <TouchableOpacity style={styles.headerProfileContainer} onPress={() => navigation.navigate('Profile')}>
             <View style={styles.headerProfilePic} />
           </TouchableOpacity>
         ),
-        tabBarStyle: { backgroundColor: '#2B2D31', borderTopWidth: 0, elevation: 0 },
-        tabBarActiveTintColor: '#F2F3F5',
-        tabBarInactiveTintColor: '#80848E',
-      }}
+        tabBarStyle: { backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#F1F5F9', elevation: 10, height: 60, paddingBottom: 8 },
+        tabBarActiveTintColor: '#2C5282',
+        tabBarInactiveTintColor: '#94A3B8',
+        tabBarLabelStyle: { fontWeight: '600', fontSize: 11 },
+      })}
     >
       <Tab.Screen 
         name="Home" 
@@ -55,7 +56,7 @@ function MainTabs({ navigation }) {
 export default function App() {
   return (
     <NavigationContainer>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <Stack.Navigator 
         initialRouteName="Login"
         screenOptions={{ headerShown: false }}
@@ -77,6 +78,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#5865F2', // Blurple placeholder
+    backgroundColor: '#1E293B', // Dark avatar placeholder
   }
 });
