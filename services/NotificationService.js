@@ -5,16 +5,26 @@ import { Platform } from 'react-native';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebaseConfig';
 
+const isExpoGo = Constants.appOwnership === 'expo';
+
 // Configure how notifications behave when app is in foreground
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+// Only run if NOT in Expo Go (fixes the SDK 53+ crash on Android Expo Go)
+if (!isExpoGo) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
 
 export async function registerForPushNotificationsAsync() {
+  if (isExpoGo) {
+    console.log('Push notifications are not supported in Expo Go. Use a development build.');
+    return null;
+  }
+
   let token;
 
   if (Platform.OS === 'android') {

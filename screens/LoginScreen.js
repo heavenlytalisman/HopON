@@ -15,7 +15,10 @@ export default function LoginScreen({ navigation }) {
     setLoading(true);
     try {
       await loginAnonymously(nickname.trim());
-      navigation.replace('Dashboard', { nickname: nickname.trim() });
+      navigation.replace('MainTabs', { 
+        screen: 'Home', 
+        params: { nickname: nickname.trim() } 
+      });
     } catch (error) {
       Alert.alert('Login Error', error.message);
     } finally {
@@ -60,7 +63,7 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A', // Dark theme slate background
+    backgroundColor: '#313338', // Discord Primary
   },
   content: {
     flex: 1,
@@ -70,13 +73,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 48,
     fontWeight: 'bold',
-    color: '#F8FAFC',
+    color: '#F2F3F5',
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 18,
-    color: '#94A3B8',
+    color: '#B5BAC1',
     marginBottom: 60,
     textAlign: 'center',
   },
@@ -84,24 +87,23 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   label: {
-    color: '#CBD5E1',
+    color: '#B5BAC1',
     marginBottom: 8,
     fontSize: 14,
     fontWeight: '600',
+    textTransform: 'uppercase',
   },
   input: {
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
+    backgroundColor: '#1E1F22', // Discord Tertiary
+    borderRadius: 3,
     padding: 16,
-    color: '#F8FAFC',
+    color: '#F2F3F5',
     fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#334155',
   },
   discordButton: {
     backgroundColor: '#5865F2', // Discord blurple
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 3,
     width: '100%',
     alignItems: 'center',
     marginTop: 12,
