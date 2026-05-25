@@ -96,7 +96,7 @@ export default function DashboardScreen({ navigation }) {
         )}
       </View>
 
-      <TouchableOpacity style={styles.fab}>
+      <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('CreateSquad')}>
         <Ionicons name="add" size={28} color="#FFF" />
       </TouchableOpacity>
     </SafeAreaView>

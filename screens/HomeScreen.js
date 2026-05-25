@@ -115,10 +115,7 @@ export default function HomeScreen({ route, navigation }) {
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
-      <View style={styles.topBar}>
-        <Image source={{ uri: 'https://i.pravatar.cc/150?u=a042581f4e29026704z' }} style={styles.myAvatar} />
-        <Text style={styles.headerTitle}>HopON</Text>
-      </View>
+      {/* Removed redundant topBar as per user request */}
       
       {/* Temporary Test Button for Phase 10 */}
       <TouchableOpacity 

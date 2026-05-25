@@ -12,6 +12,7 @@ import DashboardScreen from './screens/DashboardScreen';
 import FriendsScreen from './screens/FriendsScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import SquadDetailScreen from './screens/SquadDetailScreen';
+import CreateSquadScreen from './screens/CreateSquadScreen';
 
 import * as Notifications from 'expo-notifications';
 
@@ -90,6 +91,11 @@ export default function App() {
         <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="SquadDetail" component={SquadDetailScreen} />
+        <Stack.Screen 
+          name="CreateSquad" 
+          component={CreateSquadScreen} 
+          options={{ presentation: 'modal' }} 
+        />
         <Stack.Screen 
           name="HopOnRoom" 
           component={HopOnRoomScreen}
