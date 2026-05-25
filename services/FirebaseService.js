@@ -50,10 +50,11 @@ export const updateUserProfile = async (userId, data) => {
     return false;
   }
 };
-export const createGroup = async (groupName, creatorUid) => {
+export const createGroup = async (groupName, description, creatorUid) => {
   try {
     const docRef = await addDoc(collection(db, 'groups'), {
       name: groupName,
+      description: description || '',
       members: [creatorUid],
       createdAt: new Date()
     });
@@ -96,6 +97,29 @@ export const searchUsersByHandle = async (handleQuery) => {
     return results;
   } catch (error) {
     console.error('Error searching users:', error);
+    return [];
+  }
+};
+
+export const getUserFriends = async (userId) => {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    if (!userDoc.exists()) return [];
+    
+    const friendIds = userDoc.data().friends || [];
+    if (friendIds.length === 0) return [];
+
+    // Fetch friend profiles
+    const friends = [];
+    for (const fId of friendIds) {
+      const fDoc = await getDoc(doc(db, 'users', fId));
+      if (fDoc.exists()) {
+        friends.push({ id: fDoc.id, ...fDoc.data() });
+      }
+    }
+    return friends;
+  } catch (error) {
+    console.error("Error fetching friends: ", error);
     return [];
   }
 };

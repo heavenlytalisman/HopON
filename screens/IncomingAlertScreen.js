@@ -10,11 +10,10 @@ const QUICK_REPLIES = [
 ];
 
 export default function IncomingAlertScreen({ navigation, route }) {
-  // Using dummy caller data for now
   const caller = route.params?.caller || {
-    squadName: 'Night Owls',
-    callerName: 'Alex Mercer',
-    avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
+    squadName: 'Unknown Squad',
+    callerName: 'Unknown Caller',
+    avatar: 'https://i.pravatar.cc/150',
   };
 
   const pulseAnim = useRef(new Animated.Value(1)).current;

@@ -9,17 +9,30 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Switch
+  Switch,
+  ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { createGroup } from '../services/FirebaseService';
+import { auth } from '../firebaseConfig';
 
 export default function CreateSquadScreen({ navigation }) {
   const [squadName, setSquadName] = useState('');
   const [description, setDescription] = useState('');
-  const handleCreateSquad = () => {
-    // UI placeholder. In the future, this will push to Firebase.
-    console.log('Creating Squad:', { squadName, description, isPrivate: true });
-    navigation.goBack();
+  const [isCreating, setIsCreating] = useState(false);
+
+  const handleCreateSquad = async () => {
+    if (!squadName.trim() || !auth.currentUser) return;
+    
+    setIsCreating(true);
+    try {
+      await createGroup(squadName.trim(), description.trim(), auth.currentUser.uid);
+      navigation.goBack();
+    } catch (error) {
+      console.error('Failed to create squad:', error);
+      alert('Error creating squad. Please try again.');
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -80,9 +93,13 @@ export default function CreateSquadScreen({ navigation }) {
           <TouchableOpacity 
             style={[styles.createButton, !squadName.trim() && styles.createButtonDisabled]} 
             onPress={handleCreateSquad}
-            disabled={!squadName.trim()}
+            disabled={!squadName.trim() || isCreating}
           >
-            <Text style={styles.createButtonText}>Create Squad</Text>
+            {isCreating ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={styles.createButtonText}>Create Squad</Text>
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

@@ -8,12 +8,7 @@ export default function DashboardScreen({ navigation }) {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Mock data for the UI if firebase is empty/offline for UI demo
-  const MOCK_SQUADS = [
-    { id: '1', name: 'valorant-comp', members: 12, online: 4 },
-    { id: '2', name: 'apex-legends-casual', members: 3, online: 0 },
-    { id: '3', name: 'announcements', members: 46, readOnly: true },
-  ];
+
 
   useEffect(() => {
     loadGroups();
@@ -23,9 +18,10 @@ export default function DashboardScreen({ navigation }) {
     setLoading(true);
     try {
       const userGroups = await getUserGroups(auth.currentUser.uid);
-      setGroups(userGroups.length > 0 ? userGroups : MOCK_SQUADS);
+      setGroups(userGroups);
     } catch (error) {
-      setGroups(MOCK_SQUADS); // Fallback for UI demo
+      console.error('Error fetching groups:', error);
+      setGroups([]); // Real empty state
     } finally {
       setLoading(false);
     }

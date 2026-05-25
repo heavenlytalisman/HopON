@@ -1,44 +1,40 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, TextInput, TouchableOpacity, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, FlatList, TextInput, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { searchUsersByHandle, sendFriendRequest } from '../services/FirebaseService';
+import { searchUsersByHandle, sendFriendRequest, getUserFriends } from '../services/FirebaseService';
 import { auth } from '../firebaseConfig';
-
-const DUMMY_FRIENDS = [
-  {
-    id: '1',
-    name: 'Alex Mercer',
-    handle: '@alexm_gaming',
-    avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
-    isOnline: true,
-  },
-  {
-    id: '2',
-    name: 'Sarah K.',
-    handle: '@sarah_weeb',
-    avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e',
-    isOnline: false,
-  },
-  {
-    id: '3',
-    name: 'Marcus Chen',
-    handle: '@marcus_c',
-    avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704f',
-    isOnline: true,
-  },
-];
 
 export default function FriendsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [friends, setFriends] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadFriends();
+  }, []);
+
+  const loadFriends = async () => {
+    if (!auth.currentUser) return;
+    setLoading(true);
+    try {
+      const userFriends = await getUserFriends(auth.currentUser.uid);
+      setFriends(userFriends);
+    } catch (error) {
+      console.error('Failed to load friends:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = async (text) => {
     setSearchQuery(text);
     if (text.length > 2) {
       setIsSearching(true);
       const results = await searchUsersByHandle(text);
-      setSearchResults(results);
+      // Filter out the current user from search results
+      setSearchResults(results.filter(u => u.id !== auth.currentUser?.uid));
     } else {
       setIsSearching(false);
       setSearchResults([]);
@@ -61,8 +57,8 @@ export default function FriendsScreen() {
         {item.isOnline && <View style={styles.onlineBadge} />}
       </View>
       <View style={styles.friendInfo}>
-        <Text style={styles.friendName}>{item.nickname || item.name}</Text>
-        <Text style={styles.friendHandle}>{item.nickname ? `@${item.nickname}` : item.handle}</Text>
+        <Text style={styles.friendName}>{item.nickname || item.name || 'User'}</Text>
+        <Text style={styles.friendHandle}>{item.handle}</Text>
       </View>
       {isSearching && (
         <TouchableOpacity style={styles.addButtonSmall} onPress={() => handleAddFriend(item.id)}>
@@ -83,7 +79,7 @@ export default function FriendsScreen() {
           <Ionicons name="search" size={20} color="#94A3B8" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search by username..."
+            placeholder="Search by nickname..."
             placeholderTextColor="#94A3B8"
             value={searchQuery}
             onChangeText={handleSearch}
@@ -96,15 +92,25 @@ export default function FriendsScreen() {
 
       <View style={styles.listContainer}>
         <Text style={styles.sectionTitle}>
-          {isSearching ? `Search Results (${searchResults.length})` : `My Squad (${DUMMY_FRIENDS.length})`}
+          {isSearching ? `Search Results (${searchResults.length})` : `My Squad (${friends.length})`}
         </Text>
-        <FlatList
-          data={isSearching ? searchResults : DUMMY_FRIENDS}
-          keyExtractor={(item) => item.id}
-          renderItem={renderFriend}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        />
+        
+        {loading ? (
+          <ActivityIndicator size="large" color="#2C5282" style={{ marginTop: 20 }} />
+        ) : (
+          <FlatList
+            data={isSearching ? searchResults : friends}
+            keyExtractor={(item) => item.id}
+            renderItem={renderFriend}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={() => (
+              <Text style={{ textAlign: 'center', color: '#94A3B8', marginTop: 40 }}>
+                {isSearching ? 'No users found.' : 'You have no friends yet.'}
+              </Text>
+            )}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
