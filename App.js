@@ -13,7 +13,7 @@ import FriendsScreen from './screens/FriendsScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import SquadDetailScreen from './screens/SquadDetailScreen';
 
-import { FeedIcon, SquadIcon, ChatIcon } from '../components/CustomIcons';
+import { FeedIcon, SquadIcon, UsersIcon } from './components/CustomIcons';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -48,8 +48,8 @@ function MainTabs({ navigation }) {
         name="Friends" 
         component={FriendsScreen} 
         options={{ 
-          title: 'Chat',
-          tabBarIcon: ({ color, size }) => <ChatIcon color={color} size={size} />
+          title: 'Friends',
+          tabBarIcon: ({ color, size }) => <UsersIcon color={color} size={size} />
         }}
       />
       <Tab.Screen 
