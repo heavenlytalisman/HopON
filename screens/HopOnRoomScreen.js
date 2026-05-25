@@ -96,7 +96,7 @@ export default function HopOnRoomScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A', // Darker theme for the call room makes it feel serious
+    backgroundColor: '#F4F7FC', // Light theme background
   },
   header: {
     flexDirection: 'row',
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: '#2C5282',
   },
   gridContainer: {
     flexDirection: 'row',
@@ -155,12 +155,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: '#0F172A',
+    borderColor: '#F4F7FC',
   },
   memberName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#F8FAFC',
+    color: '#1E293B',
     marginBottom: 4,
   },
   memberStatus: {
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   waitingText: {
-    color: '#94A3B8',
+    color: '#64748B',
     fontSize: 14,
     marginBottom: 24,
   },
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     shadowColor: '#EF4444',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.3,
     shadowRadius: 10,
     elevation: 8,
     marginBottom: 12,

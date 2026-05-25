@@ -14,6 +14,7 @@ import ProfileScreen from './screens/ProfileScreen';
 import SquadDetailScreen from './screens/SquadDetailScreen';
 
 import HopOnRoomScreen from './screens/HopOnRoomScreen';
+import IncomingAlertScreen from './screens/IncomingAlertScreen';
 
 import { FeedIcon, SquadIcon, UsersIcon } from './components/CustomIcons';
 
@@ -81,7 +82,12 @@ export default function App() {
         <Stack.Screen 
           name="HopOnRoom" 
           component={HopOnRoomScreen}
-          options={{ presentation: 'fullScreenModal' }} // Make it feel like a call taking over the screen
+          options={{ presentation: 'fullScreenModal' }}
+        />
+        <Stack.Screen 
+          name="IncomingAlert" 
+          component={IncomingAlertScreen}
+          options={{ presentation: 'fullScreenModal', animation: 'fade' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

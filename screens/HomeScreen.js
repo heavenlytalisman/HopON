@@ -45,7 +45,7 @@ const DUMMY_POSTS = [
   }
 ];
 
-export default function HomeScreen({ route }) {
+export default function HomeScreen({ route, navigation }) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [postText, setPostText] = useState('');
@@ -119,6 +119,15 @@ export default function HomeScreen({ route }) {
         <Image source={{ uri: 'https://i.pravatar.cc/150?u=a042581f4e29026704z' }} style={styles.myAvatar} />
         <Text style={styles.headerTitle}>HopON</Text>
       </View>
+      
+      {/* Temporary Test Button for Phase 10 */}
+      <TouchableOpacity 
+        style={styles.testAlertButton} 
+        onPress={() => navigation.navigate('IncomingAlert')}
+      >
+        <Ionicons name="notifications-circle" size={20} color="#2C5282" />
+        <Text style={styles.testAlertText}>Test Incoming Alert</Text>
+      </TouchableOpacity>
       
       <View style={styles.composeBox}>
         <Image source={{ uri: 'https://i.pravatar.cc/150?u=a042581f4e29026704z' }} style={styles.composeAvatar} />
@@ -244,5 +253,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 4,
+  },
+  testAlertButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EBF8FF',
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#BEE3F8',
+  },
+  testAlertText: {
+    color: '#2C5282',
+    fontWeight: '700',
+    marginLeft: 8,
   },
 });
