@@ -4,6 +4,7 @@ import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 // Screens
 import LoginScreen from './screens/LoginScreen';
@@ -109,7 +110,8 @@ function MainTabs({ navigation }) {
 
 export default function App() {
   return (
-    <NavigationContainer>
+    <SafeAreaProvider>
+      <NavigationContainer>
       <StatusBar style="dark" />
       <Stack.Navigator 
         initialRouteName="Login"
@@ -135,7 +137,8 @@ export default function App() {
           options={{ presentation: 'fullScreenModal', animation: 'fade' }}
         />
       </Stack.Navigator>
-    </NavigationContainer>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
 
