@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { sendPushNotification } from '../services/NotificationService';
 import { auth, db } from '../firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
+import { getGroupMemberTokens } from '../services/FirebaseService';
 
 export default function SquadDetailScreen({ route, navigation }) {
   const { squadName } = route.params;
@@ -15,11 +16,12 @@ export default function SquadDetailScreen({ route, navigation }) {
       if (auth.currentUser) {
         const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
         const userData = userDoc.data();
-        if (userData && userData.pushToken) {
+        const tokens = await getGroupMemberTokens(route.params.squadId, auth.currentUser.uid);
+        for (const token of tokens) {
           await sendPushNotification(
-            userData.pushToken,
+            token,
             `HOP ON: ${squadName}`,
-            `${userData.nickname || 'Someone'} is deploying an alert to the squad!`,
+            `${userData?.nickname || 'Someone'} is deploying an alert to the squad!`,
             { screen: 'IncomingAlert' }
           );
         }

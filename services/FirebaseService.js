@@ -156,8 +156,8 @@ export const getGroupMemberTokens = async (groupId, excludeUid) => {
     for (const memberUid of members) {
       if (memberUid === excludeUid) continue; // Don't send to self
       const userDoc = await getDoc(doc(db, 'users', memberUid));
-      if (userDoc.exists() && userDoc.data().expoPushToken) {
-        tokens.push(userDoc.data().expoPushToken);
+      if (userDoc.exists() && userDoc.data().pushToken) {
+        tokens.push(userDoc.data().pushToken);
       }
     }
     return tokens;

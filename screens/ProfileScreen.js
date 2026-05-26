@@ -16,7 +16,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { auth } from '../firebaseConfig';
+import { auth, storage } from '../firebaseConfig';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { getUserProfile, updateUserProfile } from '../services/FirebaseService';
 
 export default function ProfileScreen({ navigation }) {
@@ -45,7 +46,7 @@ export default function ProfileScreen({ navigation }) {
         if (data.nickname) setNickname(data.nickname);
         if (data.avatar) setAvatarUri(data.avatar);
         // If handle doesn't exist, we fallback to formatting the nickname
-        setHandle(data.handle || `@${(data.nickname || 'user').toLowerCase().replace(/\\s+/g, '')}`);
+        setHandle(data.handle || `@${(data.nickname || 'user').toLowerCase().replace(/\s+/g, '')}`);
       }
     } catch (error) {
       console.error('Failed to load profile', error);
@@ -61,18 +62,24 @@ export default function ProfileScreen({ navigation }) {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.5,
-      base64: true, // Request base64 so we can easily save it to Firestore without Firebase Storage
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const asset = result.assets[0];
-      const base64Image = `data:image/jpeg;base64,${asset.base64}`;
-      setAvatarUri(base64Image);
+      setAvatarUri(asset.uri);
       
-      // Save to Firebase
+      // Save to Firebase Storage
       try {
-        await updateUserProfile(auth.currentUser.uid, { avatar: base64Image });
+        const response = await fetch(asset.uri);
+        const blob = await response.blob();
+        const fileRef = ref(storage, `avatars/${auth.currentUser.uid}`);
+        
+        await uploadBytes(fileRef, blob);
+        const downloadURL = await getDownloadURL(fileRef);
+        
+        await updateUserProfile(auth.currentUser.uid, { avatar: downloadURL });
       } catch (error) {
+        console.error('Error uploading avatar:', error);
         Alert.alert('Error', 'Failed to save avatar.');
       }
     }
@@ -84,7 +91,7 @@ export default function ProfileScreen({ navigation }) {
     
     try {
       const newNickname = tempNickname.trim();
-      const newHandle = `@${newNickname.toLowerCase().replace(/\\s+/g, '')}`;
+      const newHandle = `@${newNickname.toLowerCase().replace(/\s+/g, '')}`;
       
       await updateUserProfile(auth.currentUser.uid, { 
         nickname: newNickname,

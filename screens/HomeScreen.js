@@ -117,15 +117,7 @@ export default function HomeScreen({ route, navigation }) {
     <View style={styles.headerContainer}>
       {/* Removed redundant topBar as per user request */}
       
-      {/* Temporary Test Button for Phase 10 */}
-      <TouchableOpacity 
-        style={styles.testAlertButton} 
-        onPress={() => navigation.navigate('IncomingAlert')}
-      >
-        <Ionicons name="notifications-circle" size={20} color="#2C5282" />
-        <Text style={styles.testAlertText}>Test Incoming Alert</Text>
-      </TouchableOpacity>
-      
+
       <View style={styles.composeBox}>
         <Image source={{ uri: 'https://i.pravatar.cc/150?u=a042581f4e29026704z' }} style={styles.composeAvatar} />
         <TextInput 
@@ -251,20 +243,5 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
-  testAlertButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#EBF8FF',
-    paddingVertical: 10,
-    borderRadius: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#BEE3F8',
-  },
-  testAlertText: {
-    color: '#2C5282',
-    fontWeight: '700',
-    marginLeft: 8,
-  },
+
 });

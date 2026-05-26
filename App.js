@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { View, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
@@ -20,6 +20,38 @@ import HopOnRoomScreen from './screens/HopOnRoomScreen';
 import IncomingAlertScreen from './screens/IncomingAlertScreen';
 
 import { FeedIcon, SquadIcon, UsersIcon } from './components/CustomIcons';
+import { auth } from './firebaseConfig';
+import { getUserProfile } from './services/FirebaseService';
+
+function HeaderProfileButton() {
+  const navigation = useNavigation();
+  const [avatar, setAvatar] = useState(null);
+
+  useEffect(() => {
+    async function loadAvatar() {
+      if (auth.currentUser) {
+        const profile = await getUserProfile(auth.currentUser.uid);
+        if (profile?.avatar) {
+          setAvatar(profile.avatar);
+        }
+      }
+    }
+    loadAvatar();
+  }, []);
+
+  return (
+    <TouchableOpacity 
+      style={styles.headerProfileContainer} 
+      onPress={() => navigation.navigate('Profile')}
+    >
+      {avatar ? (
+        <Image source={{ uri: avatar }} style={styles.headerProfilePic} />
+      ) : (
+        <View style={styles.headerProfilePic} />
+      )}
+    </TouchableOpacity>
+  );
+}
 
 // Ensure notifications show up even when the app is active
 Notifications.setNotificationHandler({
@@ -40,11 +72,7 @@ function MainTabs({ navigation }) {
         headerStyle: { backgroundColor: '#FFFFFF', shadowColor: '#E2E8F0', elevation: 2 },
         headerTintColor: '#1E293B',
         headerTitleStyle: { fontWeight: 'bold' },
-        headerRight: () => (
-          <TouchableOpacity style={styles.headerProfileContainer} onPress={() => navigation.navigate('Profile')}>
-            <View style={styles.headerProfilePic} />
-          </TouchableOpacity>
-        ),
+        headerRight: () => <HeaderProfileButton />,
         tabBarStyle: { backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#F1F5F9', elevation: 10, height: 65, paddingBottom: 10, paddingTop: 10 },
         tabBarActiveTintColor: '#2C5282',
         tabBarInactiveTintColor: '#94A3B8',

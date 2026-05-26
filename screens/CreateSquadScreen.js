@@ -8,18 +8,22 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
-  Switch
+  ScrollView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { auth } from '../firebaseConfig';
+import { createGroup } from '../services/FirebaseService';
 
 export default function CreateSquadScreen({ navigation }) {
   const [squadName, setSquadName] = useState('');
   const [description, setDescription] = useState('');
-  const handleCreateSquad = () => {
-    // UI placeholder. In the future, this will push to Firebase.
-    console.log('Creating Squad:', { squadName, description, isPrivate: true });
-    navigation.goBack();
+  const handleCreateSquad = async () => {
+    try {
+      const groupId = await createGroup(squadName, auth.currentUser.uid);
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error creating squad:', error);
+    }
   };
 
   return (
