@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, SafeAreaView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Colors from '../constants/Colors';
 import { loginAnonymously, updateUserPushToken } from '../services/FirebaseService';
 import { registerForPushNotificationsAsync } from '../services/NotificationService';
 import { auth } from '../firebaseConfig';
@@ -36,11 +38,16 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.logoContainer}>
-          <Text style={styles.title}>HopON</Text>
-          <Text style={styles.subtitle}>Enter the arena.</Text>
-        </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAvoidingView 
+          style={styles.keyboardView} 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.content}>
+            <View style={styles.logoContainer}>
+              <Text style={styles.title}>HopON</Text>
+              <Text style={styles.subtitle}>Enter the arena.</Text>
+            </View>
 
         <View style={styles.card}>
           <Text style={styles.label}>Nickname</Text>
@@ -76,8 +83,10 @@ export default function LoginScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.footerText}>By entering, you agree to our terms of service.</Text>
-      </View>
+            <Text style={styles.footerText}>By entering, you agree to our terms of service.</Text>
+          </View>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
@@ -85,7 +94,10 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
+  },
+  keyboardView: {
+    flex: 1,
   },
   content: {
     flex: 1,
@@ -99,56 +111,56 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 42,
     fontWeight: '800',
-    color: '#2C5282',
+    color: Colors.primary,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#64748B',
+    color: Colors.subtext,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     borderRadius: 16,
     padding: 24,
-    shadowColor: '#E2E8F0',
+    shadowColor: Colors.border,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 1,
     shadowRadius: 24,
     elevation: 4,
     borderWidth: 1,
-    borderColor: '#F8FAFC',
+    borderColor: Colors.inputBackground,
     marginBottom: 32,
   },
   label: {
-    color: '#64748B',
+    color: Colors.subtext,
     marginBottom: 8,
     fontSize: 12,
     fontWeight: 'bold',
     textTransform: 'uppercase',
   },
   input: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.inputBackground,
     borderRadius: 8,
     padding: 16,
-    color: '#1E293B',
+    color: Colors.text,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.border,
     marginBottom: 24,
   },
   primaryButton: {
-    backgroundColor: '#2C5282',
+    backgroundColor: Colors.primary,
     paddingVertical: 16,
     borderRadius: 8,
     alignItems: 'center',
-    shadowColor: '#2C5282',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
   primaryButtonText: {
-    color: '#FFFFFF',
+    color: Colors.white,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -160,27 +172,27 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.divider,
   },
   dividerText: {
     marginHorizontal: 16,
-    color: '#94A3B8',
+    color: Colors.placeholder,
     fontSize: 14,
   },
   secondaryButton: {
-    backgroundColor: '#EBF8FF',
+    backgroundColor: Colors.primaryLight,
     paddingVertical: 16,
     borderRadius: 8,
     alignItems: 'center',
   },
   secondaryButtonText: {
-    color: '#2C5282',
+    color: Colors.primary,
     fontSize: 16,
     fontWeight: 'bold',
   },
   footerText: {
     textAlign: 'center',
-    color: '#94A3B8',
+    color: Colors.placeholder,
     fontSize: 12,
   },
 });

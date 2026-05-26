@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, Animated, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Animated, Dimensions, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Colors from '../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { db } from '../firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
@@ -15,7 +17,7 @@ export default function HopOnRoomScreen({ navigation, route }) {
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 0.6,
@@ -28,7 +30,9 @@ export default function HopOnRoomScreen({ navigation, route }) {
           useNativeDriver: true,
         }),
       ])
-    ).start();
+    );
+    loop.start();
+    return () => loop.stop();
   }, []);
 
   useEffect(() => {
@@ -67,10 +71,10 @@ export default function HopOnRoomScreen({ navigation, route }) {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'accepted': return '#10B981'; // Green
-      case 'denied': return '#EF4444'; // Red
-      case 'pending': return '#F59E0B'; // Orange
-      default: return '#94A3B8';
+      case 'accepted': return Colors.success;
+      case 'denied': return Colors.danger;
+      case 'pending': return Colors.warning;
+      default: return Colors.placeholder;
     }
   };
 
@@ -105,7 +109,7 @@ export default function HopOnRoomScreen({ navigation, route }) {
                     style={[styles.avatar, member.status === 'denied' && styles.avatarMuted]} 
                   />
                   <View style={[styles.statusBadge, { backgroundColor: getStatusColor(member.status) }]}>
-                    <Ionicons name={getStatusIcon(member.status)} size={14} color="#FFF" />
+                    <Ionicons name={getStatusIcon(member.status)} size={14} color={Colors.white} />
                   </View>
                 </View>
                 <Text style={styles.memberName} numberOfLines={1}>{member.name}</Text>
@@ -124,7 +128,7 @@ export default function HopOnRoomScreen({ navigation, route }) {
           style={styles.cancelButton} 
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="call" size={28} color="#FFF" style={styles.callIcon} />
+          <Ionicons name="call" size={28} color={Colors.white} style={styles.callIcon} />
         </TouchableOpacity>
         <Text style={styles.cancelText}>Cancel Alert</Text>
       </View>
@@ -135,7 +139,7 @@ export default function HopOnRoomScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F7FC',
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -148,13 +152,13 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#F59E0B',
+    backgroundColor: Colors.warning,
     marginRight: 10,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#2C5282',
+    color: Colors.primary,
   },
   gridContainer: {
     flexDirection: 'row',
@@ -194,12 +198,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: '#F4F7FC',
+    borderColor: Colors.background,
   },
   memberName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1E293B',
+    color: Colors.text,
     marginBottom: 4,
   },
   memberStatus: {
@@ -215,7 +219,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   waitingText: {
-    color: '#64748B',
+    color: Colors.subtext,
     fontSize: 14,
     marginBottom: 24,
   },
@@ -223,10 +227,10 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#EF4444',
+    backgroundColor: Colors.danger,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#EF4444',
+    shadowColor: Colors.danger,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
@@ -238,7 +242,7 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
   cancelText: {
-    color: '#EF4444',
+    color: Colors.danger,
     fontSize: 14,
     fontWeight: '600',
   },

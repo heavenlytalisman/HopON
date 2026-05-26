@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, Animated, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Animated, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Colors from '../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 
 const QUICK_REPLIES = [
@@ -20,7 +22,7 @@ export default function IncomingAlertScreen({ navigation, route }) {
   const [showQuickReplies, setShowQuickReplies] = useState(false);
 
   useEffect(() => {
-    Animated.loop(
+    const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 1.1,
@@ -33,7 +35,9 @@ export default function IncomingAlertScreen({ navigation, route }) {
           useNativeDriver: true,
         }),
       ])
-    ).start();
+    );
+    loop.start();
+    return () => loop.stop();
   }, []);
 
   const handleAccept = () => {
@@ -70,12 +74,12 @@ export default function IncomingAlertScreen({ navigation, route }) {
         {!showQuickReplies ? (
           <>
             <TouchableOpacity style={[styles.actionButton, styles.acceptButton]} onPress={handleAccept}>
-              <Ionicons name="call" size={32} color="#FFF" />
+              <Ionicons name="call" size={32} color={Colors.white} />
               <Text style={styles.actionTextWhite}>ACCEPT</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={[styles.actionButton, styles.denyButton]} onPress={handleDeny}>
-              <Ionicons name="close" size={32} color="#EF4444" />
+              <Ionicons name="close" size={32} color={Colors.danger} />
               <Text style={styles.actionTextRed}>DENY</Text>
             </TouchableOpacity>
           </>
@@ -106,7 +110,7 @@ export default function IncomingAlertScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F7FC',
+    backgroundColor: Colors.background,
     justifyContent: 'space-between',
   },
   header: {
@@ -116,7 +120,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#94A3B8',
+    color: Colors.placeholder,
     letterSpacing: 2,
     textTransform: 'uppercase',
   },
@@ -129,11 +133,11 @@ const styles = StyleSheet.create({
     height: 140,
     borderRadius: 70,
     borderWidth: 4,
-    borderColor: '#2C5282',
+    borderColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
-    backgroundColor: '#EBF8FF',
+    backgroundColor: Colors.primaryLight,
   },
   avatar: {
     width: 120,
@@ -143,13 +147,13 @@ const styles = StyleSheet.create({
   callerName: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#1E293B',
+    color: Colors.text,
     marginBottom: 8,
     textAlign: 'center',
   },
   squadName: {
     fontSize: 18,
-    color: '#64748B',
+    color: Colors.subtext,
     textAlign: 'center',
     fontWeight: '500',
     lineHeight: 24,
@@ -171,34 +175,34 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   acceptButton: {
-    backgroundColor: '#10B981', // Green
-    shadowColor: '#10B981',
+    backgroundColor: Colors.success,
+    shadowColor: Colors.success,
   },
   denyButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     borderWidth: 2,
     borderColor: '#FEE2E2',
-    shadowColor: '#EF4444',
+    shadowColor: Colors.danger,
   },
   actionTextWhite: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#FFF',
+    color: Colors.white,
     marginLeft: 12,
     letterSpacing: 1,
   },
   actionTextRed: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#EF4444',
+    color: Colors.danger,
     marginLeft: 12,
     letterSpacing: 1,
   },
   quickRepliesContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     borderRadius: 24,
     padding: 24,
-    shadowColor: '#94A3B8',
+    shadowColor: Colors.placeholder,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -207,7 +211,7 @@ const styles = StyleSheet.create({
   quickReplyPrompt: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1E293B',
+    color: Colors.text,
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -218,17 +222,17 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   replyChip: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Colors.divider,
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.border,
   },
   replyChipText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#475569',
+    color: Colors.subtextDark,
   },
   cancelReplyButton: {
     marginTop: 20,
@@ -236,7 +240,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelReplyText: {
-    color: '#94A3B8',
+    color: Colors.placeholder,
     fontSize: 14,
     fontWeight: '600',
   },

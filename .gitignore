@@ -41,3 +41,6 @@ yarn-error.*
 /android
 jdk17/
 jdk17.zip
+
+# local env files
+.env

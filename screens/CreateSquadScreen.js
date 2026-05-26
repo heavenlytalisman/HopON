@@ -4,14 +4,13 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  SafeAreaView, 
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   Switch,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Colors from '../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { createGroup } from '../services/FirebaseService';
 import { auth } from '../firebaseConfig';
@@ -30,7 +29,7 @@ export default function CreateSquadScreen({ navigation }) {
       navigation.goBack();
     } catch (error) {
       console.error('Failed to create squad:', error);
-      alert('Error creating squad. Please try again.');
+      Alert.alert('Error', 'Error creating squad. Please try again.');
       setIsCreating(false);
     }
   };
@@ -43,16 +42,21 @@ export default function CreateSquadScreen({ navigation }) {
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color="#1E293B" />
+            <Ionicons name="close" size={24} color={Colors.text} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Create Squad</Text>
           <View style={{ width: 40 }} /> {/* Spacer to center title */}
         </View>
 
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={styles.content} 
+          showsVerticalScrollIndicator={false}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+        >
           <View style={styles.iconContainer}>
             <View style={styles.iconCircle}>
-              <Ionicons name="people" size={40} color="#2C5282" />
+              <Ionicons name="people" size={40} color={Colors.primary} />
             </View>
           </View>
 
@@ -60,7 +64,7 @@ export default function CreateSquadScreen({ navigation }) {
           <TextInput
             style={styles.input}
             placeholder="e.g. Valorant Ranked Comp"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={Colors.placeholder}
             value={squadName}
             onChangeText={setSquadName}
             maxLength={30}
@@ -70,7 +74,7 @@ export default function CreateSquadScreen({ navigation }) {
           <TextInput
             style={[styles.input, styles.textArea]}
             placeholder="What are we playing today?"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={Colors.placeholder}
             value={description}
             onChangeText={setDescription}
             multiline
@@ -79,7 +83,7 @@ export default function CreateSquadScreen({ navigation }) {
           />
 
           <View style={styles.privateInfoContainer}>
-            <Ionicons name="lock-closed" size={20} color="#2C5282" />
+            <Ionicons name="lock-closed" size={20} color={Colors.primary} />
             <View style={styles.toggleTextContainer}>
               <Text style={styles.toggleLabel}>Invite-Only Squad</Text>
               <Text style={styles.toggleDescription}>
@@ -96,7 +100,7 @@ export default function CreateSquadScreen({ navigation }) {
             disabled={!squadName.trim() || isCreating}
           >
             {isCreating ? (
-              <ActivityIndicator color="#FFF" />
+              <ActivityIndicator color={Colors.white} />
             ) : (
               <Text style={styles.createButtonText}>Create Squad</Text>
             )}
@@ -110,7 +114,7 @@ export default function CreateSquadScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F7FC',
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -124,14 +128,14 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: Colors.avatarMuted,
     justifyContent: 'center',
     alignItems: 'center',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1E293B',
+    color: Colors.text,
   },
   content: {
     flex: 1,
@@ -145,7 +149,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#EBF8FF',
+    backgroundColor: Colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
@@ -154,21 +158,21 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#475569',
+    color: Colors.subtextDark,
     marginBottom: 8,
     marginLeft: 4,
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Colors.border,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: '#1E293B',
+    color: Colors.text,
     marginBottom: 24,
-    shadowColor: '#94A3B8',
+    shadowColor: Colors.placeholder,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 3,
@@ -181,7 +185,7 @@ const styles = StyleSheet.create({
   privateInfoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EBF8FF',
+    backgroundColor: Colors.primaryLight,
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
@@ -195,38 +199,38 @@ const styles = StyleSheet.create({
   toggleLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1E293B',
+    color: Colors.text,
     marginBottom: 4,
   },
   toggleDescription: {
     fontSize: 13,
-    color: '#64748B',
+    color: Colors.subtext,
     lineHeight: 18,
   },
   footer: {
     padding: 24,
-    backgroundColor: '#F4F7FC',
+    backgroundColor: Colors.background,
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+    borderTopColor: Colors.border,
   },
   createButton: {
-    backgroundColor: '#2C5282',
+    backgroundColor: Colors.primary,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#2C5282',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   createButtonDisabled: {
-    backgroundColor: '#94A3B8',
+    backgroundColor: Colors.placeholder,
     shadowOpacity: 0,
     elevation: 0,
   },
   createButtonText: {
-    color: '#FFFFFF',
+    color: Colors.white,
     fontSize: 16,
     fontWeight: 'bold',
   },

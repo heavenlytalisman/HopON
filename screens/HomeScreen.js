@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, StyleSheet, SafeAreaView, TouchableOpacity, Text, TextInput, Image, ActivityIndicator, Alert } from 'react-native';
+import { View, FlatList, StyleSheet, TouchableOpacity, Text, TextInput, Image, ActivityIndicator, Alert, Keyboard } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Colors from '../constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import FeedPost from '../components/FeedPost';
 import { createPost, subscribeToFeed } from '../services/FirebaseService';
@@ -87,7 +89,7 @@ export default function HomeScreen({ route, navigation }) {
         <TextInput 
           style={styles.composeInput}
           placeholder="What's on your mind?"
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={Colors.placeholder}
           value={postText}
           onChangeText={setPostText}
           multiline
@@ -100,9 +102,9 @@ export default function HomeScreen({ route, navigation }) {
             disabled={isPosting}
           >
             {isPosting ? (
-              <ActivityIndicator size="small" color="#FFF" />
+              <ActivityIndicator size="small" color={Colors.white} />
             ) : (
-              <Ionicons name="send" size={16} color="#FFF" />
+              <Ionicons name="send" size={16} color={Colors.white} />
             )}
           </TouchableOpacity>
         )}
@@ -114,7 +116,7 @@ export default function HomeScreen({ route, navigation }) {
     <SafeAreaView style={styles.container}>
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#2C5282" />
+          <ActivityIndicator size="large" color={Colors.primary} />
         </View>
       ) : (
         <FlatList
@@ -123,6 +125,8 @@ export default function HomeScreen({ route, navigation }) {
           renderItem={({ item }) => <FeedPost post={item} />}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
           ListHeaderComponent={renderHeader}
         />
       )}
@@ -133,7 +137,7 @@ export default function HomeScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F7FC',
+    backgroundColor: Colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -158,50 +162,50 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: Colors.avatarMuted,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#2C5282',
+    color: Colors.primary,
   },
   composeBox: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 12,
     alignItems: 'center',
-    shadowColor: '#94A3B8',
+    shadowColor: Colors.placeholder,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 2,
     borderWidth: 1,
-    borderColor: '#EBF8FF',
+    borderColor: Colors.primaryLight,
   },
   composeAvatar: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: Colors.avatarMuted,
     marginRight: 12,
   },
   composeInput: {
     flex: 1,
     fontSize: 16,
-    color: '#1E293B',
+    color: Colors.text,
     maxHeight: 100, // Limit height if multiline gets too big
   },
   postButton: {
-    backgroundColor: '#2C5282',
+    backgroundColor: Colors.primary,
     width: 36,
     height: 36,
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
-    shadowColor: '#2C5282',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
