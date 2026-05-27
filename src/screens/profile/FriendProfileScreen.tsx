@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, ScrollView, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -45,6 +45,7 @@ const MOCK_FRIEND_POSTS: FeedPostData[] = [
 
 export default function FriendProfileScreen({ route, navigation }: RootStackScreenProps<'FriendProfile'>) {
   const { friendId, friendName, friendAvatar } = route.params;
+  const [isFollowing, setIsFollowing] = useState(false);
 
   // Derive handle from name if not provided
   const friendHandle = `@${friendName.toLowerCase().replace(/\\s+/g, '')}`;
@@ -89,8 +90,14 @@ export default function FriendProfileScreen({ route, navigation }: RootStackScre
         <View style={styles.profileInfoContainer}>
           <View style={styles.avatarRow}>
             <Image source={{ uri: friendAvatar }} style={styles.avatar} />
-            <TouchableOpacity style={styles.actionButton}>
-              <Text style={styles.actionButtonText}>Invite to Squad</Text>
+            <TouchableOpacity 
+              style={[styles.actionButton, isFollowing && styles.actionButtonFollowing]} 
+              onPress={() => setIsFollowing(!isFollowing)}
+            >
+              {!isFollowing && <Ionicons name="person-add" size={16} color="#FFF" style={{ marginRight: 6 }} />}
+              <Text style={[styles.actionButtonText, isFollowing && styles.actionButtonTextFollowing]}>
+                {isFollowing ? 'Following' : 'Follow'}
+              </Text>
             </TouchableOpacity>
           </View>
           
@@ -189,15 +196,27 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.sm + 2,
     borderRadius: BorderRadius.pill,
     marginBottom: Spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 120,
+  },
+  actionButtonFollowing: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
   },
   actionButtonText: {
     color: '#FFF',
     fontWeight: 'bold',
     fontSize: 14,
+  },
+  actionButtonTextFollowing: {
+    color: Colors.textPrimary,
   },
   name: {
     fontSize: 24,
