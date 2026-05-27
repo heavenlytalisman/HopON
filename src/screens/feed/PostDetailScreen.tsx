@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Dimensions, Image, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import FeedPost from '../../components/feed/FeedPost';
-import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
+import { Colors, Spacing, BorderRadius } from '../../constants/theme';
+import { useAuth } from '../../context/AuthContext';
 import type { RootStackScreenProps, FeedPostData } from '../../types';
 
 const { width } = Dimensions.get('window');
@@ -14,50 +15,47 @@ const DEFAULT_MOCK_POST: FeedPostData = {
     handle: '@rahid',
     avatar: 'https://i.pravatar.cc/150?u=2',
   },
-  timestamp: 'Just now',
+  timestamp: '11:46 AM • Oct 11, 2022',
   content: 'Anyone down to run some duos? Need a solid teammate for the weekend grind!',
-  likes: 12,
-  comments: 3,
-  reposts: 0,
+  likes: 24600,
+  comments: 137,
+  reposts: 6550,
 };
 
-const MOCK_COMMENTS: FeedPostData[] = [
-  {
-    id: 'c1',
-    author: {
-      name: 'Viper',
-      handle: '@viper_main',
-      avatar: 'https://i.pravatar.cc/150?u=v',
-    },
-    timestamp: '5m',
-    content: 'I\'m down! Hop in my room when you\'re ready.',
-    likes: 2,
-    comments: 0,
-    reposts: 0,
+const MOCK_COMMENTS_THREAD: FeedPostData = {
+  id: 'c0',
+  author: {
+    name: 'Rahid',
+    handle: '@rahid',
+    avatar: 'https://i.pravatar.cc/150?u=2',
   },
-  {
-    id: 'c2',
-    author: {
-      name: 'Aman',
-      handle: '@aman007',
-      avatar: 'https://i.pravatar.cc/150?u=3',
-    },
-    timestamp: '12m',
-    content: 'Bruh I would but I\'m stuck at work rn 😭',
-    likes: 5,
-    comments: 0,
-    reposts: 0,
-  }
-];
+  timestamp: '1m',
+  content: 'Just hopped on! Join my squad.',
+  likes: 2,
+  comments: 0,
+  reposts: 0,
+  thread: [
+    {
+      id: 'c1',
+      author: {
+        name: 'Rahid',
+        handle: '@rahid',
+        avatar: 'https://i.pravatar.cc/150?u=2',
+      },
+      timestamp: 'Just now',
+      content: 'Room is almost full, grab the last spot!',
+      likes: 1,
+      comments: 0,
+      reposts: 0,
+    }
+  ]
+};
 
 export default function PostDetailScreen({ route, navigation }: RootStackScreenProps<'PostDetail'>) {
   const { mockData } = route.params;
+  const { profile } = useAuth();
 
-  // Inject comments into the post as nested replies
-  const threadPost: FeedPostData = {
-    ...(mockData || DEFAULT_MOCK_POST),
-    replies: MOCK_COMMENTS,
-  };
+  const post: FeedPostData = mockData || DEFAULT_MOCK_POST;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -69,19 +67,28 @@ export default function PostDetailScreen({ route, navigation }: RootStackScreenP
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <FeedPost post={threadPost} />
-      </ScrollView>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Main Post (Detail Variant) */}
+        <FeedPost post={post} variant="detail" />
 
-      {/* Floating Reply Input placeholder */}
-      <View style={styles.replyInputContainer}>
-        <View style={styles.replyInput}>
-          <Text style={styles.replyPlaceholder}>Post your reply...</Text>
+        {/* Inline Reply Input (X Style) */}
+        <View style={styles.inlineReplyContainer}>
+          <Image source={{ uri: profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z' }} style={styles.replyAvatar} />
+          <TextInput 
+            style={styles.replyInputBox}
+            placeholder="Post your reply!"
+            placeholderTextColor={Colors.textMuted}
+          />
+          <TouchableOpacity style={styles.replyButtonSmall}>
+            <Text style={styles.replyButtonTextSmall}>Reply</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.replyButton}>
-          <Text style={styles.replyButtonText}>Reply</Text>
-        </TouchableOpacity>
-      </View>
+
+        {/* Replies */}
+        <View style={styles.repliesSection}>
+           <FeedPost post={MOCK_COMMENTS_THREAD} variant="feed" />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -113,40 +120,38 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.textPrimary,
   },
-  scrollContent: {
-    padding: Spacing.md,
-  },
-  replyInputContainer: {
+  inlineReplyContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    padding: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
     backgroundColor: Colors.surface,
   },
-  replyInput: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    borderRadius: BorderRadius.pill,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+  replyAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     marginRight: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
   },
-  replyPlaceholder: {
-    color: Colors.textMuted,
-    fontSize: 14,
+  replyInputBox: {
+    flex: 1,
+    color: Colors.textPrimary,
+    fontSize: 16,
   },
-  replyButton: {
+  replyButtonSmall: {
     backgroundColor: Colors.primary,
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingVertical: 8,
     borderRadius: BorderRadius.pill,
+    marginLeft: Spacing.md,
   },
-  replyButtonText: {
+  replyButtonTextSmall: {
     color: '#FFF',
     fontWeight: 'bold',
     fontSize: 14,
+  },
+  repliesSection: {
+    paddingTop: Spacing.sm,
   }
 });

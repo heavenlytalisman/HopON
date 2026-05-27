@@ -7,9 +7,10 @@ import type { FeedPostData } from '../../types';
 interface FeedPostProps {
   post: FeedPostData;
   depth?: number;
+  variant?: 'feed' | 'detail';
 }
 
-export default function FeedPost({ post, depth = 0 }: FeedPostProps) {
+export default function FeedPost({ post, depth = 0, variant = 'feed' }: FeedPostProps) {
   const { author, timestamp, content, mediaType, mediaData } = post;
   
   // Cap depth to prevent squishing on narrow screens
@@ -63,6 +64,57 @@ export default function FeedPost({ post, depth = 0 }: FeedPostProps) {
     }
   };
 
+  const hasThread = post.thread && post.thread.length > 0;
+  const hasReplies = post.replies && post.replies.length > 0;
+
+  if (variant === 'detail') {
+    return (
+      <View style={styles.detailContainer}>
+        <View style={styles.detailHeader}>
+          <Image source={{ uri: author.avatar }} style={styles.avatar} />
+          <View style={styles.detailAuthorInfo}>
+            <Text style={styles.authorName}>{author.name}</Text>
+            <Text style={styles.authorHandle}>{author.handle}</Text>
+          </View>
+          <TouchableOpacity style={{ marginLeft: 'auto' }}>
+            <Ionicons name="ellipsis-horizontal" size={20} color={Colors.textMuted} />
+          </TouchableOpacity>
+        </View>
+
+        {content ? <Text style={styles.detailBodyText}>{content}</Text> : null}
+        
+        {renderMedia(mediaType as any, mediaData)}
+
+        <View style={styles.detailTimestampRow}>
+          <Text style={styles.timestamp}>{timestamp} • HopON Web</Text>
+        </View>
+
+        <View style={styles.detailStatsRow}>
+          <Text style={styles.statText}><Text style={styles.statNumber}>{post.reposts || 0}</Text> Reposts</Text>
+          <Text style={styles.statText}><Text style={styles.statNumber}>{post.comments || 0}</Text> Quotes</Text>
+          <Text style={styles.statText}><Text style={styles.statNumber}>{post.likes || 0}</Text> Likes</Text>
+        </View>
+
+        <View style={styles.detailActionBar}>
+          <TouchableOpacity style={styles.actionIcon}>
+            <Ionicons name="chatbubble-outline" size={24} color={Colors.textMuted} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionIcon}>
+            <Ionicons name="repeat-outline" size={26} color={Colors.textMuted} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionIcon}>
+            <Ionicons name="heart-outline" size={24} color={Colors.secondary} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionIcon}>
+            <Ionicons name="arrow-redo-outline" size={24} color={Colors.textMuted} />
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // --- Feed Variant Below ---
+
   const renderSinglePost = (p: FeedPostData, isLast: boolean, isThreadChild = false) => {
     return (
       <View key={p.id} style={[styles.singlePostRow, isThreadChild && { marginTop: Spacing.md }]}>
@@ -78,6 +130,9 @@ export default function FeedPost({ post, depth = 0 }: FeedPostProps) {
             <Text style={styles.authorHandle}>{p.author.handle}</Text>
             <Text style={styles.dot}>•</Text>
             <Text style={styles.timestamp}>{p.timestamp}</Text>
+            <TouchableOpacity style={{ marginLeft: 'auto' }}>
+              <Ionicons name="ellipsis-horizontal" size={16} color={Colors.textMuted} />
+            </TouchableOpacity>
           </View>
 
           {p.content ? <Text style={styles.bodyText}>{p.content}</Text> : null}
@@ -86,28 +141,25 @@ export default function FeedPost({ post, depth = 0 }: FeedPostProps) {
 
           <View style={styles.actionBar}>
             <TouchableOpacity style={styles.actionIcon}>
-              <Ionicons name="chatbubble-outline" size={20} color={Colors.textMuted} />
+              <Ionicons name="chatbubble-outline" size={18} color={Colors.textMuted} />
               <Text style={styles.actionCount}>{p.comments || 0}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionIcon}>
-              <Ionicons name="repeat-outline" size={22} color={Colors.textMuted} />
+              <Ionicons name="repeat-outline" size={20} color={Colors.textMuted} />
               <Text style={styles.actionCount}>{p.reposts || 0}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionIcon}>
-              <Ionicons name="heart-outline" size={22} color={Colors.secondary} />
+              <Ionicons name="heart-outline" size={20} color={Colors.secondary} />
               <Text style={[styles.actionCount, { color: Colors.secondary }]}>{p.likes || 0}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionIcon}>
-              <Ionicons name="arrow-redo-outline" size={24} color={Colors.textMuted} />
+              <Ionicons name="arrow-redo-outline" size={20} color={Colors.textMuted} />
             </TouchableOpacity>
           </View>
         </View>
       </View>
     );
   };
-
-  const hasThread = post.thread && post.thread.length > 0;
-  const hasReplies = post.replies && post.replies.length > 0;
 
   return (
     <View style={[
@@ -124,13 +176,11 @@ export default function FeedPost({ post, depth = 0 }: FeedPostProps) {
       {/* Nested Replies Rendering (Child threads with branching lines) */}
       {hasReplies && (
         <View style={styles.repliesContainer}>
-          {/* Vertical branching line representing the reply tree */}
           <View style={styles.branchLine} />
           {post.replies!.map(reply => (
             <View key={reply.id} style={styles.replyWrapper}>
-              {/* Horizontal notch connecting the vertical line to the reply */}
               <View style={styles.branchNotch} />
-              <FeedPost post={reply} depth={currentDepth + 1} />
+              <FeedPost post={reply} depth={currentDepth + 1} variant="feed" />
             </View>
           ))}
         </View>
@@ -157,6 +207,55 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     marginTop: Spacing.md,
   },
+  
+  // Detail Layout Styles
+  detailContainer: {
+    padding: Spacing.lg,
+    backgroundColor: Colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  detailHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  detailAuthorInfo: {
+    marginLeft: Spacing.md,
+  },
+  detailBodyText: {
+    color: '#E2E8F0',
+    fontSize: 20, // Larger text for detail view
+    lineHeight: 28,
+    marginBottom: Spacing.lg,
+  },
+  detailTimestampRow: {
+    paddingVertical: Spacing.md,
+  },
+  detailStatsRow: {
+    flexDirection: 'row',
+    paddingVertical: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    gap: Spacing.lg,
+  },
+  statNumber: {
+    fontWeight: 'bold',
+    color: Colors.textPrimary,
+  },
+  statText: {
+    color: Colors.textMuted,
+    fontSize: 14,
+  },
+  detailActionBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingTop: Spacing.md,
+  },
+
+  // Feed Layout Styles
   singlePostRow: {
     flexDirection: 'row',
   },
