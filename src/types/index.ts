@@ -122,6 +122,7 @@ export type RootStackParamList = {
   HopOnRoom: { squadName: string };
   IncomingAlert: { caller?: CallerInfo } | undefined;
   QuickSquadSelect: undefined;
+  FriendProfile: { friendId: string; friendName: string; friendAvatar: string };
 };
 
 export type MainTabParamList = {

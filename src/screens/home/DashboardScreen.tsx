@@ -10,11 +10,17 @@ import type { MainTabScreenProps } from '../../types';
 const { width } = Dimensions.get('window');
 
 const MOCK_ONLINE = [
-  { id: '1', name: 'Vasif', status: 'In a Room', statusColor: Colors.primaryLight, icon: 'mic', avatar: 'https://i.pravatar.cc/150?u=1' },
+  { id: '1', name: 'Vasif', status: 'Online', statusColor: Colors.success, avatar: 'https://i.pravatar.cc/150?u=1' },
   { id: '2', name: 'Rahid', status: 'Online', statusColor: Colors.success, avatar: 'https://i.pravatar.cc/150?u=2' },
   { id: '3', name: 'Aman', status: 'Online', statusColor: Colors.success, avatar: 'https://i.pravatar.cc/150?u=3' },
-  { id: '4', name: 'Prem', status: 'In Game', statusColor: Colors.primaryLight, avatar: 'https://i.pravatar.cc/150?u=4' },
+  { id: '4', name: 'Prem', status: 'Online', statusColor: Colors.success, avatar: 'https://i.pravatar.cc/150?u=4' },
   { id: '5', name: 'Karan', status: 'Online', statusColor: Colors.success, avatar: 'https://i.pravatar.cc/150?u=5' },
+];
+
+const MOCK_FRIENDS = [
+  ...MOCK_ONLINE,
+  { id: '6', name: 'Jake', status: 'Offline', statusColor: Colors.textMuted, avatar: 'https://i.pravatar.cc/150?u=6' },
+  { id: '7', name: 'Mia', status: 'Offline', statusColor: Colors.textMuted, avatar: 'https://i.pravatar.cc/150?u=7' },
 ];
 
 const MOCK_ROOMS = [
@@ -41,6 +47,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
   const [showSOS, setShowSOS] = useState(false);
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showFriends, setShowFriends] = useState(false);
   
   const displayAvatar = profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z';
 
@@ -126,7 +133,9 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
         {/* Friends Online */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Friends Online <Text style={{color: Colors.success, fontSize: 12}}>● 6 Online</Text></Text>
-          <TouchableOpacity><Text style={styles.seeAllText}>See all</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowFriends(true)}>
+            <Text style={styles.seeAllText}>See all</Text>
+          </TouchableOpacity>
         </View>
         
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalList}>
@@ -288,6 +297,39 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
                     <Text style={styles.notificationTime}>{notif.time}</Text>
                   </View>
                   {!notif.read && <View style={styles.unreadDot} />}
+                </View>
+              ))}
+            </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Friends Modal */}
+      <Modal
+        visible={showFriends}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowFriends(false)}
+      >
+        <TouchableOpacity style={styles.notificationsOverlay} activeOpacity={1} onPress={() => setShowFriends(false)}>
+          <TouchableOpacity activeOpacity={1} style={styles.notificationsContainer}>
+            <View style={styles.notificationsHeader}>
+              <Text style={styles.notificationsTitle}>Friends</Text>
+              <TouchableOpacity onPress={() => setShowFriends(false)}>
+                <Ionicons name="close" size={24} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: Spacing.xl }}>
+              {MOCK_FRIENDS.map((friend) => (
+                <View key={friend.id} style={styles.friendListItem}>
+                  <View style={[styles.avatarRing, { borderColor: friend.statusColor, width: 44, height: 44, marginBottom: 0, marginRight: Spacing.md }]}>
+                    <Image source={{ uri: friend.avatar }} style={[styles.onlineAvatar, { width: 36, height: 36, borderRadius: 18 }]} />
+                    <View style={styles.statusDot} />
+                  </View>
+                  <View style={styles.friendListInfo}>
+                    <Text style={styles.friendListName}>{friend.name}</Text>
+                    <Text style={[styles.friendListStatus, { color: friend.statusColor }]}>{friend.status}</Text>
+                  </View>
                 </View>
               ))}
             </ScrollView>
@@ -877,5 +919,27 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: '#7C3AED',
+  },
+  friendListItem: {
+    flexDirection: 'row',
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1E293B',
+    alignItems: 'center',
+  },
+  friendListInfo: {
+    flex: 1,
+  },
+  friendListName: {
+    color: Colors.textPrimary,
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  friendListStatus: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  friendListAction: {
+    padding: Spacing.sm,
   },
 });
