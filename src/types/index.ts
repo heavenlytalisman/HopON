@@ -11,6 +11,8 @@ export interface User {
   nickname: string;
   handle?: string;
   avatar?: string;
+  banner?: string;
+  bio?: string;
   pushToken?: string;
   createdAt: Date | string;
   updatedAt?: string;

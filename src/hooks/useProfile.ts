@@ -68,10 +68,53 @@ export function useProfile() {
     }
   };
 
+  const updateProfileDetails = async (details: { nickname?: string; bio?: string; bannerUri?: string }): Promise<boolean> => {
+    if (!firebaseUser) return false;
+    
+    try {
+      const updates: Partial<User> = {};
+      
+      if (details.nickname && details.nickname.trim() !== '') {
+        const trimmed = details.nickname.trim();
+        updates.nickname = trimmed;
+        updates.handle = `@${trimmed.toLowerCase().replace(/\s+/g, '')}`;
+      }
+      
+      if (details.bio !== undefined) {
+        updates.bio = details.bio.trim();
+      }
+
+      if (details.bannerUri) {
+        // Upload banner to Firebase Storage
+        const response = await fetch(details.bannerUri);
+        const blob = await response.blob();
+        const fileRef = ref(storage, `banners/${firebaseUser.uid}`);
+        await uploadBytes(fileRef, blob);
+        const downloadURL = await getDownloadURL(fileRef);
+        updates.banner = downloadURL;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        const success = await updateUserProfile(firebaseUser.uid, updates);
+        if (success) {
+          setProfile((prev) => prev ? { ...prev, ...updates } : prev);
+          await refreshProfile();
+        }
+        return success;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error updating profile details:', error);
+      Alert.alert('Error', 'Failed to update profile details.');
+      return false;
+    }
+  };
+
   const getHandle = (): string => {
     if (profile?.handle) return profile.handle;
     return `@${(profile?.nickname || 'user').toLowerCase().replace(/\s+/g, '')}`;
   };
 
-  return { profile, loading, updateNickname, updateAvatar, getHandle, refreshProfile: loadProfile };
+  return { profile, loading, updateNickname, updateAvatar, updateProfileDetails, getHandle, refreshProfile: loadProfile };
 }

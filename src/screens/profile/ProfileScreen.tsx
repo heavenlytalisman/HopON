@@ -1,57 +1,58 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, Switch, Alert, Modal, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, Alert, Modal, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useProfile } from '../../hooks/useProfile';
 import { useAuth } from '../../context/AuthContext';
-import { useResponsive } from '../../hooks/useResponsive';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
-import type { MainTabScreenProps } from '../../types';
+import FeedPost from '../../components/feed/FeedPost';
+import type { MainTabScreenProps, FeedPostData } from '../../types';
 
 export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profile'>) {
-  const [pushEnabled, setPushEnabled] = useState(true);
-  const { profile, loading, updateNickname, updateAvatar, getHandle } = useProfile();
+  const { profile, loading, updateAvatar, updateProfileDetails, getHandle } = useProfile();
   const { logout } = useAuth();
-  const { contentWidth, horizontalPadding } = useResponsive();
 
-  const [isModalVisible, setModalVisible] = useState(false);
+  const [isEditModalVisible, setEditModalVisible] = useState(false);
+  const [isSettingsVisible, setSettingsVisible] = useState(false);
+
   const [tempNickname, setTempNickname] = useState('');
+  const [tempBio, setTempBio] = useState('');
+  const [tempBannerUri, setTempBannerUri] = useState<string | null>(null);
+  const [tempAvatarUri, setTempAvatarUri] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [avatarUri, setAvatarUri] = useState<string | null>(null);
 
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.5,
-    });
-
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      const asset = result.assets[0];
-      setAvatarUri(asset.uri);
-      await updateAvatar(asset.uri);
+  // Mock Feed for the user's profile
+  const MOCK_MY_POSTS: FeedPostData[] = [
+    {
+      id: 'mp1',
+      author: {
+        name: profile?.nickname || 'User',
+        handle: getHandle(),
+        avatar: profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z',
+      },
+      timestamp: '2h',
+      content: 'Just updated my profile! HopON is looking clean today.',
+      likes: 12,
+      comments: 3,
+      reposts: 1,
+    },
+    {
+      id: 'mp2',
+      author: {
+        name: profile?.nickname || 'User',
+        handle: getHandle(),
+        avatar: profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z',
+      },
+      timestamp: '1d',
+      content: 'Anyone free for a quick ranked session?',
+      likes: 5,
+      comments: 1,
+      reposts: 0,
     }
-  };
-
-  const handleSaveNickname = async () => {
-    if (!tempNickname.trim()) return;
-    setIsSaving(true);
-    try {
-      const success = await updateNickname(tempNickname.trim());
-      if (success) {
-        setModalVisible(false);
-      } else {
-        Alert.alert('Error', 'Failed to update nickname.');
-      }
-    } catch {
-      Alert.alert('Error', 'Failed to update nickname.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  ];
 
   const handleLogout = () => {
+    setSettingsVisible(false);
     Alert.alert('Log Out', 'Are you sure you want to log out?', [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -65,99 +66,290 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
     ]);
   };
 
-  const displayAvatar = avatarUri || profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z';
+  const openEditModal = () => {
+    setTempNickname(profile?.nickname || '');
+    setTempBio(profile?.bio || '');
+    setTempBannerUri(null);
+    setTempAvatarUri(null);
+    setEditModalVisible(true);
+  };
+
+  const pickBanner = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.5,
+    });
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setTempBannerUri(result.assets[0].uri);
+    }
+  };
+
+  const pickAvatar = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+    });
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setTempAvatarUri(result.assets[0].uri);
+    }
+  };
+
+  const saveProfile = async () => {
+    setIsSaving(true);
+    try {
+      // If a new avatar was picked, update it via the dedicated hook method
+      if (tempAvatarUri) {
+        await updateAvatar(tempAvatarUri);
+      }
+      
+      // Update other details
+      const success = await updateProfileDetails({
+        nickname: tempNickname,
+        bio: tempBio,
+        bannerUri: tempBannerUri || undefined,
+      });
+
+      if (success) {
+        setEditModalVisible(false);
+      }
+    } catch {
+      Alert.alert('Error', 'Failed to save profile changes.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const displayAvatar = profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z';
+  const displayBanner = profile?.banner || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f'; // Fallback retro gaming pattern
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color={Colors.primaryLight} style={{ flex: 1 }} />
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={[styles.content, { paddingHorizontal: horizontalPadding, maxWidth: contentWidth, alignSelf: 'center', width: '100%' }]}>
-        {loading ? (
-          <ActivityIndicator size="large" color={Colors.primaryLight} style={{ marginTop: 20 }} />
-        ) : (
-          <>
-            <View style={styles.headerArea}>
-              <TouchableOpacity style={styles.avatarContainer} onPress={pickImage}>
-                <Image source={{ uri: displayAvatar }} style={styles.avatar} />
-                <View style={styles.editBadge}>
-                  <Ionicons name="camera" size={14} color="#FFF" />
-                </View>
+    <View style={styles.container}>
+      {/* Scrollable Profile Content */}
+      <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
+        
+        {/* Banner Section */}
+        <View style={styles.bannerContainer}>
+          <Image source={{ uri: displayBanner }} style={styles.bannerImage} />
+          <View style={styles.headerOverlay}>
+            <SafeAreaView style={styles.safeHeaderRow}>
+              <View style={{ flex: 1 }} />
+              <TouchableOpacity style={styles.iconButton} onPress={() => setSettingsVisible(true)}>
+                <Ionicons name="settings-sharp" size={24} color="#FFF" />
               </TouchableOpacity>
-              <Text style={styles.userName}>{profile?.nickname || 'User'}</Text>
-              <Text style={styles.userHandle}>{getHandle()}</Text>
-            </View>
+            </SafeAreaView>
+          </View>
+        </View>
 
-            <View style={styles.settingsCard}>
-              <TouchableOpacity style={styles.settingRow} onPress={() => { setTempNickname(profile?.nickname || ''); setModalVisible(true); }}>
-                <View style={styles.settingIconBox}><Ionicons name="person" size={18} color={Colors.primaryLight} /></View>
-                <Text style={styles.settingText}>Change Nickname</Text>
-                <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.settingRow} onPress={pickImage}>
-                <View style={styles.settingIconBox}><Ionicons name="image" size={18} color={Colors.primaryLight} /></View>
-                <Text style={styles.settingText}>Change Avatar</Text>
-                <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
-              </TouchableOpacity>
-              <View style={styles.settingRow}>
-                <View style={styles.settingIconBox}><Ionicons name="notifications" size={18} color={Colors.primaryLight} /></View>
-                <Text style={styles.settingText}>Push Notifications</Text>
-                <Switch trackColor={{ false: Colors.borderLight, true: Colors.primary }} thumbColor="#FFFFFF" ios_backgroundColor={Colors.borderLight} onValueChange={setPushEnabled} value={pushEnabled} />
-              </View>
-              <TouchableOpacity style={[styles.settingRow, {borderBottomWidth: 0}]} onPress={() => Alert.alert('Settings', 'App settings menu not yet implemented.')}>
-                <View style={styles.settingIconBox}><Ionicons name="settings" size={18} color={Colors.primaryLight} /></View>
-                <Text style={styles.settingText}>App Settings</Text>
-                <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
-              </TouchableOpacity>
+        {/* Profile Info Section */}
+        <View style={styles.infoSection}>
+          <View style={styles.avatarRow}>
+            <View style={styles.avatarWrapper}>
+              <Image source={{ uri: displayAvatar }} style={styles.avatar} />
             </View>
-
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-              <Ionicons name="log-out-outline" size={20} color={Colors.error} style={{marginRight: 8}} />
-              <Text style={styles.logoutText}>Log Out</Text>
+            <TouchableOpacity style={styles.editProfileBtn} onPress={openEditModal}>
+              <Text style={styles.editProfileBtnText}>Edit profile</Text>
             </TouchableOpacity>
-          </>
-        )}
-      </View>
+          </View>
 
-      <Modal visible={isModalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
-        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Change Nickname</Text>
-            <TextInput style={styles.modalInput} value={tempNickname} onChangeText={setTempNickname} placeholder="Enter new nickname" placeholderTextColor={Colors.textMuted} autoFocus maxLength={20} />
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.modalButtonCancel} onPress={() => setModalVisible(false)}>
-                <Text style={styles.modalButtonTextCancel}>Cancel</Text>
+          <View style={styles.textDetails}>
+            <Text style={styles.userName}>{profile?.nickname || 'User'}</Text>
+            <Text style={styles.userHandle}>{getHandle()}</Text>
+            
+            {profile?.bio ? (
+              <Text style={styles.bioText}>{profile.bio}</Text>
+            ) : null}
+
+            <View style={styles.statsRow}>
+              <TouchableOpacity style={styles.statBox}>
+                <Text style={styles.statCount}>24</Text>
+                <Text style={styles.statLabel}>Following</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.modalButtonSave} onPress={handleSaveNickname} disabled={isSaving}>
-                {isSaving ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={styles.modalButtonTextSave}>Save</Text>}
+              <TouchableOpacity style={styles.statBox}>
+                <Text style={styles.statCount}>108</Text>
+                <Text style={styles.statLabel}>Followers</Text>
               </TouchableOpacity>
             </View>
           </View>
+        </View>
+
+        {/* Tabs Row */}
+        <View style={styles.tabsRow}>
+          <View style={[styles.tabItem, styles.tabItemActive]}>
+            <Text style={[styles.tabText, styles.tabTextActive]}>Posts</Text>
+          </View>
+          <View style={styles.tabItem}>
+            <Text style={styles.tabText}>Replies</Text>
+          </View>
+          <View style={styles.tabItem}>
+            <Text style={styles.tabText}>Media</Text>
+          </View>
+        </View>
+
+        {/* Feed Section */}
+        <View style={styles.feedSection}>
+          {MOCK_MY_POSTS.map(p => (
+            <TouchableOpacity 
+              key={p.id}
+              activeOpacity={0.9} 
+              onPress={() => navigation.getParent()?.navigate('PostDetail', { postId: p.id, mockData: p })}
+            >
+              <FeedPost post={p} variant="feed" />
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
+
+      {/* Edit Profile Modal */}
+      <Modal visible={isEditModalVisible} transparent animationType="slide" onRequestClose={() => setEditModalVisible(false)}>
+        <KeyboardAvoidingView style={styles.modalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <View style={styles.editModalContainer}>
+            <View style={styles.editModalHeader}>
+              <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+                <Text style={styles.headerBtnText}>Cancel</Text>
+              </TouchableOpacity>
+              <Text style={styles.modalTitleText}>Edit Profile</Text>
+              <TouchableOpacity onPress={saveProfile} disabled={isSaving}>
+                {isSaving ? <ActivityIndicator size="small" color={Colors.primary} /> : <Text style={[styles.headerBtnText, {color: Colors.primary, fontWeight: 'bold'}]}>Save</Text>}
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.editBannerContainer}>
+                <Image source={{ uri: tempBannerUri || displayBanner }} style={styles.editBannerImage} />
+                <TouchableOpacity style={styles.cameraIconOverlay} onPress={pickBanner}>
+                  <Ionicons name="camera" size={24} color="#FFF" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.editAvatarWrapper}>
+                <Image source={{ uri: tempAvatarUri || displayAvatar }} style={styles.editAvatarImage} />
+                <TouchableOpacity style={styles.cameraIconOverlay} onPress={pickAvatar}>
+                  <Ionicons name="camera" size={24} color="#FFF" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.editForm}>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Name</Text>
+                  <TextInput 
+                    style={styles.textInput} 
+                    value={tempNickname} 
+                    onChangeText={setTempNickname} 
+                    maxLength={30} 
+                    placeholderTextColor={Colors.textMuted}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Bio</Text>
+                  <TextInput 
+                    style={[styles.textInput, styles.bioInput]} 
+                    value={tempBio} 
+                    onChangeText={setTempBio} 
+                    maxLength={160} 
+                    multiline 
+                    placeholder="Add a bio to your profile"
+                    placeholderTextColor={Colors.textMuted}
+                  />
+                </View>
+              </View>
+            </ScrollView>
+          </View>
         </KeyboardAvoidingView>
       </Modal>
-    </SafeAreaView>
+
+      {/* Settings Action Sheet Modal */}
+      <Modal visible={isSettingsVisible} transparent animationType="fade" onRequestClose={() => setSettingsVisible(false)}>
+        <TouchableOpacity style={styles.actionSheetOverlay} activeOpacity={1} onPress={() => setSettingsVisible(false)}>
+          <View style={styles.actionSheet}>
+            <View style={styles.actionSheetHandle} />
+            <Text style={styles.actionSheetTitle}>Settings</Text>
+            
+            <TouchableOpacity style={styles.actionSheetItem} onPress={() => { setSettingsVisible(false); Alert.alert('Settings', 'App Settings not yet implemented.'); }}>
+              <Ionicons name="settings-outline" size={24} color={Colors.textPrimary} style={styles.actionSheetIcon} />
+              <Text style={styles.actionSheetText}>App Settings</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionSheetItem} onPress={handleLogout}>
+              <Ionicons name="log-out-outline" size={24} color={Colors.error} style={styles.actionSheetIcon} />
+              <Text style={[styles.actionSheetText, { color: Colors.error }]}>Log Out</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  content: { flex: 1, paddingTop: Spacing.xl },
-  headerArea: { alignItems: 'center', marginTop: Spacing.xxl, marginBottom: Spacing.xxxl },
-  avatarContainer: { position: 'relative', marginBottom: Spacing.md },
-  avatar: { width: 100, height: 100, borderRadius: 50, borderWidth: 3, borderColor: '#1E293B', backgroundColor: Colors.surfaceAlt },
-  editBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: Colors.primary, width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: Colors.background },
-  userName: { fontSize: 28, fontWeight: 'bold', color: Colors.textPrimary, marginBottom: 4 },
-  userHandle: { fontSize: FontSizes.md, color: Colors.textMuted },
-  settingsCard: { backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, paddingHorizontal: Spacing.lg, borderWidth: 1, borderColor: Colors.border, marginBottom: Spacing.xxxl },
-  settingRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.lg, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  settingIconBox: { width: 36, height: 36, borderRadius: BorderRadius.sm, backgroundColor: Colors.surfaceAlt, justifyContent: 'center', alignItems: 'center', marginRight: Spacing.md },
-  settingText: { flex: 1, fontSize: 16, color: Colors.textPrimary, fontWeight: '500' },
-  logoutButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#3F1626', paddingVertical: Spacing.lg, borderRadius: BorderRadius.lg, borderWidth: 1, borderColor: '#7F1D1D' },
-  logoutText: { fontSize: 16, color: Colors.error, fontWeight: 'bold' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'center', alignItems: 'center' },
-  modalContent: { backgroundColor: Colors.surface, width: '85%', borderRadius: BorderRadius.xl, padding: Spacing.xxl, borderWidth: 1, borderColor: Colors.border },
-  modalTitle: { fontSize: 20, fontWeight: 'bold', color: Colors.textPrimary, marginBottom: Spacing.lg },
-  modalInput: { backgroundColor: Colors.surfaceAlt, borderRadius: BorderRadius.md, padding: Spacing.lg, fontSize: 16, color: Colors.textPrimary, marginBottom: Spacing.xxl, borderWidth: 1, borderColor: Colors.borderLight },
-  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: Spacing.md },
-  modalButtonCancel: { paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg, borderRadius: BorderRadius.md },
-  modalButtonTextCancel: { color: Colors.textMuted, fontSize: 15, fontWeight: '600' },
-  modalButtonSave: { backgroundColor: Colors.primary, paddingVertical: Spacing.md, paddingHorizontal: Spacing.xl, borderRadius: BorderRadius.md, justifyContent: 'center', alignItems: 'center', minWidth: 80 },
-  modalButtonTextSave: { color: '#FFFFFF', fontSize: 15, fontWeight: 'bold' },
+  bannerContainer: { width: '100%', height: 140, position: 'relative' },
+  bannerImage: { width: '100%', height: '100%', resizeMode: 'cover' },
+  headerOverlay: { position: 'absolute', top: 0, left: 0, right: 0 },
+  safeHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingTop: Platform.OS === 'android' ? 40 : 10 },
+  iconButton: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  
+  infoSection: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
+  avatarRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: -35, marginBottom: Spacing.sm },
+  avatarWrapper: { borderRadius: 40, borderWidth: 4, borderColor: Colors.background, backgroundColor: Colors.surfaceAlt },
+  avatar: { width: 72, height: 72, borderRadius: 36 },
+  editProfileBtn: { paddingHorizontal: Spacing.lg, paddingVertical: 6, borderRadius: BorderRadius.pill, borderWidth: 1, borderColor: Colors.borderLight, backgroundColor: 'transparent' },
+  editProfileBtnText: { color: Colors.textPrimary, fontWeight: 'bold', fontSize: 14 },
+  
+  textDetails: { marginTop: Spacing.sm },
+  userName: { fontSize: 22, fontWeight: 'bold', color: Colors.textPrimary, marginBottom: 2 },
+  userHandle: { fontSize: 15, color: Colors.textMuted, marginBottom: Spacing.md },
+  bioText: { color: Colors.textPrimary, fontSize: 15, lineHeight: 20, marginBottom: Spacing.md },
+  
+  statsRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xl },
+  statBox: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  statCount: { color: Colors.textPrimary, fontWeight: 'bold', fontSize: 15 },
+  statLabel: { color: Colors.textMuted, fontSize: 15 },
+  
+  tabsRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: Colors.border, marginTop: Spacing.lg },
+  tabItem: { flex: 1, paddingVertical: Spacing.md, alignItems: 'center' },
+  tabItemActive: { borderBottomWidth: 3, borderBottomColor: Colors.primaryLight },
+  tabText: { color: Colors.textMuted, fontSize: 15, fontWeight: '600' },
+  tabTextActive: { color: Colors.textPrimary, fontWeight: 'bold' },
+  
+  feedSection: { flex: 1, paddingBottom: 40 },
+
+  // Edit Modal Styles
+  modalOverlay: { flex: 1, backgroundColor: Colors.background },
+  editModalContainer: { flex: 1, backgroundColor: Colors.background, paddingTop: Platform.OS === 'android' ? 40 : 50 },
+  editModalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  headerBtnText: { color: Colors.textPrimary, fontSize: 16 },
+  modalTitleText: { color: Colors.textPrimary, fontSize: 18, fontWeight: 'bold' },
+  editBannerContainer: { height: 150, width: '100%', position: 'relative', backgroundColor: Colors.surfaceAlt },
+  editBannerImage: { width: '100%', height: '100%', resizeMode: 'cover', opacity: 0.7 },
+  cameraIconOverlay: { position: 'absolute', top: '50%', left: '50%', transform: [{ translateX: -20 }, { translateY: -20 }], width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  editAvatarWrapper: { position: 'absolute', top: 110, left: Spacing.lg, width: 80, height: 80, borderRadius: 40, borderWidth: 4, borderColor: Colors.background, backgroundColor: Colors.surfaceAlt, overflow: 'hidden' },
+  editAvatarImage: { width: '100%', height: '100%', resizeMode: 'cover', opacity: 0.7 },
+  editForm: { paddingHorizontal: Spacing.lg, paddingTop: 60 },
+  inputGroup: { marginBottom: Spacing.xl },
+  inputLabel: { color: Colors.textMuted, fontSize: 13, marginBottom: 4, marginLeft: 4 },
+  textInput: { backgroundColor: 'transparent', borderBottomWidth: 1, borderBottomColor: Colors.border, color: Colors.textPrimary, fontSize: 16, paddingVertical: 8, paddingHorizontal: 4 },
+  bioInput: { minHeight: 60, textAlignVertical: 'top' },
+
+  // Action Sheet Styles
+  actionSheetOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  actionSheet: { backgroundColor: Colors.surface, borderTopLeftRadius: BorderRadius.xl, borderTopRightRadius: BorderRadius.xl, padding: Spacing.lg, paddingBottom: 40 },
+  actionSheetHandle: { width: 40, height: 4, backgroundColor: Colors.borderLight, borderRadius: 2, alignSelf: 'center', marginBottom: Spacing.lg },
+  actionSheetTitle: { fontSize: 18, fontWeight: 'bold', color: Colors.textPrimary, marginBottom: Spacing.md, textAlign: 'center' },
+  actionSheetItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.md, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  actionSheetIcon: { marginRight: Spacing.md },
+  actionSheetText: { fontSize: 16, color: Colors.textPrimary, fontWeight: '500' }
 });
