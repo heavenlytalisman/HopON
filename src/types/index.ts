@@ -40,6 +40,7 @@ export interface Post {
   reposts: number;
   mediaType?: 'meme' | 'anime' | 'movie' | 'song';
   mediaData?: MediaData;
+  thread?: Post[];
 }
 
 export type MediaData = {
@@ -66,6 +67,7 @@ export interface FeedPostData {
   reposts: number;
   mediaType?: 'meme' | 'anime' | 'movie' | 'song';
   mediaData?: MediaData;
+  thread?: FeedPostData[];
 }
 
 export interface FriendRequest {

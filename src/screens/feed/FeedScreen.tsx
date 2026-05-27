@@ -12,40 +12,134 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
   const { posts, loading, isPosting, publishPost } = useFeed();
   const { profile } = useAuth();
   const { contentWidth, horizontalPadding } = useResponsive();
-  const [postText, setPostText] = useState('');
+  const [postTexts, setPostTexts] = useState<string[]>(['']);
+  const [attachedMedia, setAttachedMedia] = useState<any>(null);
+  const [attachedMediaType, setAttachedMediaType] = useState<'song' | 'movie' | null>(null);
+
+  const MOCK_SONG = {
+    title: 'Nights',
+    artist: 'Frank Ocean',
+    albumArt: 'https://i.scdn.co/image/ab67616d0000b273c5649add07ed3720be9d5526',
+  };
+
+  const MOCK_MOVIE = {
+    title: 'Dune: Part Two',
+    rating: 4.8,
+    poster: 'https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2JGjjc91p.jpg',
+  };
 
   const handlePost = async () => {
     try {
-      await publishPost(postText);
-      setPostText('');
+      await publishPost(postTexts, attachedMediaType || undefined, attachedMedia);
+      setPostTexts(['']);
+      setAttachedMedia(null);
+      setAttachedMediaType(null);
     } catch {
       Alert.alert('Error', 'Could not create post. Please try again.');
+    }
+  };
+
+  const updatePostText = (text: string, index: number) => {
+    const newTexts = [...postTexts];
+    newTexts[index] = text;
+    setPostTexts(newTexts);
+  };
+
+  const addThreadItem = () => {
+    setPostTexts([...postTexts, '']);
+  };
+
+  const attachMockSong = () => {
+    if (attachedMediaType === 'song') {
+      setAttachedMedia(null);
+      setAttachedMediaType(null);
+    } else {
+      setAttachedMedia(MOCK_SONG);
+      setAttachedMediaType('song');
+    }
+  };
+
+  const attachMockMovie = () => {
+    if (attachedMediaType === 'movie') {
+      setAttachedMedia(null);
+      setAttachedMediaType(null);
+    } else {
+      setAttachedMedia(MOCK_MOVIE);
+      setAttachedMediaType('movie');
     }
   };
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
       <Text style={styles.pageTitle}>Feed</Text>
-      <View style={styles.composeBox}>
-        <Image source={{ uri: profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z' }} style={styles.composeAvatar} />
-        <TextInput
-          style={styles.composeInput}
-          placeholder="What's on your mind?"
-          placeholderTextColor={Colors.textPlaceholder}
-          value={postText}
-          onChangeText={setPostText}
-          multiline
-          maxLength={280}
-        />
-        {postText.trim().length > 0 && (
-          <TouchableOpacity style={styles.postButton} onPress={handlePost} disabled={isPosting}>
-            {isPosting ? (
-              <ActivityIndicator size="small" color="#FFF" />
-            ) : (
-              <Ionicons name="send" size={16} color="#FFF" />
-            )}
-          </TouchableOpacity>
+      
+      <View style={styles.composeContainer}>
+        {postTexts.map((text, index) => (
+          <View key={index} style={styles.composeBoxRow}>
+            <View style={styles.composeLeft}>
+              <Image source={{ uri: profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z' }} style={styles.composeAvatar} />
+              {index < postTexts.length - 1 && <View style={styles.composeThreadLine} />}
+            </View>
+            <View style={styles.composeInputContainer}>
+              <TextInput
+                style={styles.composeInput}
+                placeholder={index === 0 ? "What's on your mind?" : "Add another thread..."}
+                placeholderTextColor={Colors.textPlaceholder}
+                value={text}
+                onChangeText={(val) => updatePostText(val, index)}
+                multiline
+                maxLength={280}
+              />
+            </View>
+          </View>
+        ))}
+
+        {attachedMedia && (
+          <View style={styles.attachedMediaCard}>
+            <Image 
+              source={{ uri: attachedMediaType === 'song' ? attachedMedia.albumArt : attachedMedia.poster }} 
+              style={attachedMediaType === 'song' ? styles.attachedSongCover : styles.attachedMovieCover} 
+            />
+            <View style={styles.attachedMediaInfo}>
+              <Text style={styles.attachedMediaTitle}>{attachedMedia.title}</Text>
+              <Text style={styles.attachedMediaSubtitle}>
+                {attachedMediaType === 'song' ? attachedMedia.artist : `Letterboxd • ★ ${attachedMedia.rating}`}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => { setAttachedMedia(null); setAttachedMediaType(null); }} style={styles.removeMediaBtn}>
+              <Ionicons name="close-circle" size={24} color={Colors.textMuted} />
+            </TouchableOpacity>
+          </View>
         )}
+
+        <View style={styles.composeActionsRow}>
+          <View style={styles.actionButtonsLeft}>
+            <TouchableOpacity style={styles.actionBtn} onPress={addThreadItem}>
+              <Ionicons name="add" size={16} color={Colors.primaryLight} />
+              <Text style={styles.actionBtnText}>Thread</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionBtn} onPress={attachMockSong}>
+              <Ionicons name="musical-notes" size={16} color={attachedMediaType === 'song' ? Colors.success : Colors.primaryLight} />
+              <Text style={[styles.actionBtnText, attachedMediaType === 'song' && { color: Colors.success }]}>Music</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionBtn} onPress={attachMockMovie}>
+              <Ionicons name="film" size={16} color={attachedMediaType === 'movie' ? Colors.success : Colors.primaryLight} />
+              <Text style={[styles.actionBtnText, attachedMediaType === 'movie' && { color: Colors.success }]}>Movie</Text>
+            </TouchableOpacity>
+          </View>
+
+          {postTexts.some(t => t.trim().length > 0) && (
+            <TouchableOpacity style={styles.postButton} onPress={handlePost} disabled={isPosting}>
+              {isPosting ? (
+                <ActivityIndicator size="small" color="#FFF" />
+              ) : (
+                <Text style={styles.postButtonText}>Post</Text>
+              )}
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </View>
   );
@@ -92,36 +186,122 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: Spacing.md,
   },
-  composeBox: { 
-    flexDirection: 'row', 
+  composeContainer: { 
     backgroundColor: Colors.surface, 
     borderRadius: BorderRadius.xl, 
-    paddingHorizontal: Spacing.md, 
-    paddingVertical: Spacing.md, 
-    alignItems: 'center', 
+    padding: Spacing.lg, 
     borderWidth: 1, 
     borderColor: Colors.border,
+  },
+  composeBoxRow: {
+    flexDirection: 'row',
+  },
+  composeLeft: {
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  composeThreadLine: {
+    width: 2,
+    flex: 1,
+    backgroundColor: Colors.border,
+    marginTop: 4,
+    marginBottom: -Spacing.md, // Reach down to next avatar
+  },
+  composeInputContainer: {
+    flex: 1,
+    paddingBottom: Spacing.md,
   },
   composeAvatar: { 
     width: 36, 
     height: 36, 
     borderRadius: 18, 
     backgroundColor: Colors.border, 
-    marginRight: Spacing.md 
   },
   composeInput: { 
     flex: 1, 
     fontSize: 15, 
     color: Colors.textPrimary, 
-    maxHeight: 100 
+    minHeight: 40,
+    maxHeight: 100,
+    marginTop: 4,
+  },
+  composeActionsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: Spacing.sm,
+    paddingLeft: 36 + Spacing.md, // align with inputs
+  },
+  actionButtonsLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+    backgroundColor: Colors.surfaceAlt,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.pill,
+  },
+  actionBtnText: {
+    color: Colors.primaryLight,
+    fontWeight: 'bold',
+    fontSize: 12,
+    marginLeft: 4,
+  },
+  attachedMediaCard: {
+    flexDirection: 'row',
+    backgroundColor: Colors.surfaceAlt,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+    marginLeft: 36 + Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  attachedSongCover: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.border,
+    marginRight: Spacing.md,
+  },
+  attachedMovieCover: {
+    width: 40,
+    height: 60,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.border,
+    marginRight: Spacing.md,
+  },
+  attachedMediaInfo: {
+    flex: 1,
+  },
+  attachedMediaTitle: {
+    color: Colors.textPrimary,
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  attachedMediaSubtitle: {
+    color: Colors.textMuted,
+    fontSize: 12,
+  },
+  removeMediaBtn: {
+    marginLeft: Spacing.sm,
   },
   postButton: { 
     backgroundColor: Colors.primary, 
-    width: 36, 
-    height: 36, 
-    borderRadius: 18, 
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: 8,
+    borderRadius: 20, 
     justifyContent: 'center', 
     alignItems: 'center', 
-    marginLeft: Spacing.sm,
   },
+  postButtonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 13,
+  }
 });

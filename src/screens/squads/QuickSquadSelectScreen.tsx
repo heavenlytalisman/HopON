@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, FlatList, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, FlatList, Dimensions, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSquads } from '../../hooks/useSquads';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';

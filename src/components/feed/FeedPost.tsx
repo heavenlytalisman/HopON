@@ -11,7 +11,7 @@ interface FeedPostProps {
 export default function FeedPost({ post }: FeedPostProps) {
   const { author, timestamp, content, mediaType, mediaData } = post;
 
-  const renderMedia = () => {
+  const renderMedia = (mediaType: string, mediaData: any) => {
     if (!mediaType || !mediaData) return null;
 
     switch (mediaType) {
@@ -59,47 +59,63 @@ export default function FeedPost({ post }: FeedPostProps) {
     }
   };
 
-  return (
-    <View style={styles.postContainer}>
-      <Image source={{ uri: author.avatar }} style={styles.avatar} />
-
-      <View style={styles.postContent}>
-        <View style={styles.headerRow}>
-          <Text style={styles.authorName}>{author.name}</Text>
-          <Text style={styles.authorHandle}>{author.handle}</Text>
-          <Text style={styles.dot}>•</Text>
-          <Text style={styles.timestamp}>{timestamp}</Text>
+  const renderSinglePost = (p: FeedPostData, isLast: boolean, isThreadChild = false) => {
+    return (
+      <View key={p.id} style={[styles.singlePostRow, isThreadChild && { marginTop: Spacing.md }]}>
+        <View style={styles.leftCol}>
+          <Image source={{ uri: p.author.avatar }} style={styles.avatar} />
+          {!isLast && <View style={styles.threadLine} />}
         </View>
 
-        {content ? <Text style={styles.bodyText}>{content}</Text> : null}
+        <View style={styles.postContent}>
+          <View style={styles.headerRow}>
+            <Text style={styles.authorName}>{p.author.name}</Text>
+            <Text style={styles.authorHandle}>{p.author.handle}</Text>
+            <Text style={styles.dot}>•</Text>
+            <Text style={styles.timestamp}>{p.timestamp}</Text>
+          </View>
 
-        {renderMedia()}
+          {p.content ? <Text style={styles.bodyText}>{p.content}</Text> : null}
 
-        <View style={styles.actionBar}>
-          <TouchableOpacity style={styles.actionIcon}>
-            <Ionicons name="chatbubble-outline" size={20} color={Colors.textMuted} />
-            <Text style={styles.actionCount}>{post.comments || 0}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionIcon}>
-            <Ionicons name="repeat-outline" size={22} color={Colors.textMuted} />
-            <Text style={styles.actionCount}>{post.reposts || 0}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionIcon}>
-            <Ionicons name="heart-outline" size={22} color={Colors.secondary} />
-            <Text style={[styles.actionCount, { color: Colors.secondary }]}>{post.likes || 0}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionIcon}>
-            <Ionicons name="share-outline" size={22} color={Colors.textMuted} />
-          </TouchableOpacity>
+          {renderMedia(p.mediaType as any, p.mediaData)}
+
+          <View style={styles.actionBar}>
+            <TouchableOpacity style={styles.actionIcon}>
+              <Ionicons name="chatbubble-outline" size={20} color={Colors.textMuted} />
+              <Text style={styles.actionCount}>{p.comments || 0}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionIcon}>
+              <Ionicons name="repeat-outline" size={22} color={Colors.textMuted} />
+              <Text style={styles.actionCount}>{p.reposts || 0}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionIcon}>
+              <Ionicons name="heart-outline" size={22} color={Colors.secondary} />
+              <Text style={[styles.actionCount, { color: Colors.secondary }]}>{p.likes || 0}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionIcon}>
+              <Ionicons name="arrow-redo-outline" size={24} color={Colors.textMuted} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
+    );
+  };
+
+  const hasThread = post.thread && post.thread.length > 0;
+
+  return (
+    <View style={styles.postContainer}>
+      {renderSinglePost(post, !hasThread, false)}
+      {hasThread && post.thread!.map((child, index) => 
+        renderSinglePost(child, index === post.thread!.length - 1, true)
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   postContainer: { 
-    flexDirection: 'row', 
+    flexDirection: 'column', 
     padding: Spacing.lg, 
     backgroundColor: Colors.surface, 
     borderRadius: BorderRadius.lg, 
@@ -107,14 +123,27 @@ const styles = StyleSheet.create({
     borderWidth: 1, 
     borderColor: Colors.border 
   },
+  singlePostRow: {
+    flexDirection: 'row',
+  },
+  leftCol: {
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
   avatar: { 
     width: 44, 
     height: 44, 
     borderRadius: 22, 
-    backgroundColor: Colors.border, 
-    marginRight: Spacing.md 
+    backgroundColor: Colors.border,
   },
-  postContent: { flex: 1 },
+  threadLine: {
+    width: 2,
+    flex: 1,
+    backgroundColor: Colors.border,
+    marginTop: 4,
+    marginBottom: -Spacing.md, // Connect to next avatar
+  },
+  postContent: { flex: 1, paddingBottom: 4 },
   headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.xs },
   authorName: { fontWeight: 'bold', color: Colors.textPrimary, fontSize: 15, marginRight: 4 },
   authorHandle: { color: Colors.textMuted, fontSize: 13 },
