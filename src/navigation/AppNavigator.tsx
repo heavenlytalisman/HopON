@@ -20,8 +20,10 @@ import HopOnRoomScreen from '../screens/squads/HopOnRoomScreen';
 import IncomingAlertScreen from '../screens/squads/IncomingAlertScreen';
 import QuickSquadSelectScreen from '../screens/squads/QuickSquadSelectScreen';
 import FriendProfileScreen from '../screens/profile/FriendProfileScreen';
+import FriendListScreen from '../screens/profile/FriendListScreen';
 import NotificationsScreen from '../screens/notifications/NotificationsScreen';
 import PostDetailScreen from '../screens/feed/PostDetailScreen';
+import RecentActivityScreen from '../screens/home/RecentActivityScreen';
 
 import { useAuth } from '../context/AuthContext';
 import { Colors } from '../constants/theme';
@@ -139,6 +141,7 @@ export default function AppNavigator() {
       <Stack.Screen name="MainTabs" component={MainTabs} />
       {/* Profile is now in tabs, but we might keep the stack screen if accessed from other places */}
       <Stack.Screen name="Profile" component={ProfileScreen} />
+      <Stack.Screen name="FriendList" component={FriendListScreen} />
       <Stack.Screen name="SquadDetail" component={SquadDetailScreen} />
       <Stack.Screen
         name="CreateSquad"
@@ -163,6 +166,7 @@ export default function AppNavigator() {
       <Stack.Screen name="FriendProfile" component={FriendProfileScreen} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="PostDetail" component={PostDetailScreen} />
+      <Stack.Screen name="RecentActivity" component={RecentActivityScreen} />
     </Stack.Navigator>
   );
 }

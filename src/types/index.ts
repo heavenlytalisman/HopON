@@ -126,8 +126,10 @@ export type RootStackParamList = {
   IncomingAlert: { caller?: CallerInfo } | undefined;
   QuickSquadSelect: undefined;
   FriendProfile: { friendId: string; friendName: string; friendAvatar: string };
+  FriendList: undefined;
   Notifications: undefined;
   PostDetail: { postId: string; mockData?: any };
+  RecentActivity: undefined;
 };
 
 export type MainTabParamList = {

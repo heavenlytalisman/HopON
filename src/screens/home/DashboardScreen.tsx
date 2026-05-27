@@ -30,9 +30,9 @@ const MOCK_ROOMS = [
 ];
 
 const MOCK_ACTIVITY = [
-  { id: '1', user: 'Rahid', action: 'started a room', game: 'Valorant Ranked', time: '2m ago', avatar: 'https://i.pravatar.cc/150?u=2', showJoin: true },
-  { id: '2', user: 'Aman', action: 'hopped on', game: 'EA FC 24', time: 'Just now', avatar: 'https://i.pravatar.cc/150?u=3' },
-  { id: '3', user: 'Karan', action: 'posted in squad', game: 'Anyone up for late night chill?', time: '10m ago', avatar: 'https://i.pravatar.cc/150?u=5' },
+  { id: '1', user: 'Rahid', action: 'posted a new post', game: '"Just hit Diamond in Valorant! Let\'s go 🔥"', time: '2m ago', avatar: 'https://i.pravatar.cc/150?u=2' },
+  { id: '2', user: 'Aman', action: 'posted a new post', game: '"Anyone looking for a duo in EA FC 24?"', time: '15m ago', avatar: 'https://i.pravatar.cc/150?u=3' },
+  { id: '3', user: 'Karan', action: 'posted a new post', game: '"Anyone up for late night chill?"', time: '1h ago', avatar: 'https://i.pravatar.cc/150?u=5' },
 ];
 
 // Mock data removed (moved to respective screens where possible)
@@ -128,7 +128,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
         {/* Friends Online */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Friends Online <Text style={{color: Colors.success, fontSize: 12}}>● 6 Online</Text></Text>
-          <TouchableOpacity onPress={() => setShowFriends(true)}>
+          <TouchableOpacity onPress={() => navigation.navigate('FriendList')}>
             <Text style={styles.seeAllText}>See all</Text>
           </TouchableOpacity>
         </View>
@@ -189,7 +189,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
           <View style={styles.column}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Recent Activity</Text>
-              <TouchableOpacity><Text style={styles.seeAllText}>See all</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('RecentActivity' as any)}><Text style={styles.seeAllText}>See all</Text></TouchableOpacity>
             </View>
             <View style={styles.listContainer}>
               {MOCK_ACTIVITY.map(activity => (
@@ -265,49 +265,6 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
             )}
           </View>
         </View>
-      </Modal>
-      {/* Friends Modal */}
-      <Modal
-        visible={showFriends}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowFriends(false)}
-      >
-        <TouchableOpacity style={styles.notificationsOverlay} activeOpacity={1} onPress={() => setShowFriends(false)}>
-          <TouchableOpacity activeOpacity={1} style={styles.notificationsContainer}>
-            <View style={styles.notificationsHeader}>
-              <Text style={styles.notificationsTitle}>Friends</Text>
-              <TouchableOpacity onPress={() => setShowFriends(false)}>
-                <Ionicons name="close" size={24} color={Colors.textMuted} />
-              </TouchableOpacity>
-            </View>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: Spacing.xl }}>
-              {MOCK_FRIENDS.map((friend) => (
-                <TouchableOpacity 
-                  key={friend.id} 
-                  style={styles.friendListItem}
-                  onPress={() => {
-                    setShowFriends(false);
-                    navigation.navigate('FriendProfile' as any, { 
-                      friendId: friend.id, 
-                      friendName: friend.name, 
-                      friendAvatar: friend.avatar 
-                    });
-                  }}
-                >
-                  <View style={[styles.avatarRing, { borderColor: friend.statusColor, width: 44, height: 44, marginBottom: 0, marginRight: Spacing.md }]}>
-                    <Image source={{ uri: friend.avatar }} style={[styles.onlineAvatar, { width: 36, height: 36, borderRadius: 18 }]} />
-                    <View style={styles.statusDot} />
-                  </View>
-                  <View style={styles.friendListInfo}>
-                    <Text style={styles.friendListName}>{friend.name}</Text>
-                    <Text style={[styles.friendListStatus, { color: friend.statusColor }]}>{friend.status}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </TouchableOpacity>
-        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );
