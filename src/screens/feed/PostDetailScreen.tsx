@@ -53,8 +53,11 @@ const MOCK_COMMENTS: FeedPostData[] = [
 export default function PostDetailScreen({ route, navigation }: RootStackScreenProps<'PostDetail'>) {
   const { mockData } = route.params;
 
-  // Use the passed mockData if available, otherwise fallback to default
-  const post: FeedPostData = mockData || DEFAULT_MOCK_POST;
+  // Inject comments into the post as a thread
+  const threadPost: FeedPostData = {
+    ...(mockData || DEFAULT_MOCK_POST),
+    thread: MOCK_COMMENTS,
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -66,19 +69,8 @@ export default function PostDetailScreen({ route, navigation }: RootStackScreenP
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Main Post */}
-        <View style={styles.mainPostContainer}>
-          <FeedPost post={post} />
-        </View>
-
-        {/* Comments Section */}
-        <View style={styles.commentsSection}>
-          <Text style={styles.commentsHeader}>Replies</Text>
-          {MOCK_COMMENTS.map(comment => (
-            <FeedPost key={comment.id} post={comment} />
-          ))}
-        </View>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <FeedPost post={threadPost} />
       </ScrollView>
 
       {/* Floating Reply Input placeholder */}
@@ -121,21 +113,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: Colors.textPrimary,
   },
-  mainPostContainer: {
-    borderBottomWidth: 4,
-    borderBottomColor: Colors.border, // Makes it visually separated from comments
-  },
-  commentsSection: {
-    paddingTop: Spacing.sm,
-  },
-  commentsHeader: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: Colors.textPrimary,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+  scrollContent: {
+    padding: Spacing.md,
   },
   replyInputContainer: {
     flexDirection: 'row',
