@@ -108,10 +108,6 @@ export default function FriendProfileScreen({ route, navigation }: RootStackScre
               <Text style={styles.statValue}>89</Text>
               <Text style={styles.statLabel}>Followers</Text>
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>12</Text>
-              <Text style={styles.statLabel}>Squads</Text>
-            </View>
           </View>
         </View>
 
