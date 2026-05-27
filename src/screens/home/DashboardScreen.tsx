@@ -35,18 +35,13 @@ const MOCK_ACTIVITY = [
   { id: '3', user: 'Karan', action: 'posted in squad', game: 'Anyone up for late night chill?', time: '10m ago', avatar: 'https://i.pravatar.cc/150?u=5' },
 ];
 
-const MOCK_NOTIFICATIONS = [
-  { id: 'n1', type: 'mention', user: 'Viper', target: 'valorant-comp', action: 'mentioned you in', time: '5m ago', avatar: 'https://i.pravatar.cc/150?u=v', read: false },
-  { id: 'n2', type: 'like', user: 'Rahid', target: 'your feed post', action: 'liked', time: '1h ago', avatar: 'https://i.pravatar.cc/150?u=2', read: false },
-  { id: 'n3', type: 'comment', user: 'Aman', target: 'your feed post', action: 'commented on', detail: '"Bro you carried us hard!"', time: '2h ago', avatar: 'https://i.pravatar.cc/150?u=3', read: true },
-];
+// Mock data removed (moved to respective screens where possible)
 
 export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const { profile } = useAuth();
   const { isDesktop, contentWidth, horizontalPadding, columns } = useResponsive();
   const [showSOS, setShowSOS] = useState(false);
   const [showQuickReplies, setShowQuickReplies] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showFriends, setShowFriends] = useState(false);
   
   const displayAvatar = profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z';
@@ -87,7 +82,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
             <Text style={styles.logoText}>HN</Text>
           </View>
           <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.iconButton} onPress={() => setShowNotifications(true)}>
+            <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Notifications' as any)}>
               <Ionicons name="notifications-outline" size={24} color={Colors.textPrimary} />
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>3</Text>
@@ -267,43 +262,6 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
           </View>
         </View>
       </Modal>
-
-      {/* Notifications Modal */}
-      <Modal
-        visible={showNotifications}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowNotifications(false)}
-      >
-        <TouchableOpacity style={styles.notificationsOverlay} activeOpacity={1} onPress={() => setShowNotifications(false)}>
-          <TouchableOpacity activeOpacity={1} style={styles.notificationsContainer}>
-            <View style={styles.notificationsHeader}>
-              <Text style={styles.notificationsTitle}>Notifications</Text>
-              <TouchableOpacity onPress={() => setShowNotifications(false)}>
-                <Ionicons name="close" size={24} color={Colors.textMuted} />
-              </TouchableOpacity>
-            </View>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: Spacing.xl }}>
-              {MOCK_NOTIFICATIONS.map((notif) => (
-                <View key={notif.id} style={[styles.notificationItem, !notif.read && styles.notificationItemUnread]}>
-                  <Image source={{ uri: notif.avatar }} style={styles.notificationAvatar} />
-                  <View style={styles.notificationInfo}>
-                    <Text style={styles.notificationText}>
-                      <Text style={{fontWeight: 'bold', color: Colors.textPrimary}}>{notif.user}</Text> {notif.action} <Text style={{fontWeight: 'bold', color: Colors.textPrimary}}>{notif.target}</Text>
-                    </Text>
-                    {notif.detail && (
-                      <Text style={styles.notificationDetail}>"{notif.detail}"</Text>
-                    )}
-                    <Text style={styles.notificationTime}>{notif.time}</Text>
-                  </View>
-                  {!notif.read && <View style={styles.unreadDot} />}
-                </View>
-              ))}
-            </ScrollView>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
-
       {/* Friends Modal */}
       <Modal
         visible={showFriends}
@@ -888,48 +846,6 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     fontSize: 20,
     fontWeight: 'bold',
-  },
-  notificationItem: {
-    flexDirection: 'row',
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
-    alignItems: 'center',
-  },
-  notificationItemUnread: {
-    backgroundColor: 'rgba(124, 58, 237, 0.05)',
-  },
-  notificationAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    marginRight: Spacing.md,
-  },
-  notificationInfo: {
-    flex: 1,
-    marginRight: Spacing.sm,
-  },
-  notificationText: {
-    color: Colors.textMuted,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  notificationDetail: {
-    color: Colors.textSecondary,
-    fontSize: 13,
-    fontStyle: 'italic',
-    marginTop: 2,
-  },
-  notificationTime: {
-    color: Colors.primaryLight,
-    fontSize: 11,
-    marginTop: 4,
-  },
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#7C3AED',
   },
   friendListItem: {
     flexDirection: 'row',

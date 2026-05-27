@@ -123,6 +123,7 @@ export type RootStackParamList = {
   IncomingAlert: { caller?: CallerInfo } | undefined;
   QuickSquadSelect: undefined;
   FriendProfile: { friendId: string; friendName: string; friendAvatar: string };
+  Notifications: undefined;
 };
 
 export type MainTabParamList = {
