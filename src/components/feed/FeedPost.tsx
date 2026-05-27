@@ -192,12 +192,11 @@ export default function FeedPost({ post, depth = 0, variant = 'feed' }: FeedPost
 const styles = StyleSheet.create({
   postContainer: { 
     flexDirection: 'column', 
-    padding: Spacing.lg, 
-    backgroundColor: Colors.surface, 
-    borderRadius: BorderRadius.lg, 
-    marginBottom: Spacing.lg, 
-    borderWidth: 1, 
-    borderColor: Colors.border 
+    paddingVertical: Spacing.md, 
+    paddingHorizontal: Spacing.lg,
+    backgroundColor: Colors.background, 
+    borderBottomWidth: 1, 
+    borderBottomColor: Colors.border 
   },
   nestedPostContainer: {
     padding: 0,

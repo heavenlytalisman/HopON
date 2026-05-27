@@ -162,7 +162,7 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
               <FeedPost post={item} />
             </TouchableOpacity>
           )}
-          contentContainerStyle={[styles.listContent, { paddingHorizontal: horizontalPadding, maxWidth: contentWidth, alignSelf: 'center', width: '100%' }]}
+          contentContainerStyle={[styles.listContent, { maxWidth: contentWidth, alignSelf: 'center', width: '100%' }]}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={renderHeader}
         />
@@ -185,20 +185,21 @@ const styles = StyleSheet.create({
     paddingBottom: 40 
   },
   headerContainer: { 
-    marginBottom: Spacing.xl 
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
   pageTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: Colors.textPrimary,
     marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.lg,
   },
   composeContainer: { 
-    backgroundColor: Colors.surface, 
-    borderRadius: BorderRadius.xl, 
+    backgroundColor: Colors.background, 
     padding: Spacing.lg, 
-    borderWidth: 1, 
-    borderColor: Colors.border,
+    borderBottomWidth: 1, 
+    borderBottomColor: Colors.border,
   },
   composeBoxRow: {
     flexDirection: 'row',
