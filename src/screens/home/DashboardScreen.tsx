@@ -144,9 +144,9 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
               <View style={[styles.avatarRing, { borderColor: user.statusColor }]}>
                 <Image source={{ uri: user.avatar }} style={styles.onlineAvatar} />
                 <View style={[styles.statusDot, { backgroundColor: user.statusColor }]} />
-                {user.icon && (
+                {('icon' in user) && (
                   <View style={styles.statusIconBadge}>
-                    <Ionicons name={user.icon as any} size={10} color="#FFF" />
+                    <Ionicons name={(user as any).icon} size={10} color="#FFF" />
                   </View>
                 )}
               </View>
@@ -321,7 +321,18 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
             </View>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: Spacing.xl }}>
               {MOCK_FRIENDS.map((friend) => (
-                <View key={friend.id} style={styles.friendListItem}>
+                <TouchableOpacity 
+                  key={friend.id} 
+                  style={styles.friendListItem}
+                  onPress={() => {
+                    setShowFriends(false);
+                    navigation.navigate('FriendProfile' as any, { 
+                      friendId: friend.id, 
+                      friendName: friend.name, 
+                      friendAvatar: friend.avatar 
+                    });
+                  }}
+                >
                   <View style={[styles.avatarRing, { borderColor: friend.statusColor, width: 44, height: 44, marginBottom: 0, marginRight: Spacing.md }]}>
                     <Image source={{ uri: friend.avatar }} style={[styles.onlineAvatar, { width: 36, height: 36, borderRadius: 18 }]} />
                     <View style={styles.statusDot} />
@@ -330,7 +341,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
                     <Text style={styles.friendListName}>{friend.name}</Text>
                     <Text style={[styles.friendListStatus, { color: friend.statusColor }]}>{friend.status}</Text>
                   </View>
-                </View>
+                </TouchableOpacity>
               ))}
             </ScrollView>
           </TouchableOpacity>

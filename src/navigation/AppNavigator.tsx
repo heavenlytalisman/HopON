@@ -18,6 +18,7 @@ import CreateSquadScreen from '../screens/squads/CreateSquadScreen';
 import HopOnRoomScreen from '../screens/squads/HopOnRoomScreen';
 import IncomingAlertScreen from '../screens/squads/IncomingAlertScreen';
 import QuickSquadSelectScreen from '../screens/squads/QuickSquadSelectScreen';
+import FriendProfileScreen from '../screens/profile/FriendProfileScreen';
 
 import { useAuth } from '../context/AuthContext';
 import { Colors } from '../constants/theme';
@@ -156,6 +157,7 @@ export default function AppNavigator() {
         component={QuickSquadSelectScreen}
         options={{ presentation: 'transparentModal', animation: 'fade' }}
       />
+      <Stack.Screen name="FriendProfile" component={FriendProfileScreen} />
     </Stack.Navigator>
   );
 }
