@@ -5,7 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import LoginScreen from '../screens/auth/LoginScreen';
 import DashboardHomeScreen from '../screens/home/DashboardScreen';
@@ -114,7 +114,7 @@ function MainTabs() {
         name="Feed"
         component={FeedScreen}
         options={{
-          tabBarIcon: ({ color, size }) => <Ionicons name="layers" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="card-account-details-outline" color={color} size={size} />,
         }}
       />
       <Tab.Screen
