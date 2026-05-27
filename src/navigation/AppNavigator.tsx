@@ -114,7 +114,7 @@ function MainTabs() {
         name="Feed"
         component={FeedScreen}
         options={{
-          tabBarIcon: ({ color, size }) => <Ionicons name="document-text" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="layers" color={color} size={size} />,
         }}
       />
       <Tab.Screen
