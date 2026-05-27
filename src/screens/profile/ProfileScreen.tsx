@@ -16,6 +16,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
   const [isSettingsVisible, setSettingsVisible] = useState(false);
 
   const [tempNickname, setTempNickname] = useState('');
+  const [tempHandle, setTempHandle] = useState('');
   const [tempBio, setTempBio] = useState('');
   const [tempBannerUri, setTempBannerUri] = useState<string | null>(null);
   const [tempAvatarUri, setTempAvatarUri] = useState<string | null>(null);
@@ -68,6 +69,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
 
   const openEditModal = () => {
     setTempNickname(profile?.nickname || '');
+    setTempHandle(getHandle().replace('@', ''));
     setTempBio(profile?.bio || '');
     setTempBannerUri(null);
     setTempAvatarUri(null);
@@ -109,6 +111,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
       // Update other details
       const success = await updateProfileDetails({
         nickname: tempNickname,
+        handle: tempHandle,
         bio: tempBio,
         bannerUri: tempBannerUri || undefined,
       });
@@ -248,6 +251,18 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
                     value={tempNickname} 
                     onChangeText={setTempNickname} 
                     maxLength={30} 
+                    placeholderTextColor={Colors.textMuted}
+                  />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Username</Text>
+                  <TextInput 
+                    style={styles.textInput} 
+                    value={tempHandle} 
+                    onChangeText={setTempHandle} 
+                    maxLength={15} 
+                    autoCapitalize="none"
                     placeholderTextColor={Colors.textMuted}
                   />
                 </View>

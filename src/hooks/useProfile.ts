@@ -68,16 +68,22 @@ export function useProfile() {
     }
   };
 
-  const updateProfileDetails = async (details: { nickname?: string; bio?: string; bannerUri?: string }): Promise<boolean> => {
+  const updateProfileDetails = async (details: { nickname?: string; handle?: string; bio?: string; bannerUri?: string }): Promise<boolean> => {
     if (!firebaseUser) return false;
     
     try {
       const updates: Partial<User> = {};
       
       if (details.nickname && details.nickname.trim() !== '') {
-        const trimmed = details.nickname.trim();
-        updates.nickname = trimmed;
-        updates.handle = `@${trimmed.toLowerCase().replace(/\s+/g, '')}`;
+        updates.nickname = details.nickname.trim();
+      }
+      
+      if (details.handle && details.handle.trim() !== '') {
+        let newHandle = details.handle.trim().toLowerCase().replace(/\s+/g, '');
+        if (!newHandle.startsWith('@')) {
+          newHandle = `@${newHandle}`;
+        }
+        updates.handle = newHandle;
       }
       
       if (details.bio !== undefined) {
