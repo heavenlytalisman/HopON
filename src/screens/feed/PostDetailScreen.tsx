@@ -53,10 +53,10 @@ const MOCK_COMMENTS: FeedPostData[] = [
 export default function PostDetailScreen({ route, navigation }: RootStackScreenProps<'PostDetail'>) {
   const { mockData } = route.params;
 
-  // Inject comments into the post as a thread
+  // Inject comments into the post as nested replies
   const threadPost: FeedPostData = {
     ...(mockData || DEFAULT_MOCK_POST),
-    thread: MOCK_COMMENTS,
+    replies: MOCK_COMMENTS,
   };
 
   return (

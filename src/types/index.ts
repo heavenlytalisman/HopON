@@ -67,7 +67,8 @@ export interface FeedPostData {
   reposts: number;
   mediaType?: 'meme' | 'anime' | 'movie' | 'song';
   mediaData?: MediaData;
-  thread?: FeedPostData[];
+  thread?: FeedPostData[]; // For flat author continuations
+  replies?: FeedPostData[]; // For nested child comments
 }
 
 export interface FriendRequest {

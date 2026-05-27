@@ -6,10 +6,14 @@ import type { FeedPostData } from '../../types';
 
 interface FeedPostProps {
   post: FeedPostData;
+  depth?: number;
 }
 
-export default function FeedPost({ post }: FeedPostProps) {
+export default function FeedPost({ post, depth = 0 }: FeedPostProps) {
   const { author, timestamp, content, mediaType, mediaData } = post;
+  
+  // Cap depth to prevent squishing on narrow screens
+  const currentDepth = Math.min(depth, 3);
 
   const renderMedia = (mediaType: string, mediaData: any) => {
     if (!mediaType || !mediaData) return null;
@@ -64,6 +68,7 @@ export default function FeedPost({ post }: FeedPostProps) {
       <View key={p.id} style={[styles.singlePostRow, isThreadChild && { marginTop: Spacing.md }]}>
         <View style={styles.leftCol}>
           <Image source={{ uri: p.author.avatar }} style={styles.avatar} />
+          {/* Thread line for flat author continuations */}
           {!isLast && <View style={styles.threadLine} />}
         </View>
 
@@ -102,12 +107,33 @@ export default function FeedPost({ post }: FeedPostProps) {
   };
 
   const hasThread = post.thread && post.thread.length > 0;
+  const hasReplies = post.replies && post.replies.length > 0;
 
   return (
-    <View style={styles.postContainer}>
+    <View style={[
+      styles.postContainer, 
+      depth > 0 && styles.nestedPostContainer
+    ]}>
+      
+      {/* Flat thread rendering (author continuation) */}
       {renderSinglePost(post, !hasThread, false)}
       {hasThread && post.thread!.map((child, index) => 
         renderSinglePost(child, index === post.thread!.length - 1, true)
+      )}
+
+      {/* Nested Replies Rendering (Child threads with branching lines) */}
+      {hasReplies && (
+        <View style={styles.repliesContainer}>
+          {/* Vertical branching line representing the reply tree */}
+          <View style={styles.branchLine} />
+          {post.replies!.map(reply => (
+            <View key={reply.id} style={styles.replyWrapper}>
+              {/* Horizontal notch connecting the vertical line to the reply */}
+              <View style={styles.branchNotch} />
+              <FeedPost post={reply} depth={currentDepth + 1} />
+            </View>
+          ))}
+        </View>
       )}
     </View>
   );
@@ -123,12 +149,21 @@ const styles = StyleSheet.create({
     borderWidth: 1, 
     borderColor: Colors.border 
   },
+  nestedPostContainer: {
+    padding: 0,
+    backgroundColor: 'transparent',
+    borderRadius: 0,
+    marginBottom: 0,
+    borderWidth: 0,
+    marginTop: Spacing.md,
+  },
   singlePostRow: {
     flexDirection: 'row',
   },
   leftCol: {
     alignItems: 'center',
     marginRight: Spacing.md,
+    zIndex: 2,
   },
   avatar: { 
     width: 44, 
@@ -142,6 +177,33 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.border,
     marginTop: 4,
     marginBottom: -Spacing.md, // Connect to next avatar
+  },
+  repliesContainer: {
+    paddingLeft: 22, // Half the avatar width to align line with center of avatar
+    marginTop: Spacing.sm,
+    position: 'relative',
+  },
+  branchLine: {
+    position: 'absolute',
+    left: 21, // Center it under the avatar
+    top: -Spacing.sm,
+    bottom: Spacing.xl, // Don't let it go all the way to the bottom of the last item
+    width: 2,
+    backgroundColor: '#334155',
+    zIndex: 1,
+  },
+  replyWrapper: {
+    position: 'relative',
+    paddingLeft: Spacing.lg,
+  },
+  branchNotch: {
+    position: 'absolute',
+    left: 0,
+    top: 22, // Center of the avatar height
+    width: Spacing.lg,
+    height: 2,
+    backgroundColor: '#334155',
+    zIndex: 1,
   },
   postContent: { flex: 1, paddingBottom: 4 },
   headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.xs },
