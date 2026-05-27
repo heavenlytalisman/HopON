@@ -60,6 +60,20 @@ export default function SquadsScreen({ navigation }: MainTabScreenProps<'Squads'
 
         <Text style={styles.pageSubtitle}>Manage your active groups and channels.</Text>
 
+        <TouchableOpacity 
+          style={styles.createSquadCard} 
+          onPress={() => navigation.navigate('CreateSquad')}
+        >
+          <View style={styles.createSquadIconBox}>
+            <Ionicons name="add" size={24} color="#FFF" />
+          </View>
+          <View style={styles.createSquadInfo}>
+            <Text style={styles.createSquadTitle}>Create New Squad</Text>
+            <Text style={styles.createSquadSubtitle}>Form a new group and invite your friends</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
+        </TouchableOpacity>
+
         {loading ? (
           <ActivityIndicator color={Colors.primaryLight} style={{ marginTop: 40 }} />
         ) : (
@@ -93,4 +107,9 @@ const styles = StyleSheet.create({
   overlapAvatar: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: Colors.surface },
   moreAvatar: { width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.surfaceAlt, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: Colors.surface },
   moreAvatarText: { fontSize: 10, fontWeight: 'bold', color: Colors.textSecondary },
+  createSquadCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1A1E2E', padding: Spacing.lg, borderRadius: BorderRadius.xl, marginBottom: Spacing.xl, borderWidth: 1, borderColor: '#7C3AED' },
+  createSquadIconBox: { width: 48, height: 48, borderRadius: 12, backgroundColor: '#7C3AED', justifyContent: 'center', alignItems: 'center', marginRight: Spacing.md },
+  createSquadInfo: { flex: 1 },
+  createSquadTitle: { color: Colors.textPrimary, fontSize: FontSizes.md, fontWeight: 'bold', marginBottom: 4 },
+  createSquadSubtitle: { color: Colors.textMuted, fontSize: 11, lineHeight: 16 },
 });

@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Image, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Image, Dimensions, Modal, Vibration, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../context/AuthContext';
@@ -32,8 +32,30 @@ const MOCK_ACTIVITY = [
 export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const { profile } = useAuth();
   const { isDesktop, contentWidth, horizontalPadding, columns } = useResponsive();
+  const [showSOS, setShowSOS] = useState(false);
   
   const displayAvatar = profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z';
+
+  const triggerSOS = () => {
+    setShowSOS(true);
+    // Vibrate pattern: 500ms on, 200ms off, repeat
+    Vibration.vibrate([500, 200, 500, 200], true);
+  };
+
+  const cancelSOS = () => {
+    setShowSOS(false);
+    Vibration.cancel();
+  };
+
+  const handleAccept = () => {
+    cancelSOS();
+    navigation.navigate('SquadDetail' as any, { squadId: '1', squadName: 'Squad Alpha' });
+  };
+
+  const handleDecline = () => {
+    cancelSOS();
+    Alert.alert('Message Sent', 'Sent "can\'t rn" to your squad.');
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -88,9 +110,9 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
           <View style={styles.heroAbstractShape} />
         </View>
 
-        {/* Squad Online */}
+        {/* Friends Online */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Squad Online <Text style={{color: Colors.success, fontSize: 12}}>● 6 Online</Text></Text>
+          <Text style={styles.sectionTitle}>Friends Online <Text style={{color: Colors.success, fontSize: 12}}>● 6 Online</Text></Text>
           <TouchableOpacity><Text style={styles.seeAllText}>See all</Text></TouchableOpacity>
         </View>
         
@@ -125,7 +147,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
         {/* Action Buttons Row */}
         <View style={styles.actionRowContainer}>
           <View style={[styles.actionRow, isDesktop && styles.desktopActionRowItem]}>
-            <TouchableOpacity style={styles.actionCard}>
+            <TouchableOpacity style={styles.actionCard} onPress={triggerSOS}>
               <View style={styles.actionIconBox}>
                 <Ionicons name="flash" size={24} color="#FFF" />
               </View>
@@ -136,46 +158,11 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
               <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
             </TouchableOpacity>
           </View>
-          
-          <View style={[styles.actionRow, isDesktop && styles.desktopActionRowItem]}>
-            <TouchableOpacity style={styles.actionCardSecondary} onPress={() => navigation.navigate('CreateSquad' as any)}>
-              <View style={styles.actionIconBoxSecondary}>
-                <Ionicons name="people" size={20} color="#FFF" />
-              </View>
-              <View style={{flex: 1}}>
-                <Text style={styles.actionTitle}>Start a Session</Text>
-                <Text style={styles.actionDesc}>Create a room and invite your squad.</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
-            </TouchableOpacity>
-          </View>
         </View>
 
         {/* Bottom Lists Row */}
         <View style={[styles.twoColumnRow, columns === 2 && styles.desktopTwoColumnRow]}>
-          {/* Active Rooms */}
-          <View style={styles.column}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Active Rooms</Text>
-              <TouchableOpacity><Text style={styles.seeAllText}>See all</Text></TouchableOpacity>
-            </View>
-            <View style={styles.listContainer}>
-              {MOCK_ROOMS.map(room => (
-                <View key={room.id} style={styles.listItem}>
-                  <View style={styles.listIconBox}>
-                    <Ionicons name={room.icon as any} size={20} color="#A78BFA" />
-                  </View>
-                  <View style={styles.listInfo}>
-                    <Text style={styles.listTitle} numberOfLines={1}>{room.title}</Text>
-                    <Text style={styles.listSubtitle} numberOfLines={1}>{room.subtitle}</Text>
-                  </View>
-                  <TouchableOpacity style={styles.joinBtn}>
-                    <Text style={styles.joinBtnText}>Join</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          </View>
+
 
           {/* Recent Activity */}
           <View style={styles.column}>
@@ -208,6 +195,40 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
         </View>
 
       </ScrollView>
+
+      {/* SOS Alert Modal */}
+      <Modal
+        visible={showSOS}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={cancelSOS}
+      >
+        <View style={styles.sosOverlay}>
+          <View style={styles.sosContainer}>
+            <View style={styles.sosHeader}>
+              <Ionicons name="warning" size={32} color="#FFF" style={styles.sosIcon} />
+              <Text style={styles.sosTitle}>SQUAD NOTIFICATION</Text>
+              <Ionicons name="warning" size={32} color="#FFF" style={styles.sosIcon} />
+            </View>
+            
+            <View style={styles.sosBody}>
+              <Text style={styles.sosMessage}>
+                {profile?.nickname || 'Arjun'} has requested the squad to hop on. Join the lobby now.
+              </Text>
+              <Text style={styles.sosTime}>{new Date().toLocaleTimeString()}</Text>
+            </View>
+
+            <View style={styles.sosButtonGroup}>
+              <TouchableOpacity style={styles.sosDeclineBtn} onPress={handleDecline}>
+                <Text style={styles.sosDeclineText}>Decline</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.sosAcceptBtn} onPress={handleAccept}>
+                <Text style={styles.sosAcceptText}>Accept</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -584,5 +605,95 @@ const styles = StyleSheet.create({
   activityTime: {
     color: Colors.textMuted,
     fontSize: 10,
+  },
+  sosOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 18, 25, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.xl,
+  },
+  sosContainer: {
+    backgroundColor: '#1A1E2E',
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
+    borderWidth: 2,
+    borderColor: '#7C3AED',
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  sosHeader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginBottom: Spacing.xl,
+  },
+  sosIcon: {
+    opacity: 1,
+  },
+  sosTitle: {
+    color: Colors.textPrimary,
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: 1,
+    textAlign: 'center',
+  },
+  sosBody: {
+    backgroundColor: '#151928',
+    padding: Spacing.xl,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: '#1E293B',
+    marginBottom: Spacing.xl,
+  },
+  sosMessage: {
+    color: Colors.textPrimary,
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  sosTime: {
+    color: Colors.textMuted,
+    fontSize: 12,
+    textAlign: 'right',
+    marginTop: Spacing.md,
+    fontWeight: '500',
+  },
+  sosButtonGroup: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  sosDeclineBtn: {
+    flex: 1,
+    backgroundColor: '#1E293B',
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  sosDeclineText: {
+    color: Colors.textMuted,
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  sosAcceptBtn: {
+    flex: 1,
+    backgroundColor: '#7C3AED',
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+  },
+  sosAcceptText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });

@@ -25,7 +25,7 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
 
   const renderHeader = () => (
     <View style={styles.headerContainer}>
-      <Text style={styles.pageTitle}>Squad Feed</Text>
+      <Text style={styles.pageTitle}>Feed</Text>
       <View style={styles.composeBox}>
         <Image source={{ uri: profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z' }} style={styles.composeAvatar} />
         <TextInput
