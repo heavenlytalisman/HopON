@@ -135,7 +135,11 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
         
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalList}>
           {MOCK_ONLINE.map((user) => (
-            <View key={user.id} style={styles.onlineUserItem}>
+            <TouchableOpacity 
+              key={user.id} 
+              style={styles.onlineUserItem}
+              onPress={() => navigation.navigate('FriendProfile', { friendId: user.id, friendName: user.name, friendAvatar: user.avatar })}
+            >
               <View style={[styles.avatarRing, { borderColor: user.statusColor }]}>
                 <Image source={{ uri: user.avatar }} style={styles.onlineAvatar} />
                 <View style={[styles.statusDot, { backgroundColor: user.statusColor }]} />
@@ -147,7 +151,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
               </View>
               <Text style={styles.onlineUserName}>{user.name}</Text>
               <Text style={[styles.onlineUserStatus, { color: user.statusColor }]}>{user.status}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
           <View style={styles.onlineUserItem}>
             <View style={[styles.avatarRing, { borderColor: '#1E293B', borderStyle: 'dashed' }]}>
