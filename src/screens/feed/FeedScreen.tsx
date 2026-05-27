@@ -154,7 +154,14 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
         <FlatList
           data={posts}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <FeedPost post={item} />}
+          renderItem={({ item }) => (
+            <TouchableOpacity 
+              activeOpacity={0.9} 
+              onPress={() => navigation.navigate('PostDetail', { postId: item.id, mockData: item })}
+            >
+              <FeedPost post={item} />
+            </TouchableOpacity>
+          )}
           contentContainerStyle={[styles.listContent, { paddingHorizontal: horizontalPadding, maxWidth: contentWidth, alignSelf: 'center', width: '100%' }]}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={renderHeader}
