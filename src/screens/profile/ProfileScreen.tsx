@@ -149,7 +149,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
             <SafeAreaView style={styles.safeHeaderRow}>
               <View style={{ flex: 1 }} />
               <TouchableOpacity style={styles.iconButton} onPress={() => setSettingsVisible(true)}>
-                <Ionicons name="settings-sharp" size={24} color="#FFF" />
+                <Ionicons name="settings-outline" size={20} color="#FFF" />
               </TouchableOpacity>
             </SafeAreaView>
           </View>
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   bannerImage: { width: '100%', height: '100%', resizeMode: 'cover' },
   headerOverlay: { position: 'absolute', top: 0, left: 0, right: 0 },
   safeHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingTop: Platform.OS === 'android' ? 40 : 10 },
-  iconButton: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  iconButton: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' },
   
   infoSection: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
   avatarRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: -40, marginBottom: Spacing.sm },
