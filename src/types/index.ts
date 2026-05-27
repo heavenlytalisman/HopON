@@ -19,6 +19,7 @@ export interface User {
 export interface Group {
   id: string;
   name: string;
+  avatar?: string;
   members: string[];
   createdAt?: Date | string;
   // UI-only fields for mock data
@@ -114,10 +115,11 @@ export type RootStackParamList = {
   Login: undefined;
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   Profile: undefined;
-  SquadDetail: { squadId: string; squadName: string };
+  SquadDetail: { squadId: string; squadName: string; squadAvatar?: string };
   CreateSquad: undefined;
   HopOnRoom: { squadName: string };
   IncomingAlert: { caller?: CallerInfo } | undefined;
+  QuickSquadSelect: undefined;
 };
 
 export type MainTabParamList = {

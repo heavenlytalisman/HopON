@@ -17,6 +17,7 @@ import SquadDetailScreen from '../screens/squads/SquadDetailScreen';
 import CreateSquadScreen from '../screens/squads/CreateSquadScreen';
 import HopOnRoomScreen from '../screens/squads/HopOnRoomScreen';
 import IncomingAlertScreen from '../screens/squads/IncomingAlertScreen';
+import QuickSquadSelectScreen from '../screens/squads/QuickSquadSelectScreen';
 
 import { useAuth } from '../context/AuthContext';
 import { Colors } from '../constants/theme';
@@ -100,8 +101,8 @@ function MainTabs() {
         listeners={{
           tabPress: (e) => {
             e.preventDefault();
-            // Open Create Squad or Action Modal
-            navigation.navigate('CreateSquad');
+            // Open Quick Squad Select Modal
+            navigation.navigate('QuickSquadSelect');
           },
         }}
       />
@@ -149,6 +150,11 @@ export default function AppNavigator() {
         name="IncomingAlert"
         component={IncomingAlertScreen}
         options={{ presentation: 'fullScreenModal', animation: 'fade' }}
+      />
+      <Stack.Screen
+        name="QuickSquadSelect"
+        component={QuickSquadSelectScreen}
+        options={{ presentation: 'transparentModal', animation: 'fade' }}
       />
     </Stack.Navigator>
   );

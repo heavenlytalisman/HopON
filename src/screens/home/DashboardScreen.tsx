@@ -33,6 +33,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
   const { profile } = useAuth();
   const { isDesktop, contentWidth, horizontalPadding, columns } = useResponsive();
   const [showSOS, setShowSOS] = useState(false);
+  const [showQuickReplies, setShowQuickReplies] = useState(false);
   
   const displayAvatar = profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z';
 
@@ -44,6 +45,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
 
   const cancelSOS = () => {
     setShowSOS(false);
+    setShowQuickReplies(false);
     Vibration.cancel();
   };
 
@@ -53,8 +55,12 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
   };
 
   const handleDecline = () => {
+    setShowQuickReplies(true);
+  };
+
+  const handleQuickReply = (msg: string) => {
     cancelSOS();
-    Alert.alert('Message Sent', 'Sent "can\'t rn" to your squad.');
+    Alert.alert('Message Sent', `Sent "${msg}" to your squad.`);
   };
 
   return (
@@ -218,14 +224,30 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
               <Text style={styles.sosTime}>{new Date().toLocaleTimeString()}</Text>
             </View>
 
-            <View style={styles.sosButtonGroup}>
-              <TouchableOpacity style={styles.sosDeclineBtn} onPress={handleDecline}>
-                <Text style={styles.sosDeclineText}>Decline</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.sosAcceptBtn} onPress={handleAccept}>
-                <Text style={styles.sosAcceptText}>Accept</Text>
-              </TouchableOpacity>
-            </View>
+            {!showQuickReplies ? (
+              <View style={styles.sosButtonGroup}>
+                <TouchableOpacity style={styles.sosDeclineBtn} onPress={handleDecline}>
+                  <Text style={styles.sosDeclineText}>Decline</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.sosAcceptBtn} onPress={handleAccept}>
+                  <Text style={styles.sosAcceptText}>Accept</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.quickRepliesContainer}>
+                <Text style={styles.quickReplyPrompt}>Send a quick reply:</Text>
+                <View style={styles.chipsContainer}>
+                  {['Busy rn', 'Give me 10 mins', 'In a match', 'Maybe later'].map((reply, index) => (
+                    <TouchableOpacity key={index} style={styles.replyChip} onPress={() => handleQuickReply(reply)}>
+                      <Text style={styles.replyChipText}>{reply}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <TouchableOpacity style={styles.cancelReplyButton} onPress={() => setShowQuickReplies(false)}>
+                  <Text style={styles.cancelReplyText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </View>
       </Modal>
@@ -695,5 +717,48 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  quickRepliesContainer: {
+    backgroundColor: '#151928',
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
+    borderWidth: 1,
+    borderColor: '#1E293B',
+    alignItems: 'center',
+  },
+  quickReplyPrompt: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginBottom: Spacing.md,
+  },
+  chipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  replyChip: {
+    backgroundColor: '#1E293B',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  replyChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+  },
+  cancelReplyButton: {
+    marginTop: Spacing.md,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  cancelReplyText: {
+    color: Colors.textMuted,
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

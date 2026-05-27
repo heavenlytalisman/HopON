@@ -15,10 +15,12 @@ export default function SquadsScreen({ navigation }: MainTabScreenProps<'Squads'
   const renderGroupItem = ({ item }: { item: Group }) => (
     <TouchableOpacity
       style={styles.groupCard}
-      onPress={() => navigation.navigate('SquadDetail', { squadId: item.id, squadName: item.name })}
+      onPress={() => navigation.navigate('SquadDetail', { squadId: item.id, squadName: item.name, squadAvatar: item.avatar })}
     >
       <View style={styles.groupIcon}>
-        {item.readOnly ? (
+        {item.avatar ? (
+          <Image source={{ uri: item.avatar }} style={styles.squadAvatar} />
+        ) : item.readOnly ? (
           <Ionicons name="megaphone-outline" size={18} color="#A78BFA" />
         ) : (
           <Text style={styles.groupIconText}>#</Text>
@@ -98,7 +100,8 @@ const styles = StyleSheet.create({
   pageSubtitle: { fontSize: 14, color: Colors.textMuted, marginBottom: Spacing.xl },
   listContainer: { paddingBottom: 100 },
   groupCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, padding: Spacing.lg, borderRadius: BorderRadius.lg, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.border },
-  groupIcon: { width: 36, height: 36, borderRadius: BorderRadius.sm, backgroundColor: Colors.surfaceAlt, justifyContent: 'center', alignItems: 'center', marginRight: Spacing.md, borderWidth: 1, borderColor: Colors.borderLight },
+  groupIcon: { width: 36, height: 36, borderRadius: BorderRadius.sm, backgroundColor: Colors.surfaceAlt, justifyContent: 'center', alignItems: 'center', marginRight: Spacing.md, borderWidth: 1, borderColor: Colors.borderLight, overflow: 'hidden' },
+  squadAvatar: { width: '100%', height: '100%' },
   groupIconText: { color: Colors.primaryLight, fontSize: 18, fontWeight: 'bold' },
   groupInfo: { flex: 1 },
   groupName: { color: Colors.textPrimary, fontSize: 15, fontWeight: '700', marginBottom: 2 },
