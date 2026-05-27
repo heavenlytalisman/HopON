@@ -72,7 +72,11 @@ export default function NotificationsScreen({ navigation }: RootStackScreenProps
           ))
         ) : (
           MOCK_ACTIVITY.map(notif => (
-            <View key={notif.id} style={[styles.notificationItem, !notif.read && styles.notificationItemUnread]}>
+            <TouchableOpacity 
+              key={notif.id} 
+              style={[styles.notificationItem, !notif.read && styles.notificationItemUnread]}
+              onPress={() => navigation.navigate('PostDetail' as any, { postId: 'mock1' })}
+            >
               <Image source={{ uri: notif.avatar }} style={styles.notificationAvatar} />
               <View style={styles.notificationInfo}>
                 <Text style={styles.notificationText}>
@@ -84,7 +88,7 @@ export default function NotificationsScreen({ navigation }: RootStackScreenProps
                 <Text style={styles.notificationTime}>{notif.time}</Text>
               </View>
               {!notif.read && <View style={styles.unreadDot} />}
-            </View>
+            </TouchableOpacity>
           ))
         )}
       </ScrollView>

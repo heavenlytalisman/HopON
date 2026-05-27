@@ -20,6 +20,7 @@ import IncomingAlertScreen from '../screens/squads/IncomingAlertScreen';
 import QuickSquadSelectScreen from '../screens/squads/QuickSquadSelectScreen';
 import FriendProfileScreen from '../screens/profile/FriendProfileScreen';
 import NotificationsScreen from '../screens/notifications/NotificationsScreen';
+import PostDetailScreen from '../screens/feed/PostDetailScreen';
 
 import { useAuth } from '../context/AuthContext';
 import { Colors } from '../constants/theme';
@@ -160,6 +161,7 @@ export default function AppNavigator() {
       />
       <Stack.Screen name="FriendProfile" component={FriendProfileScreen} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
+      <Stack.Screen name="PostDetail" component={PostDetailScreen} />
     </Stack.Navigator>
   );
 }

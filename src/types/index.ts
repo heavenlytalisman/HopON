@@ -124,6 +124,7 @@ export type RootStackParamList = {
   QuickSquadSelect: undefined;
   FriendProfile: { friendId: string; friendName: string; friendAvatar: string };
   Notifications: undefined;
+  PostDetail: { postId: string; mockData?: any };
 };
 
 export type MainTabParamList = {
