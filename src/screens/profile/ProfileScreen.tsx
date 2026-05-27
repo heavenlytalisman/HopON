@@ -192,12 +192,6 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
           <View style={[styles.tabItem, styles.tabItemActive]}>
             <Text style={[styles.tabText, styles.tabTextActive]}>Posts</Text>
           </View>
-          <View style={styles.tabItem}>
-            <Text style={styles.tabText}>Replies</Text>
-          </View>
-          <View style={styles.tabItem}>
-            <Text style={styles.tabText}>Media</Text>
-          </View>
         </View>
 
         {/* Feed Section */}
