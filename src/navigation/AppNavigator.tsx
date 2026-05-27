@@ -7,6 +7,7 @@ import * as Notifications from 'expo-notifications';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
+import FeedIcon from '../components/icons/FeedIcon';
 import LoginScreen from '../screens/auth/LoginScreen';
 import DashboardHomeScreen from '../screens/home/DashboardScreen';
 import FeedScreen from '../screens/feed/FeedScreen';
@@ -114,7 +115,7 @@ function MainTabs() {
         name="Feed"
         component={FeedScreen}
         options={{
-          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="card-account-details-outline" color={color} size={size} />,
+          tabBarIcon: ({ color, size }) => <FeedIcon color={color} size={size} />,
         }}
       />
       <Tab.Screen
