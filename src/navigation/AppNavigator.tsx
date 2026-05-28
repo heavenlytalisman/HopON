@@ -23,6 +23,7 @@ import QuickSquadSelectScreen from '../screens/squads/QuickSquadSelectScreen';
 import FriendProfileScreen from '../screens/profile/FriendProfileScreen';
 import FriendListScreen from '../screens/profile/FriendListScreen';
 import NotificationsScreen from '../screens/notifications/NotificationsScreen';
+import QRScannerScreen from '../screens/squads/QRScannerScreen';
 import PostDetailScreen from '../screens/feed/PostDetailScreen';
 import RecentActivityScreen from '../screens/home/RecentActivityScreen';
 
@@ -164,6 +165,11 @@ export default function AppNavigator() {
         name="QuickSquadSelect"
         component={QuickSquadSelectScreen}
         options={{ presentation: 'transparentModal', animation: 'fade' }}
+      />
+      <Stack.Screen
+        name="QRScanner"
+        component={QRScannerScreen}
+        options={{ presentation: 'fullScreenModal' }}
       />
       <Stack.Screen name="FriendProfile" component={FriendProfileScreen} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} />

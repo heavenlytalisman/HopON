@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, FlatList, StyleSheet, SafeAreaView, TouchableOpacity, Text, TextInput, Image, ActivityIndicator, Alert } from 'react-native';
+import { View, FlatList, StyleSheet, SafeAreaView, TouchableOpacity, Text, TextInput, Image, ActivityIndicator, Alert, Modal, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import FeedPost from '../../components/feed/FeedPost';
 import { useFeed } from '../../hooks/useFeed';
@@ -28,12 +28,15 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
     poster: 'https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2JGjjc91p.jpg',
   };
 
+  const [isComposeVisible, setIsComposeVisible] = useState(false);
+
   const handlePost = async () => {
     try {
       await publishPost(postTexts, attachedMediaType || undefined, attachedMedia);
       setPostTexts(['']);
       setAttachedMedia(null);
       setAttachedMediaType(null);
+      setIsComposeVisible(false);
     } catch {
       Alert.alert('Error', 'Could not create post. Please try again.');
     }
@@ -72,75 +75,9 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
   const renderHeader = () => (
     <View style={styles.headerContainer}>
       <Text style={styles.pageTitle}>Feed</Text>
-      
-      <View style={styles.composeContainer}>
-        {postTexts.map((text, index) => (
-          <View key={index} style={styles.composeBoxRow}>
-            <View style={styles.composeLeft}>
-              <Image source={{ uri: profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z' }} style={styles.composeAvatar} />
-              {index < postTexts.length - 1 && <View style={styles.composeThreadLine} />}
-            </View>
-            <View style={styles.composeInputContainer}>
-              <TextInput
-                style={styles.composeInput}
-                placeholder={index === 0 ? "What's on your mind?" : "Add another thread..."}
-                placeholderTextColor={Colors.textPlaceholder}
-                value={text}
-                onChangeText={(val) => updatePostText(val, index)}
-                multiline
-                maxLength={280}
-              />
-            </View>
-          </View>
-        ))}
-
-        {attachedMedia && (
-          <View style={styles.attachedMediaCard}>
-            <Image 
-              source={{ uri: attachedMediaType === 'song' ? attachedMedia.albumArt : attachedMedia.poster }} 
-              style={attachedMediaType === 'song' ? styles.attachedSongCover : styles.attachedMovieCover} 
-            />
-            <View style={styles.attachedMediaInfo}>
-              <Text style={styles.attachedMediaTitle}>{attachedMedia.title}</Text>
-              <Text style={styles.attachedMediaSubtitle}>
-                {attachedMediaType === 'song' ? attachedMedia.artist : `Letterboxd • ★ ${attachedMedia.rating}`}
-              </Text>
-            </View>
-            <TouchableOpacity onPress={() => { setAttachedMedia(null); setAttachedMediaType(null); }} style={styles.removeMediaBtn}>
-              <Ionicons name="close-circle" size={24} color={Colors.textMuted} />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <View style={styles.composeActionsRow}>
-          <View style={styles.actionButtonsLeft}>
-            <TouchableOpacity style={styles.actionBtn} onPress={addThreadItem}>
-              <Ionicons name="add" size={16} color={Colors.primaryLight} />
-              <Text style={styles.actionBtnText}>Thread</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.actionBtn} onPress={attachMockSong}>
-              <Ionicons name="musical-notes" size={16} color={attachedMediaType === 'song' ? Colors.success : Colors.primaryLight} />
-              <Text style={[styles.actionBtnText, attachedMediaType === 'song' && { color: Colors.success }]}>Music</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.actionBtn} onPress={attachMockMovie}>
-              <Ionicons name="film" size={16} color={attachedMediaType === 'movie' ? Colors.success : Colors.primaryLight} />
-              <Text style={[styles.actionBtnText, attachedMediaType === 'movie' && { color: Colors.success }]}>Movie</Text>
-            </TouchableOpacity>
-          </View>
-
-          {postTexts.some(t => t.trim().length > 0) && (
-            <TouchableOpacity style={styles.postButton} onPress={handlePost} disabled={isPosting}>
-              {isPosting ? (
-                <ActivityIndicator size="small" color="#FFF" />
-              ) : (
-                <Text style={styles.postButtonText}>Post</Text>
-              )}
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
+      <TouchableOpacity style={styles.headerAddBtn} onPress={() => setIsComposeVisible(true)}>
+        <Ionicons name="add" size={28} color={Colors.textPrimary} />
+      </TouchableOpacity>
     </View>
   );
 
@@ -167,6 +104,89 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
           ListHeaderComponent={renderHeader}
         />
       )}
+
+      <Modal visible={isComposeVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setIsComposeVisible(false)}>
+        <SafeAreaView style={styles.modalContainer}>
+          <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={() => setIsComposeVisible(false)}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>New Post</Text>
+              <View style={{ width: 50 }} />
+            </View>
+            <ScrollView style={styles.composeContainer} showsVerticalScrollIndicator={false}>
+              {postTexts.map((text, index) => (
+                <View key={index} style={styles.composeBoxRow}>
+                  <View style={styles.composeLeft}>
+                    <Image source={{ uri: profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z' }} style={styles.composeAvatar} />
+                    {index < postTexts.length - 1 && <View style={styles.composeThreadLine} />}
+                  </View>
+                  <View style={styles.composeInputContainer}>
+                    <TextInput
+                      style={styles.composeInput}
+                      placeholder={index === 0 ? "What's on your mind?" : "Add another thread..."}
+                      placeholderTextColor={Colors.textPlaceholder}
+                      value={text}
+                      onChangeText={(val) => updatePostText(val, index)}
+                      multiline
+                      maxLength={280}
+                      autoFocus={index === 0}
+                    />
+                  </View>
+                </View>
+              ))}
+
+              {attachedMedia && (
+                <View style={styles.attachedMediaCard}>
+                  <Image 
+                    source={{ uri: attachedMediaType === 'song' ? attachedMedia.albumArt : attachedMedia.poster }} 
+                    style={attachedMediaType === 'song' ? styles.attachedSongCover : styles.attachedMovieCover} 
+                  />
+                  <View style={styles.attachedMediaInfo}>
+                    <Text style={styles.attachedMediaTitle}>{attachedMedia.title}</Text>
+                    <Text style={styles.attachedMediaSubtitle}>
+                      {attachedMediaType === 'song' ? attachedMedia.artist : `Letterboxd • ★ ${attachedMedia.rating}`}
+                    </Text>
+                  </View>
+                  <TouchableOpacity onPress={() => { setAttachedMedia(null); setAttachedMediaType(null); }} style={styles.removeMediaBtn}>
+                    <Ionicons name="close-circle" size={24} color={Colors.textMuted} />
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              <View style={styles.composeActionsRow}>
+                <View style={styles.actionButtonsLeft}>
+                  <TouchableOpacity style={styles.actionBtn} onPress={addThreadItem}>
+                    <Ionicons name="add" size={16} color={Colors.primaryLight} />
+                    <Text style={styles.actionBtnText}>Thread</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.actionBtn} onPress={attachMockSong}>
+                    <Ionicons name="musical-notes" size={16} color={attachedMediaType === 'song' ? Colors.success : Colors.primaryLight} />
+                    <Text style={[styles.actionBtnText, attachedMediaType === 'song' && { color: Colors.success }]}>Music</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.actionBtn} onPress={attachMockMovie}>
+                    <Ionicons name="film" size={16} color={attachedMediaType === 'movie' ? Colors.success : Colors.primaryLight} />
+                    <Text style={[styles.actionBtnText, attachedMediaType === 'movie' && { color: Colors.success }]}>Movie</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {postTexts.some(t => t.trim().length > 0) && (
+                  <TouchableOpacity style={styles.postButton} onPress={handlePost} disabled={isPosting}>
+                    {isPosting ? (
+                      <ActivityIndicator size="small" color="#FFF" />
+                    ) : (
+                      <Text style={styles.postButtonText}>Post</Text>
+                    )}
+                  </TouchableOpacity>
+                )}
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -185,6 +205,11 @@ const styles = StyleSheet.create({
     paddingBottom: 40 
   },
   headerContainer: { 
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
@@ -192,8 +217,30 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: Colors.textPrimary,
-    marginBottom: Spacing.md,
-    paddingHorizontal: Spacing.lg,
+  },
+  headerAddBtn: {
+    padding: Spacing.xs,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  modalCancelText: {
+    color: Colors.textMuted,
+    fontSize: 16,
+  },
+  modalTitle: {
+    color: Colors.textPrimary,
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   composeContainer: { 
     backgroundColor: Colors.background, 

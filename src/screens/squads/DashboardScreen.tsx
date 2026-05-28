@@ -59,9 +59,14 @@ export default function SquadsScreen({ navigation }: MainTabScreenProps<'Squads'
       <View style={[styles.content, { paddingHorizontal: horizontalPadding, maxWidth: contentWidth, alignSelf: 'center', width: '100%' }]}>
         <View style={styles.topBar}>
           <Text style={styles.headerTitle}>SQUADS</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('CreateSquad')} style={styles.headerAddBtn}>
-            <Ionicons name="add" size={28} color="#FFF" />
-          </TouchableOpacity>
+          <View style={styles.headerRight}>
+            <TouchableOpacity onPress={() => navigation.navigate('QRScanner' as any)} style={styles.headerBtn}>
+              <Ionicons name="qr-code-outline" size={24} color="#FFF" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('CreateSquad')} style={styles.headerBtn}>
+              <Ionicons name="add" size={28} color="#FFF" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <Text style={styles.pageSubtitle}>Manage your active groups and channels.</Text>
@@ -100,5 +105,6 @@ const styles = StyleSheet.create({
   overlapAvatar: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: Colors.surface },
   moreAvatar: { width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.surfaceAlt, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: Colors.surface },
   moreAvatarText: { fontSize: 10, fontWeight: 'bold', color: Colors.textSecondary },
-  headerAddBtn: { padding: Spacing.xs },
+  headerRight: { flexDirection: 'row', alignItems: 'center' },
+  headerBtn: { padding: Spacing.xs, marginLeft: Spacing.sm },
 });
