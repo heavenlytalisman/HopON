@@ -18,12 +18,13 @@ export default function SquadsScreen({ navigation }: MainTabScreenProps<'Squads'
       onPress={() => navigation.navigate('SquadDetail', { squadId: item.id, squadName: item.name, squadAvatar: item.avatar })}
     >
       <View style={styles.groupIcon}>
-        {item.avatar ? (
-          <Image source={{ uri: item.avatar }} style={styles.squadAvatar} />
-        ) : item.readOnly ? (
+        {item.readOnly && !item.avatar ? (
           <Ionicons name="megaphone-outline" size={18} color="#A78BFA" />
         ) : (
-          <Text style={styles.groupIconText}>#</Text>
+          <Image 
+            source={{ uri: item.avatar || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=150&q=80' }} 
+            style={styles.squadAvatar} 
+          />
         )}
       </View>
       <View style={styles.groupInfo}>
@@ -58,23 +59,12 @@ export default function SquadsScreen({ navigation }: MainTabScreenProps<'Squads'
       <View style={[styles.content, { paddingHorizontal: horizontalPadding, maxWidth: contentWidth, alignSelf: 'center', width: '100%' }]}>
         <View style={styles.topBar}>
           <Text style={styles.headerTitle}>SQUADS</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('CreateSquad')} style={styles.headerAddBtn}>
+            <Ionicons name="add" size={28} color="#FFF" />
+          </TouchableOpacity>
         </View>
 
         <Text style={styles.pageSubtitle}>Manage your active groups and channels.</Text>
-
-        <TouchableOpacity 
-          style={styles.createSquadCard} 
-          onPress={() => navigation.navigate('CreateSquad')}
-        >
-          <View style={styles.createSquadIconBox}>
-            <Ionicons name="add" size={24} color="#FFF" />
-          </View>
-          <View style={styles.createSquadInfo}>
-            <Text style={styles.createSquadTitle}>Create New Squad</Text>
-            <Text style={styles.createSquadSubtitle}>Form a new group and invite your friends</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
-        </TouchableOpacity>
 
         {loading ? (
           <ActivityIndicator color={Colors.primaryLight} style={{ marginTop: 40 }} />
@@ -100,9 +90,9 @@ const styles = StyleSheet.create({
   pageSubtitle: { fontSize: 14, color: Colors.textMuted, marginBottom: Spacing.xl },
   listContainer: { paddingBottom: 100 },
   groupCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, padding: Spacing.lg, borderRadius: BorderRadius.lg, marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.border },
-  groupIcon: { width: 36, height: 36, borderRadius: BorderRadius.sm, backgroundColor: Colors.surfaceAlt, justifyContent: 'center', alignItems: 'center', marginRight: Spacing.md, borderWidth: 1, borderColor: Colors.borderLight, overflow: 'hidden' },
+  groupIcon: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.surfaceAlt, justifyContent: 'center', alignItems: 'center', marginRight: Spacing.md, borderWidth: 1, borderColor: Colors.borderLight, overflow: 'hidden' },
   squadAvatar: { width: '100%', height: '100%' },
-  groupIconText: { color: Colors.primaryLight, fontSize: 18, fontWeight: 'bold' },
+  groupIconText: { color: Colors.primaryLight, fontSize: 20, fontWeight: 'bold' },
   groupInfo: { flex: 1 },
   groupName: { color: Colors.textPrimary, fontSize: 15, fontWeight: '700', marginBottom: 2 },
   groupSubtitle: { color: Colors.textMuted, fontSize: 12, fontWeight: '500' },
@@ -110,9 +100,5 @@ const styles = StyleSheet.create({
   overlapAvatar: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: Colors.surface },
   moreAvatar: { width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.surfaceAlt, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: Colors.surface },
   moreAvatarText: { fontSize: 10, fontWeight: 'bold', color: Colors.textSecondary },
-  createSquadCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1A1E2E', padding: Spacing.lg, borderRadius: BorderRadius.xl, marginBottom: Spacing.xl, borderWidth: 1, borderColor: '#7C3AED' },
-  createSquadIconBox: { width: 48, height: 48, borderRadius: 12, backgroundColor: '#7C3AED', justifyContent: 'center', alignItems: 'center', marginRight: Spacing.md },
-  createSquadInfo: { flex: 1 },
-  createSquadTitle: { color: Colors.textPrimary, fontSize: FontSizes.md, fontWeight: 'bold', marginBottom: 4 },
-  createSquadSubtitle: { color: Colors.textMuted, fontSize: 11, lineHeight: 16 },
+  headerAddBtn: { padding: Spacing.xs },
 });

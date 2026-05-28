@@ -49,11 +49,10 @@ export default function QuickSquadSelectScreen({ navigation }: RootStackScreenPr
             renderItem={({ item }) => (
               <TouchableOpacity style={styles.squadItem} onPress={() => handleSelectSquad(item.name)}>
                 <View style={styles.squadIconBox}>
-                  {item.avatar ? (
-                    <Image source={{ uri: item.avatar }} style={styles.squadAvatar} />
-                  ) : (
-                    <Ionicons name="people" size={24} color={Colors.primaryLight} />
-                  )}
+                  <Image 
+                    source={{ uri: item.avatar || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=150&q=80' }} 
+                    style={styles.squadAvatar} 
+                  />
                 </View>
                 <View style={styles.squadInfo}>
                   <Text style={styles.squadName}>{item.name}</Text>
@@ -137,7 +136,7 @@ const styles = StyleSheet.create({
   squadIconBox: {
     width: 48,
     height: 48,
-    borderRadius: 12,
+    borderRadius: 24,
     backgroundColor: Colors.surfaceAlt,
     justifyContent: 'center',
     alignItems: 'center',

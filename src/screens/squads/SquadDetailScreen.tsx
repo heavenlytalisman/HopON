@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, TextInput, KeyboardAvoidingView, Platform, FlatList, Modal, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, TextInput, KeyboardAvoidingView, Platform, FlatList, Modal, ScrollView, ActivityIndicator, Animated, PanResponder } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import * as ImagePicker from 'expo-image-picker';
+import * as Clipboard from 'expo-clipboard';
 import { LinearGradient } from 'expo-linear-gradient';
 import { sendPushNotification } from '../../services/notifications';
 import { getGroupMemberTokens } from '../../services/firebase';
@@ -28,6 +29,10 @@ interface Message {
   stickerUrl?: string;
   isMe: boolean;
   system?: boolean;
+  replyTo?: {
+    sender: string;
+    text: string;
+  };
 }
 
 interface StickerPack {
@@ -37,12 +42,69 @@ interface StickerPack {
 }
 
 const INITIAL_MESSAGES: Message[] = [
-  { id: '1', sender: 'System', avatar: '', text: 'Ranked Matchmaking started by @Viper', isMe: false, system: true },
   { id: '2', sender: '@Viper', avatar: 'https://i.pravatar.cc/150?u=3', text: 'We need one more for the lobby. Who is online?', isMe: false },
   { id: '3', sender: 'You', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704z', text: 'Give me 5 mins, just finishing up a call.', isMe: true },
   { id: '4', sender: '@ApexQueen', avatar: 'https://i.pravatar.cc/150?u=4', text: "I'm in the lobby now. Setting up the loadout.", isMe: false },
   { id: '5', sender: '@AlexM', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d', stickerUrl: 'https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?auto=format&fit=crop&w=150&q=80', isMe: false },
 ];
+
+const SwipeableMessage = ({ item, onReply, onLongPress, children }: any) => {
+  const pan = useRef(new Animated.ValueXY()).current;
+  
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponderCapture: (_, gestureState) => {
+        // Only capture horizontal swipes (right)
+        return gestureState.dx > 15 && Math.abs(gestureState.dy) < 15;
+      },
+      onPanResponderGrant: () => {
+        // Reset offset to handle multiple rapid swipes safely
+        pan.setOffset({ x: 0, y: 0 });
+        pan.setValue({ x: 0, y: 0 });
+      },
+      onPanResponderMove: (_, gestureState) => {
+        // Allow swiping right, max resistance
+        if (gestureState.dx > 0) {
+           pan.setValue({ x: Math.min(gestureState.dx, 80), y: 0 });
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        pan.flattenOffset();
+        if (gestureState.dx > 50) {
+          onReply(item);
+        }
+        Animated.spring(pan, {
+          toValue: { x: 0, y: 0 },
+          useNativeDriver: true,
+          bounciness: 10,
+        }).start();
+      },
+      onPanResponderTerminate: () => {
+        Animated.spring(pan, {
+          toValue: { x: 0, y: 0 },
+          useNativeDriver: true,
+          bounciness: 10,
+        }).start();
+      }
+    })
+  ).current;
+
+  return (
+    <Animated.View
+      style={{ transform: [{ translateX: pan.x }] }}
+      {...panResponder.panHandlers}
+    >
+      <TouchableOpacity 
+        style={[item.isMe ? styles.bubbleRight : styles.bubbleLeft, (item.gifUrl || item.stickerUrl) ? { padding: 0, overflow: 'hidden', backgroundColor: 'transparent', borderWidth: 0 } : null]}
+        onLongPress={() => onLongPress(item)}
+        delayLongPress={200}
+        activeOpacity={0.8}
+      >
+        {children}
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
 
 export default function SquadDetailScreen({ route, navigation }: RootStackScreenProps<'SquadDetail'>) {
   const { squadName, squadId, squadAvatar } = route.params;
@@ -79,6 +141,9 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
   const [saveStickerModalVisible, setSaveStickerModalVisible] = useState(false);
   const [stickerToSaveUrl, setStickerToSaveUrl] = useState<string | null>(null);
   const [selectedStickerDetails, setSelectedStickerDetails] = useState<{ url: string; packName: string } | null>(null);
+  
+  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
   const myAvatar = profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z';
 
@@ -164,26 +229,40 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
 
   const handleSendText = () => {
     if (!inputText.trim()) return;
+    
+    const replyData = replyingTo ? {
+      sender: replyingTo.sender,
+      text: replyingTo.text || (replyingTo.gifUrl ? 'GIF' : 'Sticker')
+    } : undefined;
+
     const newMessage: Message = {
       id: Date.now().toString(),
       sender: 'You',
       avatar: myAvatar,
       text: inputText.trim(),
       isMe: true,
+      replyTo: replyData,
     };
     setMessages((prev) => [...prev, newMessage]);
     setInputText('');
     setShowGifPicker(false);
     setShowStickerPicker(false);
+    setReplyingTo(null);
   };
 
   const handleSendGif = (gifUrl: string) => {
+    const replyData = replyingTo ? {
+      sender: replyingTo.sender,
+      text: replyingTo.text || (replyingTo.gifUrl ? 'GIF' : 'Sticker')
+    } : undefined;
+
     const newMessage: Message = {
       id: Date.now().toString(),
       sender: 'You',
       avatar: myAvatar,
       gifUrl,
       isMe: true,
+      replyTo: replyData,
     };
     setMessages((prev) => [...prev, newMessage]);
     setRecentGifs((prev) => {
@@ -191,6 +270,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
       return [gifUrl, ...filtered].slice(0, 20);
     });
     setShowGifPicker(false);
+    setReplyingTo(null);
   };
 
   const toggleFavoriteGif = (gifUrl: string) => {
@@ -201,15 +281,22 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
   };
 
   const handleSendSticker = (stickerUrl: string) => {
+    const replyData = replyingTo ? {
+      sender: replyingTo.sender,
+      text: replyingTo.text || (replyingTo.gifUrl ? 'GIF' : 'Sticker')
+    } : undefined;
+
     const newMessage: Message = {
       id: Date.now().toString(),
       sender: 'You',
       avatar: myAvatar,
       stickerUrl,
       isMe: true,
+      replyTo: replyData,
     };
     setMessages((prev) => [...prev, newMessage]);
     setShowStickerPicker(false);
+    setReplyingTo(null);
   };
 
   const pickStickerImage = async () => {
@@ -316,12 +403,22 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
 
     return (
       <View style={[styles.messageRow, item.isMe ? { justifyContent: 'flex-end' } : null]}>
-        {!item.isMe && <Image source={{ uri: item.avatar }} style={styles.avatar} />}
+        {!item.isMe && (
+          <TouchableOpacity onPress={() => navigation.navigate('FriendProfile', { friendId: item.sender, friendName: item.sender, friendAvatar: item.avatar })}>
+            <Image source={{ uri: item.avatar }} style={styles.avatar} />
+          </TouchableOpacity>
+        )}
         
         <View style={[styles.messageContent, item.isMe ? { alignItems: 'flex-end' } : null]}>
           {!item.isMe && <Text style={styles.senderName}>{item.sender}</Text>}
           
-          <View style={[item.isMe ? styles.bubbleRight : styles.bubbleLeft, (item.gifUrl || item.stickerUrl) ? { padding: 0, overflow: 'hidden', backgroundColor: 'transparent', borderWidth: 0 } : null]}>
+          <SwipeableMessage item={item} onReply={(msg: Message) => setReplyingTo(msg)} onLongPress={(msg: Message) => setSelectedMessage(msg)}>
+            {item.replyTo && (
+              <View style={[styles.replyQuoteBubble, item.isMe ? styles.replyQuoteBubbleRight : styles.replyQuoteBubbleLeft]}>
+                <Text style={styles.replyQuoteSender}>Replying to {item.replyTo.sender}</Text>
+                <Text style={styles.replyQuoteText} numberOfLines={1}>{item.replyTo.text}</Text>
+              </View>
+            )}
             {item.gifUrl ? (
               <Image source={{ uri: item.gifUrl }} style={styles.gifMessage} />
             ) : item.stickerUrl ? (
@@ -331,7 +428,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
             ) : (
               <Text style={item.isMe ? styles.textRight : styles.textLeft}>{item.text}</Text>
             )}
-          </View>
+          </SwipeableMessage>
           
           {item.isMe && <Text style={styles.readReceipt}>Delivered</Text>}
         </View>
@@ -350,13 +447,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
           </TouchableOpacity>
-          {squadAvatar ? (
-            <Image source={{ uri: squadAvatar }} style={styles.headerSquadAvatar} />
-          ) : (
-            <View style={styles.headerSquadAvatarFallback}>
-              <Ionicons name="people" size={18} color={Colors.primaryLight} />
-            </View>
-          )}
+          <Image source={{ uri: squadAvatar || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=150&q=80' }} style={styles.headerSquadAvatar} />
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle} numberOfLines={1}>{squadName}</Text>
             <Text style={styles.headerSubtitle}>3/4 Online</Text>
@@ -365,11 +456,11 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
             <TouchableOpacity style={styles.headerIconButton} onPress={handleHopOn}>
               <Ionicons name="flash-outline" size={20} color={Colors.textPrimary} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.headerIconButton} onPress={() => setInviteModalVisible(true)}>
-              <Ionicons name="person-add-outline" size={20} color={Colors.textPrimary} />
+            <TouchableOpacity style={styles.headerIconBtn} onPress={() => setInviteModalVisible(true)}>
+              <Ionicons name="person-add-outline" size={18} color={Colors.textMuted} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.headerIconButton}>
-              <Ionicons name="settings-outline" size={20} color={Colors.textPrimary} />
+            <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate('SquadSettings', { squadId, squadName, squadAvatar })}>
+              <Ionicons name="settings-outline" size={18} color={Colors.textMuted} />
             </TouchableOpacity>
           </View>
         </View>
@@ -479,6 +570,18 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
                 </TouchableOpacity>
               ))}
             </ScrollView>
+          </View>
+        )}
+
+        {replyingTo && (
+          <View style={styles.replyBanner}>
+            <View style={styles.replyBannerContent}>
+              <Text style={styles.replyBannerSender}>Replying to {replyingTo.sender}</Text>
+              <Text style={styles.replyBannerText} numberOfLines={1}>{replyingTo.text || (replyingTo.gifUrl ? 'GIF' : 'Sticker')}</Text>
+            </View>
+            <TouchableOpacity onPress={() => setReplyingTo(null)} style={styles.replyBannerClose}>
+              <Ionicons name="close-circle" size={20} color={Colors.textMuted} />
+            </TouchableOpacity>
           </View>
         )}
 
@@ -662,6 +765,44 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
           </View>
         </Modal>
 
+        {/* Message Actions Modal */}
+        <Modal visible={!!selectedMessage} animationType="fade" transparent={true} onRequestClose={() => setSelectedMessage(null)}>
+          <View style={styles.modalOverlayCentered}>
+            <View style={styles.messageActionModalContent}>
+              {selectedMessage?.text && (
+                <TouchableOpacity style={styles.messageActionOption} onPress={() => {
+                  Clipboard.setStringAsync(selectedMessage.text!);
+                  setSelectedMessage(null);
+                }}>
+                  <Ionicons name="copy-outline" size={20} color={Colors.textPrimary} />
+                  <Text style={styles.messageActionOptionText}>Copy</Text>
+                </TouchableOpacity>
+              )}
+              
+              <TouchableOpacity style={[styles.messageActionOption, !selectedMessage?.isMe && { borderBottomWidth: 0 }]} onPress={() => {
+                setReplyingTo(selectedMessage);
+                setSelectedMessage(null);
+              }}>
+                <Ionicons name="arrow-undo-outline" size={20} color={Colors.textPrimary} />
+                <Text style={styles.messageActionOptionText}>Reply</Text>
+              </TouchableOpacity>
+
+              {selectedMessage?.isMe && (
+                <TouchableOpacity style={[styles.messageActionOption, { borderBottomWidth: 0 }]} onPress={() => {
+                  setMessages(prev => prev.filter(m => m.id !== selectedMessage.id));
+                  setSelectedMessage(null);
+                }}>
+                  <Ionicons name="trash-outline" size={20} color={Colors.error} />
+                  <Text style={[styles.messageActionOptionText, { color: Colors.error }]}>Unsend</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            <TouchableOpacity style={styles.messageActionCloseBtn} onPress={() => setSelectedMessage(null)}>
+              <Text style={styles.messageActionCloseText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </Modal>
+
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -676,8 +817,9 @@ const styles = StyleSheet.create({
   headerCenter: { flex: 1 },
   headerTitle: { fontSize: 16, fontWeight: 'bold', color: Colors.textPrimary },
   headerSubtitle: { fontSize: 12, color: Colors.success, fontWeight: '600' },
-  headerRight: { flexDirection: 'row', gap: Spacing.md, alignItems: 'center' },
+  headerRight: { flexDirection: 'row', alignItems: 'center' },
   headerIconButton: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.surfaceAlt, justifyContent: 'center', alignItems: 'center' },
+  headerIconBtn: { padding: Spacing.sm, marginLeft: Spacing.xs },
   
   chatContainer: { padding: Spacing.lg, paddingBottom: 20 },
   systemMessageContainer: { alignItems: 'center', marginBottom: Spacing.xl },
@@ -694,6 +836,18 @@ const styles = StyleSheet.create({
   readReceipt: { fontSize: 10, color: Colors.textMuted, marginTop: 4 },
   gifMessage: { width: 200, height: 150, borderRadius: BorderRadius.lg },
   stickerMessage: { width: 120, height: 120, resizeMode: 'contain' },
+
+  replyQuoteBubble: { padding: Spacing.sm, borderRadius: BorderRadius.sm, marginBottom: Spacing.xs, borderLeftWidth: 3 },
+  replyQuoteBubbleLeft: { backgroundColor: Colors.surfaceAlt, borderLeftColor: Colors.primaryLight },
+  replyQuoteBubbleRight: { backgroundColor: 'rgba(255,255,255,0.2)', borderLeftColor: '#FFFFFF' },
+  replyQuoteSender: { fontSize: 11, fontWeight: 'bold', color: Colors.textPrimary, marginBottom: 2 },
+  replyQuoteText: { fontSize: 12, color: Colors.textMuted },
+
+  replyBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surfaceAlt, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border },
+  replyBannerContent: { flex: 1 },
+  replyBannerSender: { fontSize: 12, fontWeight: 'bold', color: Colors.primaryLight, marginBottom: 2 },
+  replyBannerText: { fontSize: 13, color: Colors.textMuted },
+  replyBannerClose: { padding: Spacing.sm },
 
   inputArea: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, backgroundColor: 'transparent' },
   gifToggleBtn: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: Spacing.sm, marginRight: Spacing.xs },
@@ -770,4 +924,10 @@ const styles = StyleSheet.create({
   stickerPackInfo: { fontSize: 13, color: Colors.textMuted, marginBottom: Spacing.lg },
   saveToPackBtnMinimal: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.md, paddingVertical: 6, borderRadius: BorderRadius.pill, borderWidth: 1, borderColor: Colors.borderLight },
   saveToPackBtnMinimalText: { color: Colors.textPrimary, fontSize: 13, fontWeight: '600', marginLeft: 4 },
+
+  messageActionModalContent: { backgroundColor: Colors.surface, borderRadius: BorderRadius.xl, width: 250, overflow: 'hidden' },
+  messageActionOption: { flexDirection: 'row', alignItems: 'center', padding: Spacing.lg, borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
+  messageActionOptionText: { fontSize: 16, color: Colors.textPrimary, marginLeft: Spacing.md, fontWeight: '500' },
+  messageActionCloseBtn: { backgroundColor: Colors.surface, borderRadius: BorderRadius.xl, width: 250, padding: Spacing.lg, alignItems: 'center', marginTop: Spacing.md },
+  messageActionCloseText: { fontSize: 16, color: Colors.primaryLight, fontWeight: 'bold' },
 });

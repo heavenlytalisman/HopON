@@ -17,6 +17,7 @@ import ProfileScreen from '../screens/profile/ProfileScreen';
 import SquadDetailScreen from '../screens/squads/SquadDetailScreen';
 import CreateSquadScreen from '../screens/squads/CreateSquadScreen';
 import HopOnRoomScreen from '../screens/squads/HopOnRoomScreen';
+import SquadSettingsScreen from '../screens/squads/SquadSettingsScreen';
 import IncomingAlertScreen from '../screens/squads/IncomingAlertScreen';
 import QuickSquadSelectScreen from '../screens/squads/QuickSquadSelectScreen';
 import FriendProfileScreen from '../screens/profile/FriendProfileScreen';
@@ -143,6 +144,7 @@ export default function AppNavigator() {
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="FriendList" component={FriendListScreen} />
       <Stack.Screen name="SquadDetail" component={SquadDetailScreen} />
+      <Stack.Screen name="SquadSettings" component={SquadSettingsScreen} />
       <Stack.Screen
         name="CreateSquad"
         component={CreateSquadScreen}

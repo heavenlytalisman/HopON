@@ -193,7 +193,26 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
             </View>
             <View style={styles.listContainer}>
               {MOCK_ACTIVITY.map(activity => (
-                <View key={activity.id} style={styles.listItem}>
+                <TouchableOpacity 
+                  key={activity.id} 
+                  style={styles.listItem}
+                  onPress={() => navigation.navigate('PostDetail' as any, { 
+                    postId: activity.id, 
+                    mockData: {
+                      id: activity.id,
+                      author: {
+                        name: activity.user,
+                        handle: `@${activity.user.toLowerCase().replace(' ', '')}`,
+                        avatar: activity.avatar
+                      },
+                      content: activity.game,
+                      timestamp: activity.time,
+                      likes: Math.floor(Math.random() * 100) + 10,
+                      comments: Math.floor(Math.random() * 20) + 2,
+                      reposts: Math.floor(Math.random() * 10),
+                    }
+                  })}
+                >
                   <Image source={{ uri: activity.avatar }} style={styles.activityAvatar} />
                   <View style={styles.listInfo}>
                     <Text style={styles.activityUserText}>
@@ -209,7 +228,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
                       </TouchableOpacity>
                     )}
                   </View>
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
           </View>
