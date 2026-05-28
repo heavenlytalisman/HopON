@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import type { FeedPostData } from '../../types';
 
@@ -12,6 +13,48 @@ interface FeedPostProps {
 
 export default function FeedPost({ post, depth = 0, variant = 'feed' }: FeedPostProps) {
   const { author, timestamp, content, mediaType, mediaData } = post;
+  
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    return sound
+      ? () => {
+          sound.unloadAsync();
+        }
+      : undefined;
+  }, [sound]);
+
+  const togglePlayback = async (previewUrl: string) => {
+    if (!previewUrl) return;
+
+    try {
+      if (sound) {
+        if (isPlaying) {
+          await sound.pauseAsync();
+          setIsPlaying(false);
+        } else {
+          await sound.playAsync();
+          setIsPlaying(true);
+        }
+      } else {
+        const { sound: newSound } = await Audio.Sound.createAsync(
+          { uri: previewUrl },
+          { shouldPlay: true }
+        );
+        setSound(newSound);
+        setIsPlaying(true);
+
+        newSound.setOnPlaybackStatusUpdate((status) => {
+          if (status.isLoaded && status.didJustFinish) {
+            setIsPlaying(false);
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error playing sound:', error);
+    }
+  };
   
   // Cap depth to prevent squishing on narrow screens
   const currentDepth = Math.min(depth, 3);
@@ -56,7 +99,13 @@ export default function FeedPost({ post, depth = 0, variant = 'feed' }: FeedPost
               <Text style={styles.songTitle}>{mediaData.title}</Text>
               <Text style={styles.songArtist}>{mediaData.artist}</Text>
             </View>
-            <Ionicons name="play-circle" size={32} color={Colors.primaryLight} style={{ marginLeft: 'auto' }} />
+            {mediaData.previewUrl ? (
+              <TouchableOpacity onPress={() => togglePlayback(mediaData.previewUrl)} style={{ marginLeft: 'auto' }}>
+                <Ionicons name={isPlaying ? "pause-circle" : "play-circle"} size={32} color={Colors.primaryLight} />
+              </TouchableOpacity>
+            ) : (
+              <Ionicons name="musical-note" size={24} color={Colors.textMuted} style={{ marginLeft: 'auto' }} />
+            )}
           </View>
         );
       default:

@@ -8,27 +8,24 @@ import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import { useResponsive } from '../../hooks/useResponsive';
 import type { MainTabScreenProps } from '../../types';
 
+import MusicSearchModal from '../../components/feed/MusicSearchModal';
+import GifPickerModal from '../../components/feed/GifPickerModal';
+import MovieSearchModal from '../../components/feed/MovieSearchModal';
+import * as ImagePicker from 'expo-image-picker';
+
 export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
   const { posts, loading, isPosting, publishPost } = useFeed();
   const { profile } = useAuth();
   const { contentWidth, horizontalPadding } = useResponsive();
   const [postTexts, setPostTexts] = useState<string[]>(['']);
   const [attachedMedia, setAttachedMedia] = useState<any>(null);
-  const [attachedMediaType, setAttachedMediaType] = useState<'song' | 'movie' | null>(null);
-
-  const MOCK_SONG = {
-    title: 'Nights',
-    artist: 'Frank Ocean',
-    albumArt: 'https://i.scdn.co/image/ab67616d0000b273c5649add07ed3720be9d5526',
-  };
-
-  const MOCK_MOVIE = {
-    title: 'Dune: Part Two',
-    rating: 4.8,
-    poster: 'https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2JGjjc91p.jpg',
-  };
+  const [attachedMediaType, setAttachedMediaType] = useState<'song' | 'movie' | 'meme' | 'anime' | null>(null);
 
   const [isComposeVisible, setIsComposeVisible] = useState(false);
+  const [isMusicSearchVisible, setIsMusicSearchVisible] = useState(false);
+  const [isMovieSearchVisible, setIsMovieSearchVisible] = useState(false);
+  const [isAddMenuVisible, setIsAddMenuVisible] = useState(false);
+  const [isGifPickerVisible, setIsGifPickerVisible] = useState(false);
 
   const handlePost = async () => {
     try {
@@ -48,27 +45,17 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
     setPostTexts(newTexts);
   };
 
-  const addThreadItem = () => {
-    setPostTexts([...postTexts, '']);
-  };
+  const pickImage = async () => {
+    setIsAddMenuVisible(false);
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images', 'videos'],
+      allowsEditing: true,
+      quality: 0.8,
+    });
 
-  const attachMockSong = () => {
-    if (attachedMediaType === 'song') {
-      setAttachedMedia(null);
-      setAttachedMediaType(null);
-    } else {
-      setAttachedMedia(MOCK_SONG);
-      setAttachedMediaType('song');
-    }
-  };
-
-  const attachMockMovie = () => {
-    if (attachedMediaType === 'movie') {
-      setAttachedMedia(null);
-      setAttachedMediaType(null);
-    } else {
-      setAttachedMedia(MOCK_MOVIE);
-      setAttachedMediaType('movie');
+    if (!result.canceled) {
+      setAttachedMedia({ url: result.assets[0].uri });
+      setAttachedMediaType('meme');
     }
   };
 
@@ -138,38 +125,73 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
               ))}
 
               {attachedMedia && (
-                <View style={styles.attachedMediaCard}>
-                  <Image 
-                    source={{ uri: attachedMediaType === 'song' ? attachedMedia.albumArt : attachedMedia.poster }} 
-                    style={attachedMediaType === 'song' ? styles.attachedSongCover : styles.attachedMovieCover} 
-                  />
-                  <View style={styles.attachedMediaInfo}>
-                    <Text style={styles.attachedMediaTitle}>{attachedMedia.title}</Text>
-                    <Text style={styles.attachedMediaSubtitle}>
-                      {attachedMediaType === 'song' ? attachedMedia.artist : `Letterboxd • ★ ${attachedMedia.rating}`}
-                    </Text>
-                  </View>
-                  <TouchableOpacity onPress={() => { setAttachedMedia(null); setAttachedMediaType(null); }} style={styles.removeMediaBtn}>
-                    <Ionicons name="close-circle" size={24} color={Colors.textMuted} />
-                  </TouchableOpacity>
+                <View style={[styles.attachedMediaCard, attachedMediaType === 'meme' && { padding: 0, overflow: 'hidden' }]}>
+                  {attachedMediaType === 'meme' ? (
+                    <>
+                      <Image 
+                        source={{ uri: attachedMedia.url }} 
+                        style={{ width: '100%', height: 200, resizeMode: 'cover' }} 
+                      />
+                      <TouchableOpacity 
+                        onPress={() => { setAttachedMedia(null); setAttachedMediaType(null); }} 
+                        style={[styles.removeMediaBtn, { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 20 }]}
+                      >
+                        <Ionicons name="close-circle" size={24} color="#FFF" />
+                      </TouchableOpacity>
+                    </>
+                  ) : (
+                    <>
+                      <Image 
+                        source={{ uri: attachedMediaType === 'song' ? attachedMedia.albumArt : (attachedMedia.poster || attachedMedia.cover) }} 
+                        style={attachedMediaType === 'song' ? styles.attachedSongCover : styles.attachedMovieCover} 
+                      />
+                      <View style={styles.attachedMediaInfo}>
+                        <Text style={styles.attachedMediaTitle}>{attachedMedia.title}</Text>
+                        <Text style={styles.attachedMediaSubtitle}>
+                          {attachedMediaType === 'song' ? attachedMedia.artist : `${attachedMedia.source || 'Letterboxd'} • ★ ${attachedMedia.rating}`}
+                        </Text>
+                      </View>
+                      <TouchableOpacity onPress={() => { setAttachedMedia(null); setAttachedMediaType(null); }} style={styles.removeMediaBtn}>
+                        <Ionicons name="close-circle" size={24} color={Colors.textMuted} />
+                      </TouchableOpacity>
+                    </>
+                  )}
                 </View>
               )}
 
               <View style={styles.composeActionsRow}>
                 <View style={styles.actionButtonsLeft}>
-                  <TouchableOpacity style={styles.actionBtn} onPress={addThreadItem}>
-                    <Ionicons name="add" size={16} color={Colors.primaryLight} />
-                    <Text style={styles.actionBtnText}>Thread</Text>
-                  </TouchableOpacity>
+                  <View style={{ position: 'relative' }}>
+                    <TouchableOpacity style={styles.actionBtn} onPress={() => setIsAddMenuVisible(!isAddMenuVisible)}>
+                      <Ionicons name="add-circle" size={16} color={Colors.primaryLight} />
+                      <Text style={styles.actionBtnText}>Add</Text>
+                    </TouchableOpacity>
 
-                  <TouchableOpacity style={styles.actionBtn} onPress={attachMockSong}>
+                    {isAddMenuVisible && (
+                      <View style={styles.addMenu}>
+                        <TouchableOpacity style={styles.addMenuItem} onPress={pickImage}>
+                          <Ionicons name="image" size={18} color={Colors.primaryLight} />
+                          <Text style={styles.addMenuText}>Photo/Video</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                          style={styles.addMenuItem} 
+                          onPress={() => { setIsAddMenuVisible(false); setIsGifPickerVisible(true); }}
+                        >
+                          <Ionicons name="gif" size={18} color={Colors.primaryLight} />
+                          <Text style={styles.addMenuText}>GIF</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
+
+                  <TouchableOpacity style={styles.actionBtn} onPress={() => setIsMusicSearchVisible(true)}>
                     <Ionicons name="musical-notes" size={16} color={attachedMediaType === 'song' ? Colors.success : Colors.primaryLight} />
                     <Text style={[styles.actionBtnText, attachedMediaType === 'song' && { color: Colors.success }]}>Music</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity style={styles.actionBtn} onPress={attachMockMovie}>
-                    <Ionicons name="film" size={16} color={attachedMediaType === 'movie' ? Colors.success : Colors.primaryLight} />
-                    <Text style={[styles.actionBtnText, attachedMediaType === 'movie' && { color: Colors.success }]}>Movie</Text>
+                  <TouchableOpacity style={styles.actionBtn} onPress={() => setIsMovieSearchVisible(true)}>
+                    <Ionicons name="film" size={16} color={(attachedMediaType === 'movie' || attachedMediaType === 'anime') ? Colors.success : Colors.primaryLight} />
+                    <Text style={[styles.actionBtnText, (attachedMediaType === 'movie' || attachedMediaType === 'anime') && { color: Colors.success }]}>Movie</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -187,6 +209,36 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
           </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
+
+      <MusicSearchModal 
+        visible={isMusicSearchVisible}
+        onClose={() => setIsMusicSearchVisible(false)}
+        onSelectSong={(songData) => {
+          setAttachedMedia(songData);
+          setAttachedMediaType('song');
+          setIsMusicSearchVisible(false);
+        }}
+      />
+
+      <GifPickerModal 
+        visible={isGifPickerVisible}
+        onClose={() => setIsGifPickerVisible(false)}
+        onSelectGif={(gifData) => {
+          setAttachedMedia(gifData);
+          setAttachedMediaType('meme');
+          setIsGifPickerVisible(false);
+        }}
+      />
+
+      <MovieSearchModal 
+        visible={isMovieSearchVisible}
+        onClose={() => setIsMovieSearchVisible(false)}
+        onSelectMedia={(mediaData, type) => {
+          setAttachedMedia(mediaData);
+          setAttachedMediaType(type);
+          setIsMovieSearchVisible(false);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -358,5 +410,28 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontWeight: 'bold',
     fontSize: 13,
+  },
+  addMenu: {
+    position: 'absolute',
+    bottom: 40,
+    left: 0,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.xs,
+    width: 150,
+    zIndex: 10,
+    elevation: 5,
+  },
+  addMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.sm,
+  },
+  addMenuText: {
+    color: Colors.textPrimary,
+    marginLeft: Spacing.sm,
+    fontSize: 14,
   }
 });
