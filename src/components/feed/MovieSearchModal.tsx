@@ -37,10 +37,13 @@ export default function MovieSearchModal({ visible, onClose, onSelectMedia }: Mo
     setResults([]);
     try {
       if (activeTab === 'movie') {
-        const url = `https://itunes.apple.com/search?term=top+movies+2024&entity=movie&limit=20`;
+        const url = `https://itunes.apple.com/search?term=marvel&limit=50`;
         const data = await fetchWithProxy(url);
-        const mapped = (data.results || []).map((item: any) => ({
-          id: item.trackId.toString(),
+        const mapped = (data.results || [])
+          .filter((item: any) => item.kind === 'feature-movie')
+          .slice(0, 20)
+          .map((item: any) => ({
+            id: item.trackId.toString(),
           title: item.trackName,
           poster: item.artworkUrl100 ? item.artworkUrl100.replace('100x100bb', '600x600bb') : null,
           rating: item.contentAdvisoryRating || item.primaryGenreName,
@@ -105,10 +108,13 @@ export default function MovieSearchModal({ visible, onClose, onSelectMedia }: Mo
     setResults([]);
     try {
       if (activeTab === 'movie') {
-        const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=movie&limit=20`;
+        const url = `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&limit=50`;
         const data = await fetchWithProxy(url);
-        const mapped = (data.results || []).map((item: any) => ({
-          id: item.trackId.toString(),
+        const mapped = (data.results || [])
+          .filter((item: any) => item.kind === 'feature-movie')
+          .slice(0, 20)
+          .map((item: any) => ({
+            id: item.trackId.toString(),
           title: item.trackName,
           poster: item.artworkUrl100 ? item.artworkUrl100.replace('100x100bb', '600x600bb') : null,
           rating: item.contentAdvisoryRating || item.primaryGenreName,
