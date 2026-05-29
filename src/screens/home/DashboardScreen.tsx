@@ -69,7 +69,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
 
   const handleQuickReply = (msg: string) => {
     cancelSOS();
-    Alert.alert('Message Sent', `Sent "${msg}" to your squad.`);
+    // Message sent silently
   };
 
   return (
@@ -239,32 +239,40 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
       {/* SOS Alert Modal */}
       <Modal
         visible={showSOS}
-        transparent={true}
-        animationType="fade"
+        transparent={false}
+        animationType="slide"
         onRequestClose={cancelSOS}
       >
         <View style={styles.sosOverlay}>
-          <View style={styles.sosContainer}>
-            <View style={styles.sosHeader}>
-              <Ionicons name="warning" size={32} color="#FFF" style={styles.sosIcon} />
-              <Text style={styles.sosTitle}>SQUAD NOTIFICATION</Text>
-              <Ionicons name="warning" size={32} color="#FFF" style={styles.sosIcon} />
-            </View>
-            
-            <View style={styles.sosBody}>
-              <Text style={styles.sosMessage}>
-                {profile?.nickname || 'Arjun'} has requested the squad to hop on. Join the lobby now.
-              </Text>
-              <Text style={styles.sosTime}>{new Date().toLocaleTimeString()}</Text>
+          <LinearGradient
+            colors={['#0F1219', '#1A1B26']}
+            style={StyleSheet.absoluteFillObject}
+          />
+          <SafeAreaView style={styles.sosContainer}>
+            <View style={styles.sosContentWrapper}>
+              <View style={styles.sosHeader}>
+                <View style={styles.sosIconWrapper}>
+                  <Ionicons name="notifications" size={48} color="#A78BFA" />
+                </View>
+                <Text style={styles.sosTitle}>Incoming Request</Text>
+              </View>
+              
+              <View style={styles.sosBody}>
+                <Text style={styles.sosMessage}>
+                  <Text style={{color: '#FFF', fontWeight: 'bold'}}>{profile?.nickname || 'Arjun'}</Text> wants the squad to hop on right now.
+                </Text>
+                <Text style={styles.sosTime}>{new Date().toLocaleTimeString()}</Text>
+              </View>
             </View>
 
             {!showQuickReplies ? (
               <View style={styles.sosButtonGroup}>
-                <TouchableOpacity style={styles.sosDeclineBtn} onPress={handleDecline}>
-                  <Text style={styles.sosDeclineText}>Decline</Text>
-                </TouchableOpacity>
                 <TouchableOpacity style={styles.sosAcceptBtn} onPress={handleAccept}>
-                  <Text style={styles.sosAcceptText}>Accept</Text>
+                  <LinearGradient colors={['#7C3AED', '#6366F1']} style={StyleSheet.absoluteFillObject} />
+                  <Text style={styles.sosAcceptText}>Hop On</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.sosDeclineBtn} onPress={handleDecline}>
+                  <Text style={styles.sosDeclineText}>Not Now</Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -282,7 +290,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
                 </TouchableOpacity>
               </View>
             )}
-          </View>
+          </SafeAreaView>
         </View>
       </Modal>
     </SafeAreaView>
@@ -664,136 +672,131 @@ const styles = StyleSheet.create({
   },
   sosOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(15, 18, 25, 0.85)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.xl,
+    backgroundColor: '#0F1219',
   },
   sosContainer: {
-    backgroundColor: '#1A1E2E',
-    width: '100%',
-    maxWidth: 400,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.xl,
-    borderWidth: 2,
-    borderColor: '#7C3AED',
-    shadowColor: '#7C3AED',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 10,
+    flex: 1,
+    justifyContent: 'space-between',
+    padding: Spacing.xxl,
   },
-  sosHeader: {
-    flexDirection: 'row',
+  sosContentWrapper: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: Spacing.md,
-    marginBottom: Spacing.xl,
   },
-  sosIcon: {
-    opacity: 1,
+  sosHeader: {
+    alignItems: 'center',
+    marginBottom: Spacing.xxl,
+  },
+  sosIconWrapper: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: 'rgba(124, 58, 237, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+    borderWidth: 1,
+    borderColor: 'rgba(124, 58, 237, 0.3)',
   },
   sosTitle: {
-    color: Colors.textPrimary,
-    fontSize: 22,
+    color: '#FFF',
+    fontSize: 32,
     fontWeight: '900',
-    letterSpacing: 1,
+    letterSpacing: -0.5,
     textAlign: 'center',
   },
   sosBody: {
-    backgroundColor: '#151928',
-    padding: Spacing.xl,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: '#1E293B',
-    marginBottom: Spacing.xl,
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
   },
   sosMessage: {
-    color: Colors.textPrimary,
-    fontSize: 16,
-    fontWeight: '600',
+    color: '#94A3B8',
+    fontSize: 20,
+    fontWeight: '400',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 30,
+    marginBottom: Spacing.xl,
   },
   sosTime: {
-    color: Colors.textMuted,
-    fontSize: 12,
-    textAlign: 'right',
-    marginTop: Spacing.md,
-    fontWeight: '500',
+    color: '#475569',
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 1,
   },
   sosButtonGroup: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     gap: Spacing.md,
+    width: '100%',
+    paddingBottom: Spacing.xl,
   },
   sosDeclineBtn: {
-    flex: 1,
-    backgroundColor: '#1E293B',
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.lg,
+    width: '100%',
+    backgroundColor: 'transparent',
+    paddingVertical: 18,
+    borderRadius: 16,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#334155',
   },
   sosDeclineText: {
-    color: Colors.textMuted,
-    fontSize: 14,
-    fontWeight: 'bold',
+    color: '#94A3B8',
+    fontSize: 16,
+    fontWeight: '700',
   },
   sosAcceptBtn: {
-    flex: 1,
-    backgroundColor: '#7C3AED',
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.lg,
+    width: '100%',
+    paddingVertical: 18,
+    borderRadius: 16,
     alignItems: 'center',
+    overflow: 'hidden',
   },
   sosAcceptText: {
     color: '#FFF',
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '800',
+    zIndex: 1,
   },
   quickRepliesContainer: {
-    backgroundColor: '#151928',
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.xl,
-    borderWidth: 1,
-    borderColor: '#1E293B',
+    width: '100%',
+    backgroundColor: 'transparent',
     alignItems: 'center',
+    paddingBottom: Spacing.xl,
   },
   quickReplyPrompt: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
-    color: Colors.textPrimary,
-    marginBottom: Spacing.md,
+    color: '#FFF',
+    marginBottom: Spacing.xl,
   },
   chipsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: 8,
+    gap: 12,
   },
   replyChip: {
-    backgroundColor: '#1E293B',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
+    backgroundColor: 'rgba(51, 65, 85, 0.4)',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: '#334155',
   },
   replyChipText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '600',
-    color: Colors.textPrimary,
+    color: '#E2E8F0',
   },
   cancelReplyButton: {
-    marginTop: Spacing.md,
-    paddingVertical: 8,
+    marginTop: Spacing.xl,
+    paddingVertical: 12,
     alignItems: 'center',
   },
   cancelReplyText: {
-    color: Colors.textMuted,
-    fontSize: 12,
-    fontWeight: '600',
+    color: '#94A3B8',
+    fontSize: 14,
+    fontWeight: '700',
   },
   notificationsOverlay: {
     flex: 1,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Share, Alert } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Share, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import { useNavigation } from '@react-navigation/native';
@@ -11,6 +11,7 @@ import type { FeedPostData } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { createPost } from '../../services/firebase';
 import { serverTimestamp } from 'firebase/firestore';
+import { useUI } from '../../context/UIContext';
 
 interface FeedPostProps {
   post: FeedPostData;
@@ -24,6 +25,8 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
   
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [selectedPostOptions, setSelectedPostOptions] = useState<FeedPostData | null>(null);
+  const { showToast, showDialog } = useUI();
 
   useEffect(() => {
     return sound
@@ -193,14 +196,14 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
                 mimeType: 'image/png',
               });
             } else {
-              Alert.alert('Share Debug', 'Sharing is not available on this device/platform.');
+              showToast({ title: 'Share Debug', message: 'Sharing is not available on this device/platform.', type: 'error' });
             }
           } else {
-            Alert.alert('Share Debug', 'shareCardRef is missing.');
+            showToast({ title: 'Share Debug', message: 'shareCardRef is missing.', type: 'error' });
           }
         } catch (e: any) {
           console.error(e);
-          Alert.alert('Share Error', e?.message || String(e));
+          showToast({ title: 'Share Error', message: e?.message || String(e), type: 'error' });
         } finally {
           setShareData(null);
         }
@@ -216,6 +219,24 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
     } else {
       if (onCommentPress) onCommentPress();
     }
+  };
+
+  const handlePostOptions = (p: FeedPostData) => {
+    setSelectedPostOptions(p);
+  };
+
+  const executePostOption = () => {
+    if (!selectedPostOptions) return;
+    const isOwnPost = profile ? selectedPostOptions.author.handle === `@${profile.nickname.toLowerCase().replace(/\s+/g, '')}` : false;
+    
+    setSelectedPostOptions(null);
+    setTimeout(() => {
+      showToast({ 
+        title: isOwnPost ? 'Post Deleted' : 'Post Hidden', 
+        message: isOwnPost ? 'Your post was removed.' : 'This post will no longer appear in your feed.', 
+        type: 'info' 
+      });
+    }, 300);
   };
 
   const renderHiddenShareCard = () => {
@@ -270,9 +291,9 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
             <Text style={styles.authorName}>{author.name}</Text>
             <Text style={styles.authorHandle}>{author.handle}</Text>
           </View>
-          <TouchableOpacity style={{ marginLeft: 'auto' }}>
-            <Ionicons name="ellipsis-horizontal" size={20} color={Colors.textMuted} />
-          </TouchableOpacity>
+            <TouchableOpacity style={{ marginLeft: 'auto' }} onPress={() => handlePostOptions(post)}>
+              <Ionicons name="ellipsis-horizontal" size={20} color={Colors.textMuted} />
+            </TouchableOpacity>
         </View>
 
         {content ? <Text style={styles.detailBodyText}>{content}</Text> : null}
@@ -338,7 +359,7 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
             <Text style={styles.authorHandle}>{p.author.handle}</Text>
             <Text style={styles.dot}>•</Text>
             <Text style={styles.timestamp}>{p.timestamp}</Text>
-            <TouchableOpacity style={{ marginLeft: 'auto' }}>
+            <TouchableOpacity style={{ marginLeft: 'auto' }} onPress={() => handlePostOptions(p)}>
               <Ionicons name="ellipsis-horizontal" size={16} color={Colors.textMuted} />
             </TouchableOpacity>
           </View>
@@ -393,6 +414,19 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
           ))}
         </View>
       )}
+
+      {/* Sleek Minimal Options Modal */}
+      <Modal visible={!!selectedPostOptions} animationType="fade" transparent={true} onRequestClose={() => setSelectedPostOptions(null)}>
+        <TouchableOpacity style={styles.optionsOverlay} activeOpacity={1} onPress={() => setSelectedPostOptions(null)}>
+          <View style={styles.optionsSheet}>
+            <View style={styles.optionsHandle} />
+            <TouchableOpacity style={styles.optionRow} onPress={executePostOption}>
+              <Ionicons name={(selectedPostOptions && profile && selectedPostOptions.author.handle === `@${profile.nickname.toLowerCase().replace(/\s+/g, '')}`) ? "trash-outline" : "eye-off-outline"} size={22} color={Colors.error} />
+              <Text style={styles.optionTextError}>{(selectedPostOptions && profile && selectedPostOptions.author.handle === `@${profile.nickname.toLowerCase().replace(/\s+/g, '')}`) ? 'Delete Post' : 'Hide Post'}</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       {renderHiddenShareCard()}
     </View>
@@ -609,5 +643,43 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '900',
     letterSpacing: 2,
+  },
+  
+  optionsOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  optionsSheet: {
+    backgroundColor: Colors.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: 32,
+    paddingTop: 10,
+  },
+  optionsHandle: {
+    width: 36,
+    height: 4,
+    backgroundColor: Colors.borderLight,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  optionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    backgroundColor: Colors.surfaceAlt,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.2)', // subtle red border
+  },
+  optionTextError: {
+    color: Colors.error,
+    fontSize: 15,
+    fontWeight: '600',
+    marginLeft: Spacing.md,
   },
 });

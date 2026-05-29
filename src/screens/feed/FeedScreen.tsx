@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, FlatList, StyleSheet, SafeAreaView, TouchableOpacity, Text, TextInput, Image, ActivityIndicator, Alert, Modal, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, FlatList, StyleSheet, SafeAreaView, TouchableOpacity, Text, TextInput, Image, ActivityIndicator, Modal, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import FeedPost from '../../components/feed/FeedPost';
 import { useFeed } from '../../hooks/useFeed';
 import { useAuth } from '../../context/AuthContext';
+import { useUI } from '../../context/UIContext';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import { useResponsive } from '../../hooks/useResponsive';
 import type { MainTabScreenProps } from '../../types';
@@ -17,6 +18,7 @@ import * as ImagePicker from 'expo-image-picker';
 export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
   const { posts, loading, isPosting, publishPost } = useFeed();
   const { profile } = useAuth();
+  const { showToast } = useUI();
   const { contentWidth, horizontalPadding } = useResponsive();
   const [postTexts, setPostTexts] = useState<string[]>(['']);
   const [attachedMedia, setAttachedMedia] = useState<any>(null);
@@ -37,7 +39,7 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
       setAttachedMediaType(null);
       setIsComposeVisible(false);
     } catch {
-      Alert.alert('Error', 'Could not create post. Please try again.');
+      showToast({ title: 'Error', message: 'Could not create post. Please try again.', type: 'error' });
     }
   };
 

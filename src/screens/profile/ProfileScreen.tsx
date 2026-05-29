@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, Alert, Modal, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, Modal, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useProfile } from '../../hooks/useProfile';
 import { useAuth } from '../../context/AuthContext';
+import { useUI } from '../../context/UIContext';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
 import FeedPost from '../../components/feed/FeedPost';
 import type { MainTabScreenProps, FeedPostData } from '../../types';
@@ -11,6 +12,7 @@ import type { MainTabScreenProps, FeedPostData } from '../../types';
 export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profile'>) {
   const { profile, loading, updateAvatar, updateProfileDetails, getHandle } = useProfile();
   const { logout } = useAuth();
+  const { showToast, showDialog } = useUI();
 
   const [isEditModalVisible, setEditModalVisible] = useState(false);
   const [isSettingsVisible, setSettingsVisible] = useState(false);
@@ -54,17 +56,21 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
 
   const handleLogout = () => {
     setSettingsVisible(false);
-    Alert.alert('Log Out', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Log Out',
-        style: 'destructive',
-        onPress: async () => {
-          await logout();
-          navigation.replace('Login' as any);
+    showDialog({
+      title: 'Log Out',
+      message: 'Are you sure you want to log out?',
+      actions: [
+        { text: 'Cancel', style: 'cancel', onPress: () => {} },
+        {
+          text: 'Log Out',
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+            navigation.replace('Login' as any);
+          },
         },
-      },
-    ]);
+      ]
+    });
   };
 
   const openEditModal = () => {
@@ -120,7 +126,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
         setEditModalVisible(false);
       }
     } catch {
-      Alert.alert('Error', 'Failed to save profile changes.');
+      showToast({ title: 'Error', message: 'Failed to save profile changes.', type: 'error' });
     } finally {
       setIsSaving(false);
     }
@@ -286,7 +292,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
             <View style={styles.actionSheetHandle} />
             <Text style={styles.actionSheetTitle}>Settings</Text>
             
-            <TouchableOpacity style={styles.actionSheetItem} onPress={() => { setSettingsVisible(false); Alert.alert('Settings', 'App Settings not yet implemented.'); }}>
+            <TouchableOpacity style={styles.actionSheetItem} onPress={() => { setSettingsVisible(false); showToast({ title: 'Settings', message: 'App Settings not yet implemented.', type: 'info' }); }}>
               <Ionicons name="settings-outline" size={24} color={Colors.textPrimary} style={styles.actionSheetIcon} />
               <Text style={styles.actionSheetText}>App Settings</Text>
             </TouchableOpacity>

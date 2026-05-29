@@ -131,6 +131,7 @@ export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   Profile: undefined;
   SquadDetail: { squadId: string; squadName: string; squadAvatar?: string };
+  SquadEdit: { squadId: string; squadName: string; squadAvatar?: string };
   SquadSettings: { squadId: string; squadName: string; squadAvatar?: string };
   CreateSquad: undefined;
   HopOnRoom: { squadName: string };

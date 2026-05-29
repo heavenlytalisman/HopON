@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, TextInput, KeyboardAvoidingView, Platform, FlatList, Modal, ScrollView, ActivityIndicator, Animated, PanResponder } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, Keyboard, Image, Modal, ScrollView, Animated, PanResponder, Dimensions, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import * as ImagePicker from 'expo-image-picker';
@@ -9,16 +9,12 @@ import { sendPushNotification } from '../../services/notifications';
 import { getGroupMemberTokens } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useResponsive } from '../../hooks/useResponsive';
+import { useUI } from '../../context/UIContext';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
 import type { RootStackScreenProps } from '../../types';
+import SquadInviteModal from '../../components/squads/SquadInviteModal';
 
-
-
-const DUMMY_FRIENDS = [
-  { id: '1', name: 'Alex Mercer', handle: '@alexm_gaming', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d', isOnline: true },
-  { id: '2', name: 'Sarah K.', handle: '@sarah_weeb', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e', isOnline: false },
-  { id: '3', name: 'Marcus Chen', handle: '@marcus_c', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704f', isOnline: true },
-];
+const { width } = Dimensions.get('window');
 
 interface Message {
   id: string;
@@ -54,16 +50,13 @@ const SwipeableMessage = ({ item, onReply, onLongPress, children }: any) => {
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponderCapture: (_, gestureState) => {
-        // Only capture horizontal swipes (right)
         return gestureState.dx > 15 && Math.abs(gestureState.dy) < 15;
       },
       onPanResponderGrant: () => {
-        // Reset offset to handle multiple rapid swipes safely
         pan.setOffset({ x: 0, y: 0 });
         pan.setValue({ x: 0, y: 0 });
       },
       onPanResponderMove: (_, gestureState) => {
-        // Allow swiping right, max resistance
         if (gestureState.dx > 0) {
            pan.setValue({ x: Math.min(gestureState.dx, 80), y: 0 });
         }
@@ -131,9 +124,6 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
   const [activePackIndex, setActivePackIndex] = useState(0);
 
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
-  const [inviteTab, setInviteTab] = useState<'friends' | 'qr'>('friends');
-  const [invitedFriends, setInvitedFriends] = useState<Set<string>>(new Set());
-
   const [packModalVisible, setPackModalVisible] = useState(false);
   const [packNameInput, setPackNameInput] = useState('');
   const [editingPackId, setEditingPackId] = useState<string | null>(null);
@@ -148,7 +138,6 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
   const myAvatar = profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z';
 
   useEffect(() => {
-    // Scroll to bottom on new message
     if (messages.length > 0) {
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
@@ -156,14 +145,12 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
     }
   }, [messages]);
 
-  // Fetch Trending GIFs when picker is opened
   useEffect(() => {
     if (showGifPicker && trendingGifs.length === 0) {
       fetchTrendingGifs();
     }
   }, [showGifPicker]);
 
-  // Fetch Search GIFs when query changes
   useEffect(() => {
     if (gifSearchQuery.trim()) {
       const delayDebounceFn = setTimeout(() => {
@@ -447,11 +434,17 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
           </TouchableOpacity>
-          <Image source={{ uri: squadAvatar || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=150&q=80' }} style={styles.headerSquadAvatar} />
-          <View style={styles.headerCenter}>
-            <Text style={styles.headerTitle} numberOfLines={1}>{squadName}</Text>
-            <Text style={styles.headerSubtitle}>3/4 Online</Text>
-          </View>
+          <TouchableOpacity 
+            style={styles.headerInfoTouchable}
+            onPress={() => navigation.navigate('SquadEdit', { squadId, squadName, squadAvatar })}
+            activeOpacity={0.7}
+          >
+            <Image source={{ uri: squadAvatar || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=150&q=80' }} style={styles.headerSquadAvatar} />
+            <View style={styles.headerCenter}>
+              <Text style={styles.headerTitle} numberOfLines={1}>{squadName}</Text>
+              <Text style={styles.headerSubtitle}>3/4 Online</Text>
+            </View>
+          </TouchableOpacity>
           <View style={styles.headerRight}>
             <TouchableOpacity style={styles.headerIconButton} onPress={handleHopOn}>
               <Ionicons name="flash-outline" size={20} color={Colors.textPrimary} />
@@ -474,6 +467,17 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
           showsVerticalScrollIndicator={false}
           onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
         />
+
+        {(showGifPicker || showStickerPicker) && (
+          <View style={styles.mediaTabBar}>
+            <TouchableOpacity onPress={() => { setShowStickerPicker(true); setShowGifPicker(false); }} style={[styles.mediaTab, showStickerPicker && styles.mediaTabActive]}>
+              <Text style={[styles.mediaTabText, showStickerPicker && styles.mediaTabTextActive]}>Stickers</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => { setShowGifPicker(true); setShowStickerPicker(false); }} style={[styles.mediaTab, showGifPicker && styles.mediaTabActive]}>
+              <Text style={[styles.mediaTabText, showGifPicker && styles.mediaTabTextActive]}>GIFs</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {showGifPicker && (
           <View style={styles.gifPickerContainer}>
@@ -534,7 +538,6 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
 
         {showStickerPicker && (
           <View style={styles.stickerPickerContainer}>
-            {/* Pack Selector */}
             <View style={styles.packSelectorBar}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.packSelectorContent}>
                 {stickerPacks.map((pack, index) => (
@@ -558,7 +561,6 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
               </ScrollView>
             </View>
             
-            {/* Sticker List */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ alignItems: 'center', paddingVertical: Spacing.md }}>
               <TouchableOpacity onPress={pickStickerImage} style={styles.createStickerBtn}>
                 <Ionicons name="add" size={24} color={Colors.textMuted} />
@@ -586,11 +588,22 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
         )}
 
         <View style={styles.inputArea}>
-          <TouchableOpacity style={styles.gifToggleBtn} onPress={() => { setShowGifPicker(!showGifPicker); setShowStickerPicker(false); }}>
-            <Text style={[styles.gifToggleText, showGifPicker && { color: Colors.primaryLight }]}>GIF</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.gifToggleBtn} onPress={() => { setShowStickerPicker(!showStickerPicker); setShowGifPicker(false); }}>
-            <Ionicons name="happy-outline" size={20} color={showStickerPicker ? Colors.primaryLight : Colors.textMuted} />
+          <TouchableOpacity 
+            style={styles.mediaToggleBtn} 
+            onPress={() => { 
+              if (showGifPicker || showStickerPicker) {
+                setShowGifPicker(false);
+                setShowStickerPicker(false);
+              } else {
+                setShowStickerPicker(true);
+              }
+            }}
+          >
+            <Ionicons 
+              name={(showGifPicker || showStickerPicker) ? "close-circle-outline" : "add-circle-outline"} 
+              size={24} 
+              color={(showGifPicker || showStickerPicker) ? Colors.primaryLight : Colors.textMuted} 
+            />
           </TouchableOpacity>
           
           <TextInput
@@ -607,91 +620,14 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
           </TouchableOpacity>
         </View>
 
-        {/* Invite Modal */}
-        <Modal visible={inviteModalVisible} animationType="slide" transparent={true} onRequestClose={() => setInviteModalVisible(false)}>
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Invite to {squadName}</Text>
-                <TouchableOpacity onPress={() => setInviteModalVisible(false)} style={styles.closeModalButton}>
-                  <Ionicons name="close" size={24} color={Colors.textPrimary} />
-                </TouchableOpacity>
-              </View>
+        <SquadInviteModal 
+          visible={inviteModalVisible} 
+          onClose={() => setInviteModalVisible(false)} 
+          squadId={squadId}
+          squadName={squadName}
+          squadAvatar={squadAvatar}
+        />
 
-              <View style={styles.tabContainer}>
-                <TouchableOpacity 
-                  style={[styles.tabButton, inviteTab === 'friends' && styles.activeTabButton]} 
-                  onPress={() => setInviteTab('friends')}
-                >
-                  <Text style={[styles.tabText, inviteTab === 'friends' && styles.activeTabText]}>Friends</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[styles.tabButton, inviteTab === 'qr' && styles.activeTabButton]} 
-                  onPress={() => setInviteTab('qr')}
-                >
-                  <Text style={[styles.tabText, inviteTab === 'qr' && styles.activeTabText]}>QR Pass</Text>
-                </TouchableOpacity>
-              </View>
-
-              {inviteTab === 'friends' ? (
-                <FlatList
-                  data={DUMMY_FRIENDS}
-                  keyExtractor={(item) => item.id}
-                  contentContainerStyle={styles.friendsListContainer}
-                  renderItem={({ item }) => {
-                    const isInvited = invitedFriends.has(item.id);
-                    return (
-                      <View style={styles.friendCard}>
-                        <View style={styles.avatarContainer}>
-                          <Image source={{ uri: item.avatar }} style={styles.friendAvatar} />
-                          {item.isOnline && <View style={styles.onlineBadge} />}
-                        </View>
-                        <View style={styles.friendInfo}>
-                          <Text style={styles.friendName}>{item.name}</Text>
-                          <Text style={styles.friendHandle}>{item.handle}</Text>
-                        </View>
-                        <TouchableOpacity 
-                          style={[styles.inviteButton, isInvited && styles.invitedButton]}
-                          onPress={() => {
-                            if (!isInvited) {
-                              setInvitedFriends(prev => new Set(prev).add(item.id));
-                            }
-                          }}
-                        >
-                          <Text style={[styles.inviteButtonText, isInvited && styles.invitedButtonText]}>
-                            {isInvited ? 'Sent' : 'Invite'}
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    );
-                  }}
-                />
-              ) : (
-                <View style={styles.qrContainer}>
-                  <Text style={styles.qrInstruction}>Scan this QR code with the HopON app to instantly join {squadName}.</Text>
-                  <View style={styles.qrCodeWrapper}>
-                    <QRCode
-                      value={`hopon://squad/${squadId}`}
-                      size={200}
-                      color="#000000"
-                      backgroundColor="#FFFFFF"
-                      logo={{ uri: squadAvatar || 'https://i.pravatar.cc/150' }}
-                      logoSize={40}
-                      logoBackgroundColor="#FFFFFF"
-                      logoBorderRadius={20}
-                    />
-                  </View>
-                  <TouchableOpacity style={styles.shareLinkButton}>
-                    <Ionicons name="link-outline" size={20} color={Colors.textPrimary} style={{ marginRight: 8 }} />
-                    <Text style={styles.shareLinkText}>Copy Invite Link</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          </View>
-        </Modal>
-
-        {/* Pack Naming Modal */}
         <Modal visible={packModalVisible} animationType="fade" transparent={true} onRequestClose={() => setPackModalVisible(false)}>
           <View style={styles.modalOverlayCentered}>
             <View style={styles.smallModalContent}>
@@ -815,6 +751,11 @@ const styles = StyleSheet.create({
   headerSquadAvatar: { width: 36, height: 36, borderRadius: 18, marginRight: Spacing.md, borderWidth: 1, borderColor: Colors.border },
   headerSquadAvatarFallback: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.surfaceAlt, justifyContent: 'center', alignItems: 'center', marginRight: Spacing.md, borderWidth: 1, borderColor: Colors.border },
   headerCenter: { flex: 1 },
+  headerInfoTouchable: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   headerTitle: { fontSize: 16, fontWeight: 'bold', color: Colors.textPrimary },
   headerSubtitle: { fontSize: 12, color: Colors.success, fontWeight: '600' },
   headerRight: { flexDirection: 'row', alignItems: 'center' },
@@ -850,12 +791,17 @@ const styles = StyleSheet.create({
   replyBannerClose: { padding: Spacing.sm },
 
   inputArea: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, backgroundColor: 'transparent' },
-  gifToggleBtn: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: Spacing.sm, marginRight: Spacing.xs },
-  gifToggleText: { color: Colors.textMuted, fontSize: 13, fontWeight: 'bold' },
+  mediaToggleBtn: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: Spacing.xs, marginRight: Spacing.xs },
   textInput: { flex: 1, backgroundColor: Colors.surface, borderRadius: BorderRadius.pill, paddingHorizontal: Spacing.lg, paddingVertical: 10, color: Colors.textPrimary, fontSize: 15, maxHeight: 100 },
   sendButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center', marginLeft: Spacing.xs, backgroundColor: Colors.surface, borderRadius: 20 },
 
-  gifPickerContainer: { backgroundColor: Colors.surfaceAlt, paddingVertical: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border },
+  mediaTabBar: { flexDirection: 'row', backgroundColor: Colors.surfaceAlt, paddingHorizontal: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border },
+  mediaTab: { paddingVertical: 10, paddingHorizontal: Spacing.md, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  mediaTabActive: { borderBottomColor: Colors.primaryLight },
+  mediaTabText: { color: Colors.textMuted, fontWeight: '600', fontSize: 13 },
+  mediaTabTextActive: { color: Colors.primaryLight, fontWeight: 'bold' },
+
+  gifPickerContainer: { backgroundColor: Colors.surfaceAlt, paddingVertical: Spacing.md },
   gifSearchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, marginHorizontal: Spacing.md, marginBottom: Spacing.md, paddingHorizontal: Spacing.md, borderRadius: BorderRadius.pill, height: 36, borderWidth: 1, borderColor: Colors.border },
   gifSearchInput: { flex: 1, marginLeft: Spacing.sm, fontSize: 13, color: Colors.textPrimary },
   gifOptionWrapper: { position: 'relative' },
@@ -864,7 +810,7 @@ const styles = StyleSheet.create({
   createStickerBtn: { width: 100, height: 100, borderRadius: BorderRadius.md, marginLeft: Spacing.md, backgroundColor: Colors.surface, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: Colors.border, borderStyle: 'dashed' },
   createStickerText: { color: Colors.textMuted, fontSize: 12, marginTop: 4, fontWeight: 'bold' },
 
-  stickerPickerContainer: { backgroundColor: Colors.surfaceAlt, borderTopWidth: 1, borderTopColor: Colors.border },
+  stickerPickerContainer: { backgroundColor: Colors.surfaceAlt },
   packSelectorBar: { flexDirection: 'row', backgroundColor: Colors.surface, borderBottomWidth: 1, borderBottomColor: Colors.border },
   packSelectorContent: { paddingHorizontal: Spacing.sm, alignItems: 'center' },
   packTab: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderBottomWidth: 2, borderBottomColor: 'transparent' },
@@ -874,37 +820,12 @@ const styles = StyleSheet.create({
   newPackBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, backgroundColor: Colors.surfaceAlt, borderRadius: BorderRadius.pill, marginVertical: 6, marginLeft: Spacing.sm, borderWidth: 1, borderColor: Colors.borderLight },
   newPackText: { fontSize: 12, color: Colors.primaryLight, fontWeight: 'bold', marginLeft: 4 },
 
-  // Modal Styles
+  // Modal Styles (used by Message Action Modal)
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: Colors.surface, borderTopLeftRadius: BorderRadius.xl, borderTopRightRadius: BorderRadius.xl, height: '70%', paddingBottom: Spacing.xl },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: Spacing.lg, borderBottomWidth: 1, borderBottomColor: Colors.border },
   modalTitle: { fontSize: 18, fontWeight: 'bold', color: Colors.textPrimary },
   closeModalButton: { padding: 4 },
-  
-  tabContainer: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: Colors.border },
-  tabButton: { flex: 1, paddingVertical: Spacing.md, alignItems: 'center' },
-  activeTabButton: { borderBottomWidth: 2, borderBottomColor: Colors.primaryLight },
-  tabText: { fontSize: 15, color: Colors.textMuted, fontWeight: '600' },
-  activeTabText: { color: Colors.primaryLight, fontWeight: 'bold' },
-  
-  friendsListContainer: { padding: Spacing.lg },
-  friendCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surfaceAlt, padding: Spacing.md, borderRadius: BorderRadius.md, marginBottom: Spacing.sm, borderWidth: 1, borderColor: Colors.borderLight },
-  avatarContainer: { position: 'relative', marginRight: Spacing.lg },
-  friendAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: Colors.border },
-  onlineBadge: { position: 'absolute', bottom: 0, right: 0, width: 14, height: 14, borderRadius: 7, backgroundColor: Colors.success, borderWidth: 2, borderColor: Colors.surfaceAlt },
-  friendInfo: { flex: 1 },
-  friendName: { fontSize: 16, fontWeight: '700', color: Colors.textPrimary, marginBottom: 2 },
-  friendHandle: { fontSize: 13, color: Colors.textMuted },
-  inviteButton: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: BorderRadius.pill, backgroundColor: Colors.primary },
-  inviteButtonText: { color: '#FFF', fontWeight: 'bold', fontSize: 13 },
-  invitedButton: { backgroundColor: 'transparent', borderWidth: 1, borderColor: Colors.borderLight },
-  invitedButtonText: { color: Colors.textMuted },
-
-  qrContainer: { padding: Spacing.xl, alignItems: 'center' },
-  qrInstruction: { color: Colors.textSecondary, fontSize: 14, textAlign: 'center', marginBottom: Spacing.xl, lineHeight: 20 },
-  qrCodeWrapper: { padding: Spacing.md, backgroundColor: '#FFFFFF', borderRadius: BorderRadius.lg, marginBottom: Spacing.xl, elevation: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4 },
-  shareLinkButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surfaceAlt, paddingHorizontal: Spacing.xl, paddingVertical: Spacing.md, borderRadius: BorderRadius.pill, borderWidth: 1, borderColor: Colors.borderLight },
-  shareLinkText: { color: Colors.textPrimary, fontWeight: 'bold', fontSize: 15 },
 
   modalOverlayCentered: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: Spacing.lg },
   smallModalContent: { backgroundColor: Colors.surface, borderRadius: BorderRadius.xl, width: '100%', padding: Spacing.xl },

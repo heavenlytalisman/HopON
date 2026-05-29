@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, Animated, Alert } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useResponsive } from '../../hooks/useResponsive';
+import { useUI } from '../../context/UIContext';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
 import type { RootStackScreenProps, CallerInfo } from '../../types';
 
@@ -17,6 +18,7 @@ export default function IncomingAlertScreen({ navigation, route }: RootStackScre
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const { contentWidth, horizontalPadding } = useResponsive();
+  const { showToast, showDialog } = useUI();
 
   useEffect(() => {
     Animated.loop(
@@ -28,17 +30,26 @@ export default function IncomingAlertScreen({ navigation, route }: RootStackScre
   }, []);
 
   const handleAccept = () => {
-    Alert.alert('Accepted', 'You are joining the session!', [
-      { text: 'OK', onPress: () => navigation.navigate('HopOnRoom', { squadName: caller.squadName }) },
-    ]);
+    showDialog({
+      title: 'Accepted',
+      message: 'You are joining the session!',
+      actions: [
+        { text: 'Let\'s Go', onPress: () => navigation.navigate('HopOnRoom', { squadName: caller.squadName }) },
+      ]
+    });
   };
 
   const handleDeny = () => setShowQuickReplies(!showQuickReplies);
 
   const handleQuickReply = (message: string) => {
-    Alert.alert('Sent', `You replied: "${message}"`, [
-      { text: 'OK', onPress: () => navigation.goBack() },
-    ]);
+    showToast({
+      title: 'Sent',
+      message: `You replied: "${message}"`,
+      type: 'success'
+    });
+    setTimeout(() => {
+      navigation.goBack();
+    }, 1000);
   };
 
   return (

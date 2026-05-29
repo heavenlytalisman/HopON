@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Alert } from 'react-native';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../config/firebase';
 import { getUserProfile, updateUserProfile } from '../services/firebase';
 import { useAuth } from '../context/AuthContext';
+import { useUI } from '../context/UIContext';
 import type { User } from '../types';
 
 export function useProfile() {
   const { firebaseUser, refreshProfile } = useAuth();
+  const { showToast } = useUI();
   const [profile, setProfile] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -59,11 +60,12 @@ export function useProfile() {
       if (success) {
         setProfile((prev) => prev ? { ...prev, avatar: downloadURL } : prev);
         await refreshProfile();
+        showToast({ title: 'Success', message: 'Avatar updated successfully', type: 'success' });
       }
       return success;
     } catch (error) {
       console.error('Error uploading avatar:', error);
-      Alert.alert('Error', 'Failed to save avatar.');
+      showToast({ title: 'Error', message: 'Failed to save avatar.', type: 'error' });
       return false;
     }
   };
@@ -105,6 +107,7 @@ export function useProfile() {
         if (success) {
           setProfile((prev) => prev ? { ...prev, ...updates } : prev);
           await refreshProfile();
+          showToast({ title: 'Success', message: 'Profile updated successfully', type: 'success' });
         }
         return success;
       }
@@ -112,7 +115,7 @@ export function useProfile() {
       return true;
     } catch (error) {
       console.error('Error updating profile details:', error);
-      Alert.alert('Error', 'Failed to update profile details.');
+      showToast({ title: 'Error', message: 'Failed to update profile details.', type: 'error' });
       return false;
     }
   };
