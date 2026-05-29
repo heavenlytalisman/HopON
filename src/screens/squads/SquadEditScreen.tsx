@@ -19,6 +19,11 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
 
   const [squadName, setSquadName] = useState(initialName);
   const [squadAvatar, setSquadAvatar] = useState(initialAvatar || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=150&q=80');
+  
+  // Extract parameters passed back from SquadWallpaperScreen (or default to null/0.6)
+  const squadWallpaper = (route.params as any).squadWallpaper || null;
+  const wallpaperOpacity = (route.params as any).wallpaperOpacity || 0.6;
+  
   const [members, setMembers] = useState(DUMMY_MEMBERS);
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
 
@@ -64,7 +69,11 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
     // In a real app, we would make a Firebase call here.
     showToast({ title: 'Success', message: 'Squad details updated successfully!', type: 'success' });
     setTimeout(() => {
-      navigation.goBack();
+      navigation.navigate({
+        name: 'SquadDetail',
+        params: { squadWallpaper, wallpaperOpacity },
+        merge: true,
+      });
     }, 1000);
   };
 
@@ -105,8 +114,31 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
             />
           </View>
 
-          <View style={styles.membersSection}>
-            <View style={styles.membersHeaderRow}>
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionLabel}>Customization</Text>
+            </View>
+            <View style={styles.settingsGroup}>
+              <TouchableOpacity 
+                style={styles.settingsItem}
+                onPress={() => navigation.navigate('SquadWallpaper', { squadId, squadWallpaper, wallpaperOpacity })}
+              >
+                <View style={styles.settingsItemLeft}>
+                  <View style={[styles.settingsIconWrapper, { backgroundColor: 'rgba(56, 189, 248, 0.1)' }]}>
+                    <Ionicons name="color-palette-outline" size={18} color={Colors.primaryLight} />
+                  </View>
+                  <Text style={styles.settingsItemText}>Chat Wallpaper</Text>
+                </View>
+                <View style={styles.settingsItemRight}>
+                  {squadWallpaper && <View style={styles.activeDot} />}
+                  <Ionicons name="chevron-forward" size={20} color={Colors.border} />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionLabel}>Members</Text>
               <TouchableOpacity style={styles.addMemberIconBtn} onPress={() => setInviteModalVisible(true)}>
                 <Ionicons name="person-add" size={18} color={Colors.primaryLight} />
@@ -220,10 +252,10 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm,
     letterSpacing: 1,
   },
-  membersSection: {
+  sectionContainer: {
     paddingTop: Spacing.xl,
   },
-  membersHeaderRow: {
+  sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -236,6 +268,47 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 1,
+  },
+  settingsGroup: {
+    backgroundColor: Colors.surface,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: Colors.border,
+  },
+  settingsItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  settingsItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  settingsIconWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  settingsItemText: {
+    color: Colors.textPrimary,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  settingsItemRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  activeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.primaryLight,
+    marginRight: Spacing.md,
   },
   addMemberIconBtn: {
     flexDirection: 'row',

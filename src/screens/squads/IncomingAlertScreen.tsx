@@ -14,6 +14,8 @@ export default function IncomingAlertScreen({ navigation, route }: RootStackScre
     callerName: 'Alex Mercer',
     avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
   };
+  
+  const squadWallpaper = caller.squadWallpaper;
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const [showQuickReplies, setShowQuickReplies] = useState(false);
@@ -34,7 +36,7 @@ export default function IncomingAlertScreen({ navigation, route }: RootStackScre
       title: 'Accepted',
       message: 'You are joining the session!',
       actions: [
-        { text: 'Let\'s Go', onPress: () => navigation.navigate('HopOnRoom', { squadName: caller.squadName }) },
+        { text: 'Let\'s Go', onPress: () => navigation.navigate('HopOnRoom', { squadName: caller.squadName, squadWallpaper }) },
       ]
     });
   };
@@ -54,6 +56,13 @@ export default function IncomingAlertScreen({ navigation, route }: RootStackScre
 
   return (
     <SafeAreaView style={styles.container}>
+      {squadWallpaper && (
+        <>
+          <Image source={{ uri: squadWallpaper }} style={StyleSheet.absoluteFillObject} blurRadius={15} />
+          <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(11, 13, 23, 0.4)' }]} />
+        </>
+      )}
+
       <View style={{ flex: 1, paddingHorizontal: horizontalPadding, maxWidth: contentWidth, alignSelf: 'center', width: '100%', justifyContent: 'space-between' }}>
         <View style={styles.header}>
         <Text style={styles.headerTitle}>Incoming Alert</Text>

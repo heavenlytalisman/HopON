@@ -111,6 +111,7 @@ export interface CallerInfo {
   squadName: string;
   callerName: string;
   avatar: string;
+  squadWallpaper?: string;
 }
 
 export interface Friend {
@@ -130,11 +131,12 @@ export type RootStackParamList = {
   Login: undefined;
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   Profile: undefined;
-  SquadDetail: { squadId: string; squadName: string; squadAvatar?: string };
-  SquadEdit: { squadId: string; squadName: string; squadAvatar?: string };
+  SquadDetail: { squadId: string; squadName: string; squadAvatar?: string; squadWallpaper?: string; wallpaperOpacity?: number };
+  SquadEdit: { squadId: string; squadName: string; squadAvatar?: string; squadWallpaper?: string; wallpaperOpacity?: number };
   SquadSettings: { squadId: string; squadName: string; squadAvatar?: string };
+  SquadWallpaper: { squadId: string; squadWallpaper?: string; wallpaperOpacity?: number };
   CreateSquad: undefined;
-  HopOnRoom: { squadName: string };
+  HopOnRoom: { squadName: string; squadWallpaper?: string };
   IncomingAlert: { caller?: CallerInfo } | undefined;
   QuickSquadSelect: undefined;
   FriendProfile: { friendId: string; friendName: string; friendAvatar: string };

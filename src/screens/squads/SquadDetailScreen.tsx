@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, Keyboard, Image, Modal, ScrollView, Animated, PanResponder, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, Keyboard, Image, Modal, ScrollView, Animated, PanResponder, Dimensions, ActivityIndicator, ImageBackground } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import * as ImagePicker from 'expo-image-picker';
@@ -101,7 +101,7 @@ const SwipeableMessage = ({ item, onReply, onLongPress, children }: any) => {
 };
 
 export default function SquadDetailScreen({ route, navigation }: RootStackScreenProps<'SquadDetail'>) {
-  const { squadName, squadId, squadAvatar } = route.params;
+  const { squadName, squadId, squadAvatar, squadWallpaper, wallpaperOpacity = 0.6 } = route.params as any;
   const { firebaseUser, profile } = useAuth();
   const { contentWidth, horizontalPadding } = useResponsive();
   const flatListRef = useRef<FlatList>(null);
@@ -197,7 +197,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
   };
 
   const handleHopOn = async () => {
-    navigation.navigate('HopOnRoom', { squadName });
+    navigation.navigate('HopOnRoom', { squadName, squadWallpaper });
 
     try {
       if (firebaseUser) {
@@ -207,7 +207,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
             token,
             `HOP ON: ${squadName}`,
             `${profile?.nickname || 'Someone'} is deploying an alert to the squad!`,
-            { screen: 'IncomingAlert' },
+            { screen: 'IncomingAlert', squadWallpaper },
           );
         }
       }
@@ -482,6 +482,13 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
+        {squadWallpaper && (
+          <>
+            <Image source={{ uri: squadWallpaper }} style={StyleSheet.absoluteFillObject} />
+            <View style={[StyleSheet.absoluteFillObject, { backgroundColor: `rgba(11, 13, 23, ${wallpaperOpacity})` }]} />
+          </>
+        )}
+        
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />

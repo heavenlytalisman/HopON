@@ -15,7 +15,7 @@ const DUMMY_SQUAD_MEMBERS: SquadMember[] = [
 ];
 
 export default function HopOnRoomScreen({ navigation, route }: RootStackScreenProps<'HopOnRoom'>) {
-  const { squadName } = route.params || { squadName: 'Squad' };
+  const { squadName, squadWallpaper } = route.params || { squadName: 'Squad' };
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const { contentWidth, horizontalPadding } = useResponsive();
 
@@ -48,6 +48,13 @@ export default function HopOnRoomScreen({ navigation, route }: RootStackScreenPr
 
   return (
     <SafeAreaView style={styles.container}>
+      {squadWallpaper && (
+        <>
+          <Image source={{ uri: squadWallpaper }} style={StyleSheet.absoluteFillObject} blurRadius={15} />
+          <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(11, 13, 23, 0.4)' }]} />
+        </>
+      )}
+
       <View style={{ flex: 1, paddingHorizontal: horizontalPadding, maxWidth: contentWidth, alignSelf: 'center', width: '100%', justifyContent: 'space-between' }}>
         
         <View style={styles.header}>
