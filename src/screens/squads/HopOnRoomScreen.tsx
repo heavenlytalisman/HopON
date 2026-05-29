@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, Animated, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useResponsive } from '../../hooks/useResponsive';
-import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
+import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import type { RootStackScreenProps, SquadMember } from '../../types';
 
 const { width } = Dimensions.get('window');
@@ -22,8 +22,8 @@ export default function HopOnRoomScreen({ navigation, route }: RootStackScreenPr
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 0.6, duration: 800, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0.4, duration: 1000, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
       ]),
     ).start();
   }, []);
@@ -37,45 +37,41 @@ export default function HopOnRoomScreen({ navigation, route }: RootStackScreenPr
     }
   };
 
-  const getStatusIcon = (status: SquadMember['status']): any => {
+  const getStatusText = (status: SquadMember['status']) => {
     switch (status) {
-      case 'accepted': return 'checkmark-circle';
-      case 'denied': return 'close-circle';
-      case 'pending': return 'time';
-      default: return 'help-circle';
+      case 'accepted': return 'Joined';
+      case 'denied': return 'Declined';
+      case 'pending': return 'Calling...';
+      default: return '';
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={{ flex: 1, paddingHorizontal: horizontalPadding, maxWidth: contentWidth, alignSelf: 'center', width: '100%' }}>
+      <View style={{ flex: 1, paddingHorizontal: horizontalPadding, maxWidth: contentWidth, alignSelf: 'center', width: '100%', justifyContent: 'space-between' }}>
+        
         <View style={styles.header}>
-        <Animated.View style={[styles.pulsingDot, { opacity: pulseAnim }]} />
-        <Text style={styles.headerTitle}>Deploying Alert to {squadName}...</Text>
-      </View>
+          <Text style={styles.headerTitle}>CALLING {squadName}</Text>
+        </View>
 
-      <View style={styles.gridContainer}>
-        {DUMMY_SQUAD_MEMBERS.map((member) => (
-          <View key={member.id} style={styles.memberCard}>
-            <View style={[styles.avatarContainer, { borderColor: getStatusColor(member.status) }]}>
-              <Image source={{ uri: member.avatar }} style={[styles.avatar, member.status === 'denied' && styles.avatarMuted]} />
-              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(member.status) }]}>
-                <Ionicons name={getStatusIcon(member.status)} size={14} color="#FFF" />
-              </View>
+        <View style={styles.gridContainer}>
+          {DUMMY_SQUAD_MEMBERS.map((member) => (
+            <View key={member.id} style={styles.memberCard}>
+              <Animated.View style={[styles.avatarContainer, member.status === 'pending' && { opacity: pulseAnim }]}>
+                <Image source={{ uri: member.avatar }} style={[styles.avatar, member.status === 'denied' && styles.avatarMuted]} />
+              </Animated.View>
+              <Text style={styles.memberName} numberOfLines={1}>{member.name}</Text>
+              <Text style={[styles.memberStatus, { color: getStatusColor(member.status) }]}>{getStatusText(member.status)}</Text>
             </View>
-            <Text style={styles.memberName} numberOfLines={1}>{member.name}</Text>
-            <Text style={[styles.memberStatus, { color: getStatusColor(member.status) }]}>{member.status.toUpperCase()}</Text>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
 
         <View style={styles.footer}>
-          <Text style={styles.waitingText}>Waiting for responses...</Text>
           <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="call" size={28} color="#FFF" style={styles.callIcon} />
+            <Ionicons name="call" size={32} color="#FFF" style={{ transform: [{ rotate: '135deg' }] }} />
           </TouchableOpacity>
-          <Text style={styles.cancelText}>Cancel Alert</Text>
         </View>
+
       </View>
     </SafeAreaView>
   );
@@ -83,20 +79,15 @@ export default function HopOnRoomScreen({ navigation, route }: RootStackScreenPr
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 40, marginBottom: 60 },
-  pulsingDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: Colors.warning, marginRight: 10 },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: Colors.primaryLight },
-  gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', paddingHorizontal: 10 },
-  memberCard: { width: width / 2 - 30, alignItems: 'center', marginBottom: 40 },
-  avatarContainer: { width: 90, height: 90, borderRadius: 45, borderWidth: 3, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
-  avatar: { width: 80, height: 80, borderRadius: 40 },
-  avatarMuted: { opacity: 0.4 },
-  statusBadge: { position: 'absolute', bottom: -5, right: -5, width: 28, height: 28, borderRadius: 14, justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: Colors.background },
-  memberName: { fontSize: 16, fontWeight: '600', color: Colors.textPrimary, marginBottom: 4 },
-  memberStatus: { fontSize: 12, fontWeight: '800', letterSpacing: 1 },
-  footer: { position: 'absolute', bottom: 50, left: 0, right: 0, alignItems: 'center' },
-  waitingText: { color: Colors.textMuted, fontSize: 14, marginBottom: 24 },
-  cancelButton: { width: 72, height: 72, borderRadius: 36, backgroundColor: Colors.error, justifyContent: 'center', alignItems: 'center', shadowColor: Colors.error, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 8, marginBottom: 12, transform: [{ rotate: '135deg' }] },
-  callIcon: { marginLeft: 2 },
-  cancelText: { color: Colors.error, fontSize: 14, fontWeight: '600' },
+  header: { alignItems: 'center', paddingTop: 60, paddingBottom: 40 },
+  headerTitle: { fontSize: 16, fontWeight: '800', color: Colors.primaryLight, letterSpacing: 2, textTransform: 'uppercase' },
+  gridContainer: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 24, paddingHorizontal: 20 },
+  memberCard: { width: '40%', alignItems: 'center', marginBottom: 20 },
+  avatarContainer: { width: 90, height: 90, justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+  avatar: { width: 90, height: 90, borderRadius: 45, backgroundColor: Colors.surfaceAlt },
+  avatarMuted: { opacity: 0.3 },
+  memberName: { fontSize: 18, fontWeight: '800', color: Colors.textPrimary, marginBottom: 4 },
+  memberStatus: { fontSize: 13, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' },
+  footer: { paddingBottom: 60, alignItems: 'center' },
+  cancelButton: { width: 72, height: 72, borderRadius: 36, backgroundColor: Colors.error, justifyContent: 'center', alignItems: 'center', shadowColor: Colors.error, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 8 },
 });
