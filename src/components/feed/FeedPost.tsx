@@ -13,9 +13,10 @@ interface FeedPostProps {
   post: FeedPostData;
   depth?: number;
   variant?: 'feed' | 'detail';
+  onCommentPress?: () => void;
 }
 
-export default function FeedPost({ post, depth = 0, variant = 'feed' }: FeedPostProps) {
+export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentPress }: FeedPostProps) {
   const { author, timestamp, content, mediaType, mediaData } = post;
   
   const [sound, setSound] = useState<Audio.Sound | null>(null);
@@ -92,6 +93,16 @@ export default function FeedPost({ post, depth = 0, variant = 'feed' }: FeedPost
             <View style={styles.mediaInfo}>
               <Text style={styles.mediaTitle}>{mediaData.title}</Text>
               <Text style={styles.mediaSubtitle}>Letterboxd • ★ {mediaData.rating}</Text>
+            </View>
+          </View>
+        );
+      case 'game':
+        return (
+          <View style={styles.gameCardCol}>
+            <Image source={{ uri: mediaData.poster }} style={styles.gameCoverLarge} resizeMode="cover" />
+            <View style={styles.gameInfoCol}>
+              <Text style={styles.mediaTitle}>{mediaData.title}</Text>
+              <Text style={styles.mediaSubtitle}>{mediaData.source} • ★ {mediaData.rating}</Text>
             </View>
           </View>
         );
@@ -173,9 +184,9 @@ export default function FeedPost({ post, depth = 0, variant = 'feed' }: FeedPost
 
   const handleComment = (p: FeedPostData) => {
     if (variant === 'feed') {
-      navigation.navigate('PostDetail', { postId: p.id, mockData: p });
+      navigation.push('PostDetail', { postId: p.id, mockData: p });
     } else {
-      Alert.alert('Comment', 'Comment functionality coming soon!');
+      if (onCommentPress) onCommentPress();
     }
   };
 
@@ -467,10 +478,13 @@ const styles = StyleSheet.create({
   bodyText: { color: '#E2E8F0', fontSize: 14, lineHeight: 22, marginBottom: Spacing.md },
   memeImage: { width: '100%', height: 200, borderRadius: BorderRadius.md, marginBottom: Spacing.md, backgroundColor: Colors.surfaceAlt },
   mediaCard: { flexDirection: 'row', backgroundColor: Colors.surfaceAlt, borderRadius: BorderRadius.md, overflow: 'hidden', marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.border },
+  gameCardCol: { backgroundColor: Colors.surfaceAlt, borderRadius: BorderRadius.md, overflow: 'hidden', marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.border },
   songCard: { flexDirection: 'row', backgroundColor: Colors.surfaceAlt, borderRadius: BorderRadius.md, padding: Spacing.md, alignItems: 'center', marginBottom: Spacing.md, borderWidth: 1, borderColor: Colors.border },
   mediaCover: { width: 80, height: 120, backgroundColor: Colors.border },
+  gameCoverLarge: { width: '100%', height: 160, backgroundColor: Colors.border },
   songCover: { width: 48, height: 48, borderRadius: BorderRadius.sm, backgroundColor: Colors.border, marginRight: Spacing.md },
   mediaInfo: { flex: 1, padding: Spacing.md, justifyContent: 'center' },
+  gameInfoCol: { padding: Spacing.md, paddingTop: Spacing.sm },
   mediaTitle: { color: Colors.textPrimary, fontSize: 15, fontWeight: 'bold', marginBottom: 4 },
   mediaSubtitle: { color: Colors.textMuted, fontSize: 13 },
   songTitle: { color: Colors.textPrimary, fontSize: 14, fontWeight: 'bold' },

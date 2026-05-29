@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Dimensions, Image, TextInput } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Dimensions, Image, TextInput, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import FeedPost from '../../components/feed/FeedPost';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
@@ -55,40 +55,115 @@ export default function PostDetailScreen({ route, navigation }: RootStackScreenP
   const { mockData } = route.params;
   const { profile } = useAuth();
 
-  const post: FeedPostData = mockData || DEFAULT_MOCK_POST;
+  // Initialize main post and inject mock comments into its replies array if missing
+  const [mainPost, setMainPost] = useState<FeedPostData>(() => {
+    const post = mockData || DEFAULT_MOCK_POST;
+    if (!post.replies) {
+      post.replies = [MOCK_COMMENTS_THREAD];
+    }
+    return post;
+  });
+  const [replyText, setReplyText] = useState('');
+  const inputRef = useRef<TextInput>(null);
+
+  const handleSubmitReply = () => {
+    if (!replyText.trim()) return;
+    
+    const userHandle = profile?.handle ? profile.handle : '@user';
+    const newReply: FeedPostData = {
+      id: `new_${Date.now()}`,
+      author: {
+        name: profile?.nickname || 'You',
+        handle: userHandle,
+        avatar: profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z'
+      },
+      content: replyText.trim(),
+      timestamp: 'Just now',
+      likes: 0,
+      comments: 0,
+      reposts: 0,
+    };
+
+    setMainPost(prev => {
+      // Follow parent-child thread logic
+      if (userHandle === prev.author.handle) {
+        // Flat author continuation (Thread)
+        return {
+          ...prev,
+          thread: [newReply, ...(prev.thread || [])]
+        };
+      } else {
+        // Nested child comment (Replies)
+        return {
+          ...prev,
+          replies: [newReply, ...(prev.replies || [])]
+        };
+      }
+    });
+
+    setReplyText('');
+    Keyboard.dismiss();
+  };
+
+  const handleCommentPress = () => {
+    inputRef.current?.focus();
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Post</Text>
-        <View style={{ width: 40 }} />
-      </View>
-
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Main Post (Detail Variant) */}
-        <FeedPost post={post} variant="detail" />
-
-        {/* Inline Reply Input (X Style) */}
-        <View style={styles.inlineReplyContainer}>
-          <Image source={{ uri: profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z' }} style={styles.replyAvatar} />
-          <TextInput 
-            style={styles.replyInputBox}
-            placeholder="Post your reply!"
-            placeholderTextColor={Colors.textMuted}
-          />
-          <TouchableOpacity style={styles.replyButtonSmall}>
-            <Text style={styles.replyButtonTextSmall}>Reply</Text>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
           </TouchableOpacity>
+          <Text style={styles.headerTitle}>Post</Text>
+          <View style={{ width: 40 }} />
         </View>
 
-        {/* Replies */}
-        <View style={styles.repliesSection}>
-           <FeedPost post={MOCK_COMMENTS_THREAD} variant="feed" />
-        </View>
-      </ScrollView>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {/* Main Post (Detail Variant) */}
+          <FeedPost post={mainPost} variant="detail" onCommentPress={handleCommentPress} />
+
+          {/* Inline Reply Input (X Style) */}
+          <View style={styles.inlineReplyContainer}>
+            <Image source={{ uri: profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z' }} style={styles.replyAvatar} />
+            <TextInput 
+              ref={inputRef}
+              style={styles.replyInputBox}
+              placeholder="Post your reply!"
+              placeholderTextColor={Colors.textMuted}
+              value={replyText}
+              onChangeText={setReplyText}
+              multiline
+            />
+            <TouchableOpacity 
+              style={[styles.replyButtonSmall, !replyText.trim() && { opacity: 0.5 }]} 
+              onPress={handleSubmitReply}
+              disabled={!replyText.trim()}
+            >
+              <Text style={styles.replyButtonTextSmall}>Reply</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Thread (Author Continuations) */}
+          {mainPost.thread && mainPost.thread.length > 0 && (
+            <View style={styles.threadSection}>
+               {mainPost.thread.map(child => (
+                 <FeedPost key={child.id} post={child} variant="feed" />
+               ))}
+            </View>
+          )}
+
+          {/* Replies (Nested Child Comments) */}
+          {mainPost.replies && mainPost.replies.length > 0 && (
+            <View style={styles.repliesSection}>
+               {mainPost.replies.map(reply => (
+                 <FeedPost key={reply.id} post={reply} variant="feed" />
+               ))}
+            </View>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -150,6 +225,9 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontWeight: 'bold',
     fontSize: 14,
+  },
+  threadSection: {
+    paddingTop: Spacing.sm,
   },
   repliesSection: {
     paddingTop: Spacing.sm,

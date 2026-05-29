@@ -190,12 +190,29 @@ export const sendFriendRequest = async (senderId: string, receiverId: string): P
 
 export const createPost = async (postData: Omit<Post, 'id' | 'likes' | 'comments' | 'reposts'>): Promise<string> => {
   try {
-    const docRef = await addDoc(collection(db, 'posts'), {
+    const payload: any = {
       ...postData,
       likes: 0,
       comments: 0,
       reposts: 0,
+    };
+
+    // Firebase rejects any undefined values, so we must strip them out
+    Object.keys(payload).forEach(key => {
+      if (payload[key] === undefined) {
+        delete payload[key];
+      }
     });
+
+    if (payload.mediaData && typeof payload.mediaData === 'object') {
+      Object.keys(payload.mediaData).forEach(key => {
+        if (payload.mediaData[key] === undefined) {
+          delete payload.mediaData[key];
+        }
+      });
+    }
+
+    const docRef = await addDoc(collection(db, 'posts'), payload);
     return docRef.id;
   } catch (error) {
     console.error('Error creating post: ', error);

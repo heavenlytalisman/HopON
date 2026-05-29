@@ -40,7 +40,7 @@ export interface Post {
   likes: number;
   comments: number;
   reposts: number;
-  mediaType?: 'meme' | 'anime' | 'movie' | 'song';
+  mediaType?: 'meme' | 'anime' | 'movie' | 'song' | 'game';
   mediaData?: MediaData;
   thread?: Post[];
 }
@@ -67,7 +67,7 @@ export interface FeedPostData {
   likes: number;
   comments: number;
   reposts: number;
-  mediaType?: 'meme' | 'anime' | 'movie' | 'song';
+  mediaType?: 'meme' | 'anime' | 'movie' | 'song' | 'game';
   mediaData?: MediaData;
   thread?: FeedPostData[]; // For flat author continuations
   replies?: FeedPostData[]; // For nested child comments

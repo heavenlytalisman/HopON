@@ -11,6 +11,7 @@ import type { MainTabScreenProps } from '../../types';
 import MusicSearchModal from '../../components/feed/MusicSearchModal';
 import GifPickerModal from '../../components/feed/GifPickerModal';
 import MovieSearchModal from '../../components/feed/MovieSearchModal';
+import GameSearchModal from '../../components/feed/GameSearchModal';
 import * as ImagePicker from 'expo-image-picker';
 
 export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
@@ -19,11 +20,12 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
   const { contentWidth, horizontalPadding } = useResponsive();
   const [postTexts, setPostTexts] = useState<string[]>(['']);
   const [attachedMedia, setAttachedMedia] = useState<any>(null);
-  const [attachedMediaType, setAttachedMediaType] = useState<'song' | 'movie' | 'meme' | 'anime' | null>(null);
+  const [attachedMediaType, setAttachedMediaType] = useState<'song' | 'movie' | 'meme' | 'anime' | 'game' | null>(null);
 
   const [isComposeVisible, setIsComposeVisible] = useState(false);
   const [isMusicSearchVisible, setIsMusicSearchVisible] = useState(false);
   const [isMovieSearchVisible, setIsMovieSearchVisible] = useState(false);
+  const [isGameSearchVisible, setIsGameSearchVisible] = useState(false);
   const [isAddMenuVisible, setIsAddMenuVisible] = useState(false);
   const [isGifPickerVisible, setIsGifPickerVisible] = useState(false);
 
@@ -92,9 +94,11 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
         />
       )}
 
-      <Modal visible={isComposeVisible} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setIsComposeVisible(false)}>
-        <SafeAreaView style={styles.modalContainer}>
-          <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <Modal visible={isComposeVisible} animationType="slide" transparent={true} onRequestClose={() => setIsComposeVisible(false)}>
+        <KeyboardAvoidingView style={{ flex: 1, justifyContent: 'flex-end' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setIsComposeVisible(false)} />
+          <SafeAreaView style={styles.modalBottomSheet}>
+            <View style={styles.dragHandle} />
             <View style={styles.modalHeader}>
               <TouchableOpacity onPress={() => setIsComposeVisible(false)}>
                 <Text style={styles.modalCancelText}>Cancel</Text>
@@ -143,7 +147,11 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
                     <>
                       <Image 
                         source={{ uri: attachedMediaType === 'song' ? attachedMedia.albumArt : (attachedMedia.poster || attachedMedia.cover) }} 
-                        style={attachedMediaType === 'song' ? styles.attachedSongCover : styles.attachedMovieCover} 
+                        style={
+                          attachedMediaType === 'song' ? styles.attachedSongCover : 
+                          attachedMediaType === 'game' ? styles.attachedGameCover : 
+                          styles.attachedMovieCover
+                        } 
                       />
                       <View style={styles.attachedMediaInfo}>
                         <Text style={styles.attachedMediaTitle}>{attachedMedia.title}</Text>
@@ -158,56 +166,56 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
                   )}
                 </View>
               )}
+            </ScrollView>
 
-              <View style={styles.composeActionsRow}>
+            <View style={styles.composeActionsRow}>
                 <View style={styles.actionButtonsLeft}>
-                  <View style={{ position: 'relative' }}>
-                    <TouchableOpacity style={styles.actionBtn} onPress={() => setIsAddMenuVisible(!isAddMenuVisible)}>
-                      <Ionicons name="add-circle" size={16} color={Colors.primaryLight} />
-                      <Text style={styles.actionBtnText}>Add</Text>
-                    </TouchableOpacity>
-
-                    {isAddMenuVisible && (
-                      <View style={styles.addMenu}>
-                        <TouchableOpacity style={styles.addMenuItem} onPress={pickImage}>
-                          <Ionicons name="image" size={18} color={Colors.primaryLight} />
-                          <Text style={styles.addMenuText}>Photo/Video</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity 
-                          style={styles.addMenuItem} 
-                          onPress={() => { setIsAddMenuVisible(false); setIsGifPickerVisible(true); }}
-                        >
-                          <Ionicons name="gif" size={18} color={Colors.primaryLight} />
-                          <Text style={styles.addMenuText}>GIF</Text>
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                  </View>
-
-                  <TouchableOpacity style={styles.actionBtn} onPress={() => setIsMusicSearchVisible(true)}>
-                    <Ionicons name="musical-notes" size={16} color={attachedMediaType === 'song' ? Colors.success : Colors.primaryLight} />
-                    <Text style={[styles.actionBtnText, attachedMediaType === 'song' && { color: Colors.success }]}>Music</Text>
+                  <TouchableOpacity style={styles.iconBtn} onPress={() => setIsAddMenuVisible(!isAddMenuVisible)}>
+                    <Ionicons name={isAddMenuVisible ? "close" : "add"} size={24} color={Colors.primaryLight} />
                   </TouchableOpacity>
 
-                  <TouchableOpacity style={styles.actionBtn} onPress={() => setIsMovieSearchVisible(true)}>
-                    <Ionicons name="film" size={16} color={(attachedMediaType === 'movie' || attachedMediaType === 'anime') ? Colors.success : Colors.primaryLight} />
-                    <Text style={[styles.actionBtnText, (attachedMediaType === 'movie' || attachedMediaType === 'anime') && { color: Colors.success }]}>Movie</Text>
-                  </TouchableOpacity>
+                  {isAddMenuVisible && (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.addMenuHorizontal}>
+                      <TouchableOpacity style={styles.iconBtn} onPress={pickImage}>
+                        <Ionicons name="image-outline" size={22} color={Colors.textPrimary} />
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.iconBtn} onPress={() => { setIsAddMenuVisible(false); setIsGifPickerVisible(true); }}>
+                        <View style={styles.gifIconBorder}>
+                          <Text style={styles.gifIconText}>GIF</Text>
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.iconBtn} onPress={() => { setIsAddMenuVisible(false); setIsMusicSearchVisible(true); }}>
+                        <Ionicons name="musical-notes-outline" size={22} color={Colors.textPrimary} />
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.iconBtn} onPress={() => { setIsAddMenuVisible(false); setIsMovieSearchVisible(true); }}>
+                        <Ionicons name="film-outline" size={22} color={Colors.textPrimary} />
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.iconBtn} onPress={() => { setIsAddMenuVisible(false); setIsGameSearchVisible(true); }}>
+                        <Ionicons name="game-controller-outline" size={22} color={Colors.textPrimary} />
+                      </TouchableOpacity>
+                    </ScrollView>
+                  )}
                 </View>
 
-                {postTexts.some(t => t.trim().length > 0) && (
-                  <TouchableOpacity style={styles.postButton} onPress={handlePost} disabled={isPosting}>
+                <View style={styles.actionButtonsRight}>
+                  <TouchableOpacity 
+                    style={[
+                      styles.postButton, 
+                      (!postTexts.some(t => t.trim().length > 0) && !attachedMedia) && styles.postButtonDisabled
+                    ]} 
+                    onPress={handlePost} 
+                    disabled={isPosting || (!postTexts.some(t => t.trim().length > 0) && !attachedMedia)}
+                  >
                     {isPosting ? (
                       <ActivityIndicator size="small" color="#FFF" />
                     ) : (
                       <Text style={styles.postButtonText}>Post</Text>
                     )}
                   </TouchableOpacity>
-                )}
+                </View>
               </View>
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </SafeAreaView>
+          </SafeAreaView>
+        </KeyboardAvoidingView>
       </Modal>
 
       <MusicSearchModal 
@@ -237,6 +245,16 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
           setAttachedMedia(mediaData);
           setAttachedMediaType(type);
           setIsMovieSearchVisible(false);
+        }}
+      />
+
+      <GameSearchModal 
+        visible={isGameSearchVisible}
+        onClose={() => setIsGameSearchVisible(false)}
+        onSelectGame={(gameData) => {
+          setAttachedMedia(gameData);
+          setAttachedMediaType('game');
+          setIsGameSearchVisible(false);
         }}
       />
     </SafeAreaView>
@@ -273,9 +291,26 @@ const styles = StyleSheet.create({
   headerAddBtn: {
     padding: Spacing.xs,
   },
-  modalContainer: {
-    flex: 1,
+  modalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(11, 13, 23, 0.7)',
+  },
+  modalBottomSheet: {
     backgroundColor: Colors.background,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '90%',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingTop: Spacing.sm,
+  },
+  dragHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.border,
+    alignSelf: 'center',
+    marginBottom: Spacing.sm,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -336,27 +371,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: Spacing.sm,
-    paddingLeft: 36 + Spacing.md, // align with inputs
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    backgroundColor: Colors.background,
   },
   actionButtonsLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
-  actionBtn: {
-    flexDirection: 'row',
+  iconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginRight: Spacing.md,
-    backgroundColor: Colors.surfaceAlt,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.pill,
+    marginRight: Spacing.xs,
   },
-  actionBtnText: {
-    color: Colors.primaryLight,
+  addMenuHorizontal: {
+    flexDirection: 'row',
+    marginLeft: Spacing.xs,
+  },
+  gifIconBorder: {
+    borderWidth: 1.5,
+    borderColor: Colors.textPrimary,
+    borderRadius: 4,
+    paddingHorizontal: 2,
+    paddingVertical: 1,
+  },
+  gifIconText: {
+    fontSize: 9,
     fontWeight: 'bold',
-    fontSize: 12,
-    marginLeft: 4,
+    color: Colors.textPrimary,
   },
   attachedMediaCard: {
     flexDirection: 'row',
@@ -383,6 +431,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.border,
     marginRight: Spacing.md,
   },
+  attachedGameCover: {
+    width: 100,
+    height: 46,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.border,
+    marginRight: Spacing.md,
+  },
   attachedMediaInfo: {
     flex: 1,
   },
@@ -398,6 +453,10 @@ const styles = StyleSheet.create({
   removeMediaBtn: {
     marginLeft: Spacing.sm,
   },
+  actionButtonsRight: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   postButton: { 
     backgroundColor: Colors.primary, 
     paddingHorizontal: Spacing.lg,
@@ -406,32 +465,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     alignItems: 'center', 
   },
+  postButtonDisabled: {
+    backgroundColor: Colors.surfaceAlt,
+    opacity: 0.5,
+  },
   postButtonText: {
     color: '#FFF',
     fontWeight: 'bold',
     fontSize: 13,
   },
-  addMenu: {
-    position: 'absolute',
-    bottom: 40,
-    left: 0,
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: Spacing.xs,
-    width: 150,
-    zIndex: 10,
-    elevation: 5,
-  },
-  addMenuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.sm,
-  },
-  addMenuText: {
-    color: Colors.textPrimary,
-    marginLeft: Spacing.sm,
-    fontSize: 14,
-  }
 });
