@@ -121,6 +121,7 @@ export function useFeed() {
             mediaType: p.mediaType,
             mediaData: p.mediaData,
             thread: p.thread ? p.thread.map(mapPost) : undefined,
+            repostedBy: p.repostedBy,
           };
         };
 

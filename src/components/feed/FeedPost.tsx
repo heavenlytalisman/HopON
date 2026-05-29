@@ -8,6 +8,9 @@ import * as Sharing from 'expo-sharing';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import type { FeedPostData } from '../../types';
+import { useAuth } from '../../context/AuthContext';
+import { createPost } from '../../services/firebase';
+import { serverTimestamp } from 'firebase/firestore';
 
 interface FeedPostProps {
   post: FeedPostData;
@@ -132,6 +135,7 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
   const hasReplies = post.replies && post.replies.length > 0;
 
   const navigation = useNavigation<any>();
+  const { profile } = useAuth();
 
   // Local state to handle interactions for the post and its thread
   const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
@@ -141,8 +145,32 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
     setLikedPosts(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const handleRepost = (id: string) => {
-    setRepostedPosts(prev => ({ ...prev, [id]: !prev[id] }));
+  const handleRepost = async (id: string) => {
+    const isAlreadyReposted = repostedPosts[id];
+    setRepostedPosts(prev => ({ ...prev, [id]: !isAlreadyReposted }));
+
+    if (!isAlreadyReposted && profile) {
+      try {
+        await createPost({
+          authorId: 'repost', // Mock id for original author
+          authorName: post.author.name,
+          authorHandle: post.author.handle,
+          authorAvatar: post.author.avatar,
+          content: post.content || '',
+          timestamp: serverTimestamp(),
+          mediaType: post.mediaType as any,
+          mediaData: post.mediaData,
+          thread: post.thread as any,
+          repostedBy: {
+            name: profile.nickname,
+            handle: `@${profile.nickname.toLowerCase().replace(/\s+/g, '')}`,
+            uid: profile.uid,
+          }
+        });
+      } catch (error) {
+        console.error('Error reposting:', error);
+      }
+    }
   };
 
   const postRefs = useRef<Record<string, any>>({});
@@ -228,6 +256,14 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
 
     return (
       <View style={styles.detailContainer} ref={el => { postRefs.current[post.id] = el; }} collapsable={false}>
+        {post.repostedBy && (
+          <View style={styles.repostHeader}>
+            <Ionicons name="repeat" size={16} color={Colors.textMuted} />
+            <Text style={styles.repostText}>
+              {profile?.uid === post.repostedBy.uid ? 'You reposted' : `${post.repostedBy.name} reposted`}
+            </Text>
+          </View>
+        )}
         <View style={styles.detailHeader}>
           <Image source={{ uri: author.avatar }} style={styles.avatar} />
           <View style={styles.detailAuthorInfo}>
@@ -289,6 +325,14 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
         </View>
 
         <View style={styles.postContent}>
+          {p.repostedBy && !isThreadChild && (
+            <View style={styles.repostHeaderFeed}>
+              <Ionicons name="repeat" size={14} color={Colors.textMuted} />
+              <Text style={styles.repostText}>
+                {profile?.uid === p.repostedBy.uid ? 'You reposted' : `${p.repostedBy.name} reposted`}
+              </Text>
+            </View>
+          )}
           <View style={styles.headerRow}>
             <Text style={styles.authorName}>{p.author.name}</Text>
             <Text style={styles.authorHandle}>{p.author.handle}</Text>
@@ -421,6 +465,23 @@ const styles = StyleSheet.create({
   },
 
   // Feed Layout Styles
+  repostHeaderFeed: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+    gap: 6,
+  },
+  repostHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+    gap: 6,
+  },
+  repostText: {
+    color: Colors.textMuted,
+    fontSize: 13,
+    fontWeight: '500',
+  },
   singlePostRow: {
     flexDirection: 'row',
   },

@@ -43,6 +43,11 @@ export interface Post {
   mediaType?: 'meme' | 'anime' | 'movie' | 'song' | 'game';
   mediaData?: MediaData;
   thread?: Post[];
+  repostedBy?: {
+    name: string;
+    handle: string;
+    uid?: string;
+  };
 }
 
 export type MediaData = {
@@ -71,6 +76,11 @@ export interface FeedPostData {
   mediaData?: MediaData;
   thread?: FeedPostData[]; // For flat author continuations
   replies?: FeedPostData[]; // For nested child comments
+  repostedBy?: {
+    name: string;
+    handle: string;
+    uid?: string;
+  };
 }
 
 export interface FriendRequest {
