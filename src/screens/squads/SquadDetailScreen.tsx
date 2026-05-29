@@ -23,6 +23,8 @@ interface Message {
   text?: string;
   gifUrl?: string;
   stickerUrl?: string;
+  viewOncePhotoUrl?: string;
+  viewOnceViewed?: boolean;
   isMe: boolean;
   system?: boolean;
   replyTo?: {
@@ -88,7 +90,6 @@ const SwipeableMessage = ({ item, onReply, onLongPress, children }: any) => {
       {...panResponder.panHandlers}
     >
       <TouchableOpacity 
-        style={[item.isMe ? styles.bubbleRight : styles.bubbleLeft, (item.gifUrl || item.stickerUrl) ? { padding: 0, overflow: 'hidden', backgroundColor: 'transparent', borderWidth: 0 } : null]}
         onLongPress={() => onLongPress(item)}
         delayLongPress={200}
         activeOpacity={0.8}
@@ -134,6 +135,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
   
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
 
   const myAvatar = profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z';
 
@@ -304,6 +306,31 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
     }
   };
 
+  const pickViewOncePhoto = async () => {
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      handleSendViewOncePhoto(result.assets[0].uri);
+      setShowStickerPicker(false);
+      setShowGifPicker(false);
+    }
+  };
+
+  const handleSendViewOncePhoto = (uri: string) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      sender: 'You',
+      avatar: myAvatar,
+      viewOncePhotoUrl: uri,
+      viewOnceViewed: false,
+      isMe: true,
+    };
+    setMessages((prev) => [...prev, newMessage]);
+  };
+
   const handleOpenNewPackModal = () => {
     setEditingPackId(null);
     setPackNameInput('');
@@ -400,21 +427,46 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
           {!item.isMe && <Text style={styles.senderName}>{item.sender}</Text>}
           
           <SwipeableMessage item={item} onReply={(msg: Message) => setReplyingTo(msg)} onLongPress={(msg: Message) => setSelectedMessage(msg)}>
-            {item.replyTo && (
-              <View style={[styles.replyQuoteBubble, item.isMe ? styles.replyQuoteBubbleRight : styles.replyQuoteBubbleLeft]}>
-                <Text style={styles.replyQuoteSender}>Replying to {item.replyTo.sender}</Text>
-                <Text style={styles.replyQuoteText} numberOfLines={1}>{item.replyTo.text}</Text>
-              </View>
-            )}
-            {item.gifUrl ? (
-              <Image source={{ uri: item.gifUrl }} style={styles.gifMessage} />
-            ) : item.stickerUrl ? (
-              <TouchableOpacity onPress={() => handleStickerPress(item.stickerUrl!)}>
-                <Image source={{ uri: item.stickerUrl }} style={styles.stickerMessage} />
-              </TouchableOpacity>
-            ) : (
-              <Text style={item.isMe ? styles.textRight : styles.textLeft}>{item.text}</Text>
-            )}
+            <View style={[
+              item.isMe ? styles.bubbleRight : styles.bubbleLeft, 
+              (item.gifUrl || item.stickerUrl || item.viewOncePhotoUrl) ? { backgroundColor: 'transparent', paddingHorizontal: 0, paddingVertical: 0, borderWidth: 0 } : {}
+            ]}>
+              {item.replyTo && (
+                <View style={[styles.replyQuoteBubble, item.isMe ? styles.replyQuoteBubbleRight : styles.replyQuoteBubbleLeft]}>
+                  <Text style={styles.replyQuoteSender}>Replying to {item.replyTo.sender}</Text>
+                  <Text style={styles.replyQuoteText} numberOfLines={1}>{item.replyTo.text}</Text>
+                </View>
+              )}
+              {item.gifUrl ? (
+                <Image source={{ uri: item.gifUrl }} style={styles.gifMessage} />
+              ) : item.stickerUrl ? (
+                <TouchableOpacity onPress={() => handleStickerPress(item.stickerUrl!)}>
+                  <Image source={{ uri: item.stickerUrl }} style={styles.stickerMessage} />
+                </TouchableOpacity>
+              ) : item.viewOncePhotoUrl ? (
+                <TouchableOpacity 
+                  style={[
+                    styles.viewOnceBtnMinimal, 
+                    item.isMe ? { backgroundColor: Colors.primary } : { backgroundColor: Colors.surfaceAlt },
+                    item.viewOnceViewed && styles.viewOnceBtnViewedMinimal
+                  ]}
+                  onPress={() => {
+                    if (!item.viewOnceViewed) {
+                      setViewingPhoto(item.viewOncePhotoUrl!);
+                      setMessages(prev => prev.map(m => m.id === item.id ? { ...m, viewOnceViewed: true } : m));
+                    }
+                  }}
+                  activeOpacity={item.viewOnceViewed ? 1 : 0.7}
+                >
+                  <Ionicons name={item.viewOnceViewed ? "eye-off-outline" : "timer-outline"} size={18} color={item.isMe ? '#FFF' : Colors.textPrimary} />
+                  <Text style={[styles.viewOnceTextMinimal, item.isMe ? { color: '#FFF' } : { color: Colors.textPrimary }]}>
+                    {item.viewOnceViewed ? 'Opened' : 'View Once'}
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <Text style={item.isMe ? styles.textRight : styles.textLeft}>{item.text}</Text>
+              )}
+            </View>
           </SwipeableMessage>
           
           {item.isMe && <Text style={styles.readReceipt}>Delivered</Text>}
@@ -426,7 +478,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
-        style={{ flex: 1, paddingHorizontal: horizontalPadding, maxWidth: contentWidth, alignSelf: 'center', width: '100%' }}
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
@@ -588,23 +640,29 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
         )}
 
         <View style={styles.inputArea}>
-          <TouchableOpacity 
-            style={styles.mediaToggleBtn} 
-            onPress={() => { 
-              if (showGifPicker || showStickerPicker) {
-                setShowGifPicker(false);
-                setShowStickerPicker(false);
-              } else {
-                setShowStickerPicker(true);
-              }
-            }}
-          >
-            <Ionicons 
-              name={(showGifPicker || showStickerPicker) ? "close-circle-outline" : "add-circle-outline"} 
-              size={24} 
-              color={(showGifPicker || showStickerPicker) ? Colors.primaryLight : Colors.textMuted} 
-            />
-          </TouchableOpacity>
+          <View style={styles.inputActionsRow}>
+            <TouchableOpacity 
+              style={styles.mediaToggleBtn} 
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              onPress={() => { 
+                if (showGifPicker || showStickerPicker) {
+                  setShowGifPicker(false);
+                  setShowStickerPicker(false);
+                } else {
+                  setShowStickerPicker(true);
+                }
+              }}
+            >
+              <Ionicons 
+                name={(showGifPicker || showStickerPicker) ? "close-circle-outline" : "add-circle-outline"} 
+                size={26} 
+                color={(showGifPicker || showStickerPicker) ? Colors.primaryLight : Colors.textMuted} 
+              />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.mediaToggleBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} onPress={pickViewOncePhoto}>
+              <Ionicons name="camera-outline" size={26} color={Colors.textMuted} />
+            </TouchableOpacity>
+          </View>
           
           <TextInput
             style={styles.textInput}
@@ -739,6 +797,24 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
           </View>
         </Modal>
 
+        {/* View Once Photo Modal */}
+        <Modal visible={!!viewingPhoto} animationType="fade" transparent={true} onRequestClose={() => setViewingPhoto(null)}>
+          <View style={styles.viewOnceFullscreen}>
+            {viewingPhoto && (
+              <Image source={{ uri: viewingPhoto }} style={styles.viewOnceImage} resizeMode="contain" />
+            )}
+            <View style={styles.viewOnceHeader}>
+              <View style={styles.viewOnceBadge}>
+                <Ionicons name="flash" size={14} color="#000" style={{ marginRight: 4 }} />
+                <Text style={styles.viewOnceBadgeText}>View Once</Text>
+              </View>
+              <TouchableOpacity style={styles.viewOnceCloseBtn} onPress={() => setViewingPhoto(null)}>
+                <Ionicons name="close" size={28} color="#FFF" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -770,9 +846,9 @@ const styles = StyleSheet.create({
   avatar: { width: 32, height: 32, borderRadius: 16, marginRight: Spacing.md, backgroundColor: Colors.border },
   messageContent: { maxWidth: '75%' },
   senderName: { fontSize: 12, color: Colors.textMuted, marginBottom: 4, fontWeight: '600' },
-  bubbleLeft: { backgroundColor: Colors.surface, padding: Spacing.lg, borderRadius: BorderRadius.lg, borderTopLeftRadius: 4, borderWidth: 1, borderColor: Colors.border },
+  bubbleLeft: { backgroundColor: Colors.surfaceAlt, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 18, borderTopLeftRadius: 4 },
   textLeft: { color: Colors.textPrimary, fontSize: 15, lineHeight: 22 },
-  bubbleRight: { backgroundColor: Colors.primary, padding: Spacing.lg, borderRadius: BorderRadius.lg, borderTopRightRadius: 4 },
+  bubbleRight: { backgroundColor: Colors.primary, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 18, borderTopRightRadius: 4 },
   textRight: { color: '#FFFFFF', fontSize: 15, lineHeight: 22 },
   readReceipt: { fontSize: 10, color: Colors.textMuted, marginTop: 4 },
   gifMessage: { width: 200, height: 150, borderRadius: BorderRadius.lg },
@@ -790,10 +866,11 @@ const styles = StyleSheet.create({
   replyBannerText: { fontSize: 13, color: Colors.textMuted },
   replyBannerClose: { padding: Spacing.sm },
 
-  inputArea: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, backgroundColor: 'transparent' },
-  mediaToggleBtn: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: Spacing.xs, marginRight: Spacing.xs },
-  textInput: { flex: 1, backgroundColor: Colors.surface, borderRadius: BorderRadius.pill, paddingHorizontal: Spacing.lg, paddingVertical: 10, color: Colors.textPrimary, fontSize: 15, maxHeight: 100 },
-  sendButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center', marginLeft: Spacing.xs, backgroundColor: Colors.surface, borderRadius: 20 },
+  inputArea: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 6, paddingVertical: 8, backgroundColor: 'transparent' },
+  inputActionsRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginRight: 8 },
+  mediaToggleBtn: { justifyContent: 'center', alignItems: 'center' },
+  textInput: { flex: 1, backgroundColor: Colors.surface, borderRadius: BorderRadius.pill, paddingHorizontal: 16, paddingVertical: 8, color: Colors.textPrimary, fontSize: 15, maxHeight: 100 },
+  sendButton: { width: 36, height: 36, justifyContent: 'center', alignItems: 'center', marginLeft: 8, backgroundColor: Colors.surface, borderRadius: 18 },
 
   mediaTabBar: { flexDirection: 'row', backgroundColor: Colors.surfaceAlt, paddingHorizontal: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border },
   mediaTab: { paddingVertical: 10, paddingHorizontal: Spacing.md, borderBottomWidth: 2, borderBottomColor: 'transparent' },
@@ -851,4 +928,15 @@ const styles = StyleSheet.create({
   messageActionOptionText: { fontSize: 16, color: Colors.textPrimary, marginLeft: Spacing.md, fontWeight: '500' },
   messageActionCloseBtn: { backgroundColor: Colors.surface, borderRadius: BorderRadius.xl, width: 250, padding: Spacing.lg, alignItems: 'center', marginTop: Spacing.md },
   messageActionCloseText: { fontSize: 16, color: Colors.primaryLight, fontWeight: 'bold' },
+
+  // View Once Styles
+  viewOnceBtnMinimal: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderRadius: BorderRadius.pill, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  viewOnceBtnViewedMinimal: { opacity: 0.5, borderColor: 'transparent' },
+  viewOnceTextMinimal: { marginLeft: 6, fontSize: 13, fontWeight: '600' },
+  viewOnceFullscreen: { flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' },
+  viewOnceImage: { width: '100%', height: '100%' },
+  viewOnceHeader: { position: 'absolute', top: 50, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.xl },
+  viewOnceBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: BorderRadius.pill },
+  viewOnceBadgeText: { fontSize: 13, fontWeight: 'bold', color: '#000' },
+  viewOnceCloseBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
 });
