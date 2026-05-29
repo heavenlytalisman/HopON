@@ -22,6 +22,7 @@ import IncomingAlertScreen from '../screens/squads/IncomingAlertScreen';
 import QuickSquadSelectScreen from '../screens/squads/QuickSquadSelectScreen';
 import FriendProfileScreen from '../screens/profile/FriendProfileScreen';
 import FriendListScreen from '../screens/profile/FriendListScreen';
+import FollowListScreen from '../screens/profile/FollowListScreen';
 import NotificationsScreen from '../screens/notifications/NotificationsScreen';
 import QRScannerScreen from '../screens/squads/QRScannerScreen';
 import PostDetailScreen from '../screens/feed/PostDetailScreen';
@@ -144,6 +145,7 @@ export default function AppNavigator() {
       {/* Profile is now in tabs, but we might keep the stack screen if accessed from other places */}
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="FriendList" component={FriendListScreen} />
+      <Stack.Screen name="FollowList" component={FollowListScreen} />
       <Stack.Screen name="SquadDetail" component={SquadDetailScreen} />
       <Stack.Screen name="SquadSettings" component={SquadSettingsScreen} />
       <Stack.Screen

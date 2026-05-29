@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Share, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
+import { useNavigation } from '@react-navigation/native';
+import { captureRef } from 'react-native-view-shot';
+import * as Sharing from 'expo-sharing';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import type { FeedPostData } from '../../types';
 
@@ -116,9 +120,103 @@ export default function FeedPost({ post, depth = 0, variant = 'feed' }: FeedPost
   const hasThread = post.thread && post.thread.length > 0;
   const hasReplies = post.replies && post.replies.length > 0;
 
-  if (variant === 'detail') {
+  const navigation = useNavigation<any>();
+
+  // Local state to handle interactions for the post and its thread
+  const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
+  const [repostedPosts, setRepostedPosts] = useState<Record<string, boolean>>({});
+
+  const handleLike = (id: string) => {
+    setLikedPosts(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleRepost = (id: string) => {
+    setRepostedPosts(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const postRefs = useRef<Record<string, any>>({});
+  const shareCardRef = useRef<View>(null);
+  const [shareData, setShareData] = useState<FeedPostData | null>(null);
+
+  const handleShare = async (id: string, p: FeedPostData) => {
+    try {
+      setShareData(p);
+      setTimeout(async () => {
+        try {
+          if (shareCardRef.current) {
+            const uri = await captureRef(shareCardRef.current, {
+              format: 'png',
+              quality: 1,
+            });
+            if (await Sharing.isAvailableAsync()) {
+              await Sharing.shareAsync(uri, {
+                dialogTitle: 'Share to Instagram Story',
+                mimeType: 'image/png',
+              });
+            } else {
+              Alert.alert('Share Debug', 'Sharing is not available on this device/platform.');
+            }
+          } else {
+            Alert.alert('Share Debug', 'shareCardRef is missing.');
+          }
+        } catch (e: any) {
+          console.error(e);
+          Alert.alert('Share Error', e?.message || String(e));
+        } finally {
+          setShareData(null);
+        }
+      }, 100);
+    } catch (error: any) {
+      console.error('Error sharing post screenshot:', error);
+    }
+  };
+
+  const handleComment = (p: FeedPostData) => {
+    if (variant === 'feed') {
+      navigation.navigate('PostDetail', { postId: p.id, mockData: p });
+    } else {
+      Alert.alert('Comment', 'Comment functionality coming soon!');
+    }
+  };
+
+  const renderHiddenShareCard = () => {
+    if (!shareData) return null;
     return (
-      <View style={styles.detailContainer}>
+      <View style={styles.hiddenShareContainer} collapsable={false}>
+        <View ref={shareCardRef} style={styles.storyCard} collapsable={false}>
+          <LinearGradient
+            colors={['#0B0D17', '#1E293B']}
+            style={StyleSheet.absoluteFillObject}
+          />
+          <View style={{ position: 'absolute', width: 400, height: 400, borderRadius: 200, backgroundColor: Colors.primary, opacity: 0.2, top: '20%' }} />
+          
+          <View style={styles.storyContent}>
+            <View style={styles.storyHeader}>
+               <Image source={{ uri: shareData.author.avatar }} style={styles.storyAvatar} />
+               <View>
+                 <Text style={styles.storyAuthorName}>{shareData.author.name}</Text>
+                 <Text style={styles.storyAuthorHandle}>{shareData.author.handle}</Text>
+               </View>
+            </View>
+            {shareData.content ? <Text style={styles.storyText}>{shareData.content}</Text> : null}
+            {renderMedia(shareData.mediaType as any, shareData.mediaData)}
+          </View>
+          <View style={styles.storyFooter}>
+            <Text style={styles.storyBrand}>HOP<Text style={{color: Colors.primaryLight}}>ON</Text></Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  if (variant === 'detail') {
+    const isLiked = likedPosts[post.id];
+    const isReposted = repostedPosts[post.id];
+    const likesCount = (post.likes || 0) + (isLiked ? 1 : 0);
+    const repostsCount = (post.reposts || 0) + (isReposted ? 1 : 0);
+
+    return (
+      <View style={styles.detailContainer} ref={el => { postRefs.current[post.id] = el; }} collapsable={false}>
         <View style={styles.detailHeader}>
           <Image source={{ uri: author.avatar }} style={styles.avatar} />
           <View style={styles.detailAuthorInfo}>
@@ -139,25 +237,26 @@ export default function FeedPost({ post, depth = 0, variant = 'feed' }: FeedPost
         </View>
 
         <View style={styles.detailStatsRow}>
-          <Text style={styles.statText}><Text style={styles.statNumber}>{post.reposts || 0}</Text> Reposts</Text>
+          <Text style={styles.statText}><Text style={styles.statNumber}>{repostsCount}</Text> Reposts</Text>
           <Text style={styles.statText}><Text style={styles.statNumber}>{post.comments || 0}</Text> Quotes</Text>
-          <Text style={styles.statText}><Text style={styles.statNumber}>{post.likes || 0}</Text> Likes</Text>
+          <Text style={styles.statText}><Text style={styles.statNumber}>{likesCount}</Text> Likes</Text>
         </View>
 
         <View style={styles.detailActionBar}>
-          <TouchableOpacity style={styles.actionIcon}>
+          <TouchableOpacity style={styles.actionIcon} onPress={() => handleComment(post)}>
             <Ionicons name="chatbubble-outline" size={24} color={Colors.textMuted} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionIcon}>
-            <Ionicons name="repeat-outline" size={26} color={Colors.textMuted} />
+          <TouchableOpacity style={styles.actionIcon} onPress={() => handleRepost(post.id)}>
+            <Ionicons name="repeat-outline" size={26} color={isReposted ? Colors.success : Colors.textMuted} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionIcon}>
-            <Ionicons name="heart-outline" size={24} color={Colors.secondary} />
+          <TouchableOpacity style={styles.actionIcon} onPress={() => handleLike(post.id)}>
+            <Ionicons name={isLiked ? "heart" : "heart-outline"} size={24} color={isLiked ? Colors.error : Colors.textMuted} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionIcon}>
+          <TouchableOpacity style={styles.actionIcon} onPress={() => handleShare(post.id, post)}>
             <Ionicons name="arrow-redo-outline" size={24} color={Colors.textMuted} />
           </TouchableOpacity>
         </View>
+        {renderHiddenShareCard()}
       </View>
     );
   }
@@ -165,8 +264,13 @@ export default function FeedPost({ post, depth = 0, variant = 'feed' }: FeedPost
   // --- Feed Variant Below ---
 
   const renderSinglePost = (p: FeedPostData, isLast: boolean, isThreadChild = false) => {
+    const isLiked = likedPosts[p.id];
+    const isReposted = repostedPosts[p.id];
+    const likesCount = (p.likes || 0) + (isLiked ? 1 : 0);
+    const repostsCount = (p.reposts || 0) + (isReposted ? 1 : 0);
+
     return (
-      <View key={p.id} style={[styles.singlePostRow, isThreadChild && { marginTop: Spacing.md }]}>
+      <View key={p.id} style={[styles.singlePostRow, isThreadChild && { marginTop: Spacing.md }]} ref={el => { postRefs.current[p.id] = el; }} collapsable={false}>
         <View style={styles.leftCol}>
           <Image source={{ uri: p.author.avatar }} style={styles.avatar} />
           {/* Thread line for flat author continuations */}
@@ -189,19 +293,19 @@ export default function FeedPost({ post, depth = 0, variant = 'feed' }: FeedPost
           {renderMedia(p.mediaType as any, p.mediaData)}
 
           <View style={styles.actionBar}>
-            <TouchableOpacity style={styles.actionIcon}>
+            <TouchableOpacity style={styles.actionIcon} onPress={() => handleComment(p)}>
               <Ionicons name="chatbubble-outline" size={18} color={Colors.textMuted} />
               <Text style={styles.actionCount}>{p.comments || 0}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionIcon}>
-              <Ionicons name="repeat-outline" size={20} color={Colors.textMuted} />
-              <Text style={styles.actionCount}>{p.reposts || 0}</Text>
+            <TouchableOpacity style={styles.actionIcon} onPress={() => handleRepost(p.id)}>
+              <Ionicons name="repeat-outline" size={20} color={isReposted ? Colors.success : Colors.textMuted} />
+              <Text style={[styles.actionCount, isReposted && { color: Colors.success }]}>{repostsCount}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionIcon}>
-              <Ionicons name="heart-outline" size={20} color={Colors.secondary} />
-              <Text style={[styles.actionCount, { color: Colors.secondary }]}>{p.likes || 0}</Text>
+            <TouchableOpacity style={styles.actionIcon} onPress={() => handleLike(p.id)}>
+              <Ionicons name={isLiked ? "heart" : "heart-outline"} size={20} color={isLiked ? Colors.error : Colors.textMuted} />
+              <Text style={[styles.actionCount, isLiked && { color: Colors.error }]}>{likesCount}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionIcon}>
+            <TouchableOpacity style={styles.actionIcon} onPress={() => handleShare(p.id, p)}>
               <Ionicons name="arrow-redo-outline" size={20} color={Colors.textMuted} />
             </TouchableOpacity>
           </View>
@@ -234,6 +338,8 @@ export default function FeedPost({ post, depth = 0, variant = 'feed' }: FeedPost
           ))}
         </View>
       )}
+
+      {renderHiddenShareCard()}
     </View>
   );
 }
@@ -372,4 +478,61 @@ const styles = StyleSheet.create({
   actionBar: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4, marginRight: Spacing.xl },
   actionIcon: { flexDirection: 'row', alignItems: 'center' },
   actionCount: { color: Colors.textMuted, marginLeft: 6, fontSize: 12, fontWeight: '600' },
+  hiddenShareContainer: {
+    position: 'absolute',
+    left: -10000,
+    top: 0,
+  },
+  storyCard: {
+    width: 540,
+    height: 960,
+    padding: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  storyContent: {
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    borderRadius: 24,
+    padding: 30,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  storyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  storyAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 15,
+  },
+  storyAuthorName: {
+    color: '#FFF',
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  storyAuthorHandle: {
+    color: '#94A3B8',
+    fontSize: 16,
+  },
+  storyText: {
+    color: '#FFF',
+    fontSize: 24,
+    lineHeight: 32,
+    marginBottom: 20,
+  },
+  storyFooter: {
+    position: 'absolute',
+    bottom: 40,
+  },
+  storyBrand: {
+    color: '#FFF',
+    fontSize: 32,
+    fontWeight: '900',
+    letterSpacing: 2,
+  },
 });

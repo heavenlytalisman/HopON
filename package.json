@@ -21,6 +21,7 @@
     "expo-image-picker": "~55.0.20",
     "expo-linear-gradient": "~55.0.14",
     "expo-notifications": "~55.0.23",
+    "expo-sharing": "~55.0.20",
     "expo-status-bar": "~55.0.6",
     "firebase": "^12.13.0",
     "react": "19.2.0",
@@ -30,6 +31,7 @@
     "react-native-safe-area-context": "~5.6.2",
     "react-native-screens": "~4.23.0",
     "react-native-svg": "15.15.3",
+    "react-native-view-shot": "4.0.3",
     "react-native-web": "^0.21.0",
     "typescript": "~5.9.2"
   },

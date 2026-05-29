@@ -175,11 +175,11 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
             ) : null}
 
             <View style={styles.statsRow}>
-              <TouchableOpacity style={styles.statBox}>
+              <TouchableOpacity style={styles.statBox} onPress={() => navigation.navigate('FollowList', { type: 'following', userName: profile?.nickname || 'User' })}>
                 <Text style={styles.statCount}>24</Text>
                 <Text style={styles.statLabel}>Following</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.statBox}>
+              <TouchableOpacity style={styles.statBox} onPress={() => navigation.navigate('FollowList', { type: 'followers', userName: profile?.nickname || 'User' })}>
                 <Text style={styles.statCount}>108</Text>
                 <Text style={styles.statLabel}>Followers</Text>
               </TouchableOpacity>

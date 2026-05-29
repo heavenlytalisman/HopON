@@ -29,7 +29,7 @@ const MOCK_ROOMS = [
   { id: '3', title: 'Football Match', subtitle: 'Man City vs Arsenal • 6', icon: 'football' },
 ];
 
-const MOCK_ACTIVITY = [
+const MOCK_ACTIVITY: { id: string; user: string; action: string; game: string; time: string; avatar: string; showJoin?: boolean }[] = [
   { id: '1', user: 'Rahid', action: 'posted a new post', game: '"Just hit Diamond in Valorant! Let\'s go 🔥"', time: '2m ago', avatar: 'https://i.pravatar.cc/150?u=2' },
   { id: '2', user: 'Aman', action: 'posted a new post', game: '"Anyone looking for a duo in EA FC 24?"', time: '15m ago', avatar: 'https://i.pravatar.cc/150?u=3' },
   { id: '3', user: 'Karan', action: 'posted a new post', game: '"Anyone up for late night chill?"', time: '1h ago', avatar: 'https://i.pravatar.cc/150?u=5' },

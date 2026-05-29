@@ -107,14 +107,14 @@ export default function FriendProfileScreen({ route, navigation }: RootStackScre
           <Text style={styles.bio}>{bio}</Text>
           
           <View style={styles.statsRow}>
-            <View style={styles.statItem}>
+            <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('FollowList', { type: 'following', userName: friendName })}>
               <Text style={styles.statValue}>142</Text>
               <Text style={styles.statLabel}>Following</Text>
-            </View>
-            <View style={styles.statItem}>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('FollowList', { type: 'followers', userName: friendName })}>
               <Text style={styles.statValue}>89</Text>
               <Text style={styles.statLabel}>Followers</Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
 

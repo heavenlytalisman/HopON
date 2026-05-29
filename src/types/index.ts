@@ -128,6 +128,7 @@ export type RootStackParamList = {
   QuickSquadSelect: undefined;
   FriendProfile: { friendId: string; friendName: string; friendAvatar: string };
   FriendList: undefined;
+  FollowList: { type: 'followers' | 'following'; userId?: string; userName?: string };
   Notifications: undefined;
   PostDetail: { postId: string; mockData?: any };
   RecentActivity: undefined;
