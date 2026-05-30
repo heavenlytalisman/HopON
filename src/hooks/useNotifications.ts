@@ -18,6 +18,9 @@ export function useNotifications() {
     const unsubscribe = subscribeToNotifications(firebaseUser.uid, (data) => {
       setNotifications(data);
       setLoading(false);
+    }, (error) => {
+      setNotifications([]);
+      setLoading(false);
     });
 
     return () => unsubscribe();

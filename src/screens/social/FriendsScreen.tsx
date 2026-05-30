@@ -59,20 +59,22 @@ export default function FriendsScreen({ navigation }: any) {
         </View>
 
         <View style={styles.listContainer}>
-          <Text style={styles.sectionTitle}>{isSearching ? `Search Results (${searchResults.length})` : `My Squad (${friends.length})`}</Text>
-          {!isSearching && friends.length === 0 && !loadingFriends ? (
-            <EmptyState 
-              iconName="person-add-outline" 
-              title="Grow your squad" 
-              subtitle="Search for users above and send them a friend request." 
-            />
+          {isSearching ? (
+            <>
+              <Text style={styles.sectionTitle}>Search Results ({searchResults.length})</Text>
+              <FlatList
+                data={searchResults}
+                keyExtractor={(item) => item.id}
+                renderItem={renderFriend as any}
+                contentContainerStyle={styles.listContent}
+                showsVerticalScrollIndicator={false}
+              />
+            </>
           ) : (
-            <FlatList
-              data={isSearching ? searchResults : friends as any[]}
-              keyExtractor={(item) => item.id}
-              renderItem={renderFriend as any}
-              contentContainerStyle={styles.listContent}
-              showsVerticalScrollIndicator={false}
+            <EmptyState 
+              iconName="search-outline" 
+              title="Find Friends" 
+              subtitle="Search for users above by their username to send them a friend request." 
             />
           )}
         </View>
@@ -88,13 +90,13 @@ const styles = StyleSheet.create({
   backButton: { },
   headerTitle: { fontSize: 20, fontWeight: '800', color: Colors.textPrimary },
   searchContainer: { flexDirection: 'row', marginBottom: Spacing.xl, alignItems: 'center' },
-  searchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: BorderRadius.md, paddingHorizontal: Spacing.lg, height: 48, borderWidth: 1, borderColor: Colors.border },
+  searchBox: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(30, 41, 59, 0.3)', borderRadius: BorderRadius.pill, paddingHorizontal: Spacing.xl, height: 52, borderWidth: 1, borderColor: 'rgba(51, 65, 85, 0.5)' },
   searchIcon: { marginRight: Spacing.sm },
   searchInput: { flex: 1, fontSize: 16, color: Colors.textPrimary },
-  listContainer: { flex: 1, backgroundColor: Colors.surfaceAlt, borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingTop: Spacing.xxl, borderWidth: 1, borderColor: Colors.border },
-  sectionTitle: { fontSize: 15, fontWeight: '700', color: Colors.textMuted, paddingHorizontal: Spacing.xl, marginBottom: Spacing.lg },
-  listContent: { paddingHorizontal: Spacing.xl, paddingBottom: 40 },
-  friendCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, padding: Spacing.md, borderRadius: BorderRadius.md, marginBottom: Spacing.sm, borderWidth: 1, borderColor: Colors.borderLight },
+  listContainer: { flex: 1, paddingTop: Spacing.md },
+  sectionTitle: { fontSize: 13, fontWeight: '700', color: Colors.textMuted, paddingHorizontal: Spacing.xl, marginBottom: Spacing.md, textTransform: 'uppercase', letterSpacing: 1 },
+  listContent: { paddingHorizontal: Spacing.lg, paddingBottom: 40 },
+  friendCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'transparent', paddingVertical: Spacing.md, paddingHorizontal: Spacing.sm, marginBottom: 4 },
   avatarContainer: { position: 'relative', marginRight: Spacing.lg },
   avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: Colors.border },
   onlineBadge: { position: 'absolute', bottom: 0, right: 0, width: 14, height: 14, borderRadius: 7, backgroundColor: Colors.success, borderWidth: 2, borderColor: Colors.surface },

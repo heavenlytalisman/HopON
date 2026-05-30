@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, FlatList, Dimensions, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSquads } from '../../hooks/useSquads';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
 import type { RootStackScreenProps } from '../../types';
 
@@ -32,15 +33,16 @@ export default function QuickSquadSelectScreen({ navigation }: RootStackScreenPr
         {loading ? (
           <Text style={styles.loadingText}>Loading your squads...</Text>
         ) : squads.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>You are not in any squads yet.</Text>
-            <TouchableOpacity style={styles.createBtn} onPress={() => {
+          <EmptyState
+            iconName="people-circle-outline"
+            title="No squads yet"
+            subtitle="You are not in any squads."
+            actionTitle="Create a Squad"
+            onAction={() => {
               navigation.goBack();
               navigation.navigate('CreateSquad');
-            }}>
-              <Text style={styles.createBtnText}>Create a Squad</Text>
-            </TouchableOpacity>
-          </View>
+            }}
+          />
         ) : (
           <FlatList
             data={squads}
@@ -164,23 +166,5 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     textAlign: 'center',
     marginTop: Spacing.xl,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: Spacing.xxl,
-  },
-  emptyText: {
-    color: Colors.textMuted,
-    marginBottom: Spacing.lg,
-  },
-  createBtn: {
-    backgroundColor: Colors.primary,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.xl,
-    borderRadius: BorderRadius.md,
-  },
-  createBtnText: {
-    color: '#FFF',
-    fontWeight: 'bold',
   },
 });

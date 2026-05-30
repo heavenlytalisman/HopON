@@ -29,6 +29,7 @@ import NotificationsScreen from '../screens/notifications/NotificationsScreen';
 import QRScannerScreen from '../screens/squads/QRScannerScreen';
 import PostDetailScreen from '../screens/feed/PostDetailScreen';
 import RecentActivityScreen from '../screens/home/RecentActivityScreen';
+import FriendsScreen from '../screens/social/FriendsScreen';
 
 import { useAuth } from '../context/AuthContext';
 import { Colors } from '../constants/theme';
@@ -181,6 +182,7 @@ export default function AppNavigator() {
       <Stack.Screen name="Notifications" component={NotificationsScreen} />
       <Stack.Screen name="PostDetail" component={PostDetailScreen} />
       <Stack.Screen name="RecentActivity" component={RecentActivityScreen} />
+      <Stack.Screen name="SearchUsers" component={FriendsScreen} />
     </Stack.Navigator>
   );
 }

@@ -247,7 +247,7 @@ export const createNotification = async (userId: string, data: any): Promise<boo
   }
 };
 
-export const subscribeToNotifications = (userId: string, callback: (notifications: any[]) => void): Unsubscribe => {
+export const subscribeToNotifications = (userId: string, callback: (notifications: any[]) => void, onError?: (error: any) => void): Unsubscribe => {
   const q = query(
     collection(db, 'notifications'), 
     where('userId', '==', userId), 
@@ -259,6 +259,9 @@ export const subscribeToNotifications = (userId: string, callback: (notification
       notifs.push({ id: docSnap.id, ...docSnap.data() });
     });
     callback(notifs);
+  }, (error) => {
+    console.error("Firestore notification subscribe error:", error);
+    if (onError) onError(error);
   });
 };
 

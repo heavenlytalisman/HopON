@@ -79,8 +79,6 @@ export default function SquadsScreen({ navigation }: MainTabScreenProps<'Squads'
             iconName="people-circle-outline" 
             title="No squads yet" 
             subtitle="Create a new squad or join an existing one to hop on with friends." 
-            actionTitle="Create Squad"
-            onAction={() => navigation.navigate('CreateSquad')}
           />
         ) : (
           <FlatList

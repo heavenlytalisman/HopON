@@ -25,7 +25,7 @@ export default function FriendListScreen({ navigation }: RootStackScreenProps<'F
             title="No friends found" 
             subtitle="Add friends to grow your network!" 
             actionTitle="Find Friends"
-            onAction={() => navigation.navigate('Main', { screen: 'Friends' })}
+            onAction={() => navigation.navigate('SearchUsers')}
           />
         ) : (
           friends.map((friend) => (

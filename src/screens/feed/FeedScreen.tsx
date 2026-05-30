@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import FeedPost from '../../components/feed/FeedPost';
 import { useFeed } from '../../hooks/useFeed';
 import { useAuth } from '../../context/AuthContext';
+import { useFriends } from '../../hooks/useFriends';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { useUI } from '../../context/UIContext';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import { useResponsive } from '../../hooks/useResponsive';
@@ -18,7 +20,13 @@ import * as ImagePicker from 'expo-image-picker';
 export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
   const { posts, loading, isPosting, publishPost } = useFeed();
   const { profile } = useAuth();
+  const { friends } = useFriends();
   const { showToast } = useUI();
+
+  const feedPosts = posts.filter(post => {
+    if (post.author.name === profile?.nickname) return true;
+    return friends.some(friend => friend.nickname === post.author.name);
+  });
   const { contentWidth, horizontalPadding } = useResponsive();
   const [postTexts, setPostTexts] = useState<string[]>(['']);
   const [attachedMedia, setAttachedMedia] = useState<any>(null);
@@ -80,7 +88,7 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
         </View>
       ) : (
         <FlatList
-          data={posts}
+          data={feedPosts}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity 
@@ -93,6 +101,15 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
           contentContainerStyle={[styles.listContent, { maxWidth: contentWidth, alignSelf: 'center', width: '100%' }]}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={renderHeader}
+          ListEmptyComponent={
+            <View style={{ marginTop: 80 }}>
+              <EmptyState 
+                iconName="newspaper-outline"
+                title="Nothing here yet"
+                subtitle="Follow friends or join squads to see their latest updates, or be the first to post something!"
+              />
+            </View>
+          }
         />
       )}
 

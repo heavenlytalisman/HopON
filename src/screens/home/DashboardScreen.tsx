@@ -13,6 +13,7 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { useFriends } from '../../hooks/useFriends';
 import { useFeed } from '../../hooks/useFeed';
 import { useSquads } from '../../hooks/useSquads';
+import { useNotifications } from '../../hooks/useNotifications';
 
 // Mock data removed (moved to respective screens where possible)
 
@@ -21,6 +22,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
   const { isDesktop, contentWidth, horizontalPadding, columns } = useResponsive();
   const { friends, loadingFriends } = useFriends();
   const { posts, loading: feedLoading } = useFeed();
+  const { notifications } = useNotifications();
   
   const [showFriends, setShowFriends] = useState(false);
   
@@ -37,6 +39,11 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
     post.author.name === profile?.nickname || friends.some(f => f.nickname === post.author.name)
   );
 
+  const isProfileSetup = !!profile?.avatar && !profile?.avatar.includes('pravatar.cc');
+  const hasFriends = friends.length > 0;
+  const hasSquads = squads.length > 0;
+  const onboardingProgress = [isProfileSetup, hasFriends, hasSquads].filter(Boolean).length;
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollContent, { paddingHorizontal: horizontalPadding, maxWidth: contentWidth, alignSelf: 'center', width: '100%' }]}>
@@ -49,9 +56,11 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
           <View style={styles.headerRight}>
             <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Notifications' as any)}>
               <Ionicons name="notifications-outline" size={24} color={Colors.textPrimary} />
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>3</Text>
-              </View>
+              {notifications.length > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{notifications.length}</Text>
+                </View>
+              )}
             </TouchableOpacity>
             <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('Profile')}>
               <Image source={{ uri: displayAvatar }} style={styles.profileAvatar} />
@@ -94,7 +103,11 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
 
         {/* Friends Online */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Friends <Text style={{color: Colors.success, fontSize: 12}}>● {onlineFriends.length} Online</Text></Text>
+          <Text style={styles.sectionTitle}>
+            Friends <Text style={{ color: onlineFriends.length > 0 ? Colors.success : Colors.textMuted, fontSize: 12 }}>
+              {onlineFriends.length > 0 ? `● ${onlineFriends.length} Online` : `○ OFFLINE`}
+            </Text>
+          </Text>
           <TouchableOpacity onPress={() => navigation.navigate('FriendList')}>
             <Text style={styles.seeAllText}>See all</Text>
           </TouchableOpacity>
@@ -133,6 +146,43 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
               <Text style={[styles.onlineUserStatus, { color: Colors.success }]}>Online</Text>
             </View>
           </ScrollView>
+        )}
+
+        {/* Onboarding Checklist */}
+        {onboardingProgress < 3 && (
+          <View style={styles.onboardingContainer}>
+            <View style={styles.onboardingHeader}>
+              <Text style={styles.onboardingTitle}>Getting Started</Text>
+              <Text style={styles.onboardingProgress}>{onboardingProgress}/3 completed</Text>
+            </View>
+            <View style={styles.progressBarBg}>
+              <View style={[styles.progressBarFill, { width: `${(onboardingProgress / 3) * 100}%` }]} />
+            </View>
+            
+            <TouchableOpacity style={styles.onboardingTask} onPress={() => navigation.navigate('Profile')}>
+              <View style={[styles.taskCheckbox, isProfileSetup && styles.taskCheckboxDone]}>
+                {isProfileSetup && <Ionicons name="checkmark" size={12} color="#FFF" />}
+              </View>
+              <Text style={[styles.taskText, isProfileSetup && styles.taskTextDone]}>Set up your profile avatar</Text>
+              <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.onboardingTask} onPress={() => navigation.navigate('FriendList')}>
+              <View style={[styles.taskCheckbox, hasFriends && styles.taskCheckboxDone]}>
+                {hasFriends && <Ionicons name="checkmark" size={12} color="#FFF" />}
+              </View>
+              <Text style={[styles.taskText, hasFriends && styles.taskTextDone]}>Add your first friend</Text>
+              <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.onboardingTask} onPress={() => navigation.navigate('Squads')}>
+              <View style={[styles.taskCheckbox, hasSquads && styles.taskCheckboxDone]}>
+                {hasSquads && <Ionicons name="checkmark" size={12} color="#FFF" />}
+              </View>
+              <Text style={[styles.taskText, hasSquads && styles.taskTextDone]}>Create or join a squad</Text>
+              <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+            </TouchableOpacity>
+          </View>
         )}
 
         {/* Bottom Lists Row */}
@@ -554,6 +604,71 @@ const styles = StyleSheet.create({
   activityTime: {
     color: Colors.textMuted,
     fontSize: 10,
+  },
+  onboardingContainer: {
+    backgroundColor: '#151928',
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: '#1E293B',
+    padding: Spacing.lg,
+    marginBottom: Spacing.xl,
+  },
+  onboardingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  onboardingTitle: {
+    color: Colors.textPrimary,
+    fontSize: FontSizes.md,
+    fontWeight: 'bold',
+  },
+  onboardingProgress: {
+    color: Colors.primaryLight,
+    fontSize: FontSizes.sm,
+    fontWeight: '600',
+  },
+  progressBarBg: {
+    height: 6,
+    backgroundColor: '#1E293B',
+    borderRadius: 3,
+    marginBottom: Spacing.lg,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: Colors.primary,
+    borderRadius: 3,
+  },
+  onboardingTask: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+  },
+  taskCheckbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#334155',
+    marginRight: Spacing.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  taskCheckboxDone: {
+    backgroundColor: Colors.success,
+    borderColor: Colors.success,
+  },
+  taskText: {
+    flex: 1,
+    color: Colors.textPrimary,
+    fontSize: FontSizes.sm,
+    fontWeight: '500',
+  },
+  taskTextDone: {
+    color: Colors.textMuted,
+    textDecorationLine: 'line-through',
   },
   sosOverlay: {
     flex: 1,

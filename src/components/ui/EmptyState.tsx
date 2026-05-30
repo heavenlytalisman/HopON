@@ -75,14 +75,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
   },
   actionButton: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.xl,
+    backgroundColor: 'rgba(124, 58, 237, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(124, 58, 237, 0.3)',
+    paddingHorizontal: Spacing.xxl,
     paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.full,
+    borderRadius: BorderRadius.pill,
+    marginTop: Spacing.sm,
   },
   actionText: {
-    color: '#FFF',
+    color: Colors.primaryLight,
     fontSize: FontSizes.sm,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 });

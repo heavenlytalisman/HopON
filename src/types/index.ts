@@ -146,6 +146,7 @@ export type RootStackParamList = {
   PostDetail: { postId: string; mockData?: any };
   RecentActivity: undefined;
   QRScanner: undefined;
+  SearchUsers: undefined;
 };
 
 export type MainTabParamList = {

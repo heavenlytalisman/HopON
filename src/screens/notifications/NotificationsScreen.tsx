@@ -40,13 +40,19 @@ export default function NotificationsScreen({ navigation }: RootStackScreenProps
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {activeTab === 'follows' ? (
-          followNotifs.length === 0 && !loading ? (
-            <EmptyState 
-              iconName="person-add-outline" 
-              title="No friend requests" 
-              subtitle="You have no pending friend requests." 
-            />
+        {loading ? (
+          <View style={{ marginTop: 80, alignItems: 'center' }}>
+            <Text style={{ color: Colors.textMuted }}>Loading...</Text>
+          </View>
+        ) : activeTab === 'follows' ? (
+          followNotifs.length === 0 ? (
+            <View style={{ marginTop: 80 }}>
+              <EmptyState 
+                iconName="person-add-outline" 
+                title="No follows yet" 
+                subtitle="You have no pending friend requests." 
+              />
+            </View>
           ) : (
             followNotifs.map(follow => (
               <View key={follow.id} style={styles.notificationItem}>
@@ -66,12 +72,14 @@ export default function NotificationsScreen({ navigation }: RootStackScreenProps
             ))
           )
         ) : (
-          activityNotifs.length === 0 && !loading ? (
-            <EmptyState 
-              iconName="notifications-outline" 
-              title="All caught up" 
-              subtitle="You have no new notifications." 
-            />
+          activityNotifs.length === 0 ? (
+            <View style={{ marginTop: 80 }}>
+              <EmptyState 
+                iconName="notifications-outline" 
+                title="No activity yet" 
+                subtitle="You have no new notifications." 
+              />
+            </View>
           ) : (
             activityNotifs.map(notif => (
               <TouchableOpacity 
