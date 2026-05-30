@@ -11,6 +11,7 @@ import type { RootStackScreenProps } from '../../types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+/* Temporarily disabled
 const DiscordIcon = () => (
   <Ionicons name="logo-discord" size={24} color="#FFFFFF" />
 );
@@ -18,6 +19,7 @@ const DiscordIcon = () => (
 const GoogleIcon = () => (
   <Ionicons name="logo-google" size={24} color="#FFFFFF" />
 );
+*/
 
 export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'>) {
   const [loading, setLoading] = useState(false);
@@ -73,6 +75,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
             </View>
 
             <View style={styles.authSection}>
+              {/* Temporarily disabled
               <TouchableOpacity style={styles.authButtonContainer} activeOpacity={0.8}>
                 <LinearGradient
                   colors={['#6366F1', '#8B5CF6']}
@@ -93,6 +96,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
                   <Ionicons name="chevron-forward" size={20} color="#94A3B8" style={styles.chevronIcon} />
                 </View>
               </TouchableOpacity>
+              */}
 
               <TouchableOpacity style={styles.glassButton} activeOpacity={0.7}>
                 <View style={styles.glassButtonContent}>

@@ -21,6 +21,10 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "notification": {
+      "icon": "./assets/android-icon-monochrome.png",
+      "color": "#6366F1"
+    },
     "plugins": [
       [
         "expo-build-properties",
