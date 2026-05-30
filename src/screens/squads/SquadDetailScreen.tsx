@@ -494,7 +494,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
             onPress={() => navigation.navigate('SquadEdit', { squadId, squadName, squadAvatar })}
             activeOpacity={0.7}
           >
-            <Image source={{ uri: squadAvatar || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=150&q=80' }} style={styles.headerSquadAvatar} />
+            <Image source={{ uri: squadAvatar  }} style={styles.headerSquadAvatar} />
             <View style={styles.headerCenter}>
               <Text style={styles.headerTitle} numberOfLines={1}>{squadName}</Text>
               <Text style={styles.headerSubtitle}>3/4 Online</Text>

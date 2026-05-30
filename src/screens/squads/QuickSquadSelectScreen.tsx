@@ -53,7 +53,7 @@ export default function QuickSquadSelectScreen({ navigation }: RootStackScreenPr
               <TouchableOpacity style={styles.squadItem} onPress={() => handleSelectSquad(item.name)}>
                 <View style={styles.squadIconBox}>
                   <Image 
-                    source={{ uri: item.avatar || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=150&q=80' }} 
+                    source={{ uri: item.avatar  }} 
                     style={styles.squadAvatar} 
                   />
                 </View>

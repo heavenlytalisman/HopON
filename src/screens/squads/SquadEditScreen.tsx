@@ -13,7 +13,7 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
   const { squadId, squadName: initialName, squadAvatar: initialAvatar } = route.params;
 
   const [squadName, setSquadName] = useState(initialName);
-  const [squadAvatar, setSquadAvatar] = useState(initialAvatar || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=150&q=80');
+  const [squadAvatar, setSquadAvatar] = useState(initialAvatar );
   
   // Extract parameters passed back from SquadWallpaperScreen (or default to null/0.6)
   const squadWallpaper = (route.params as any).squadWallpaper || null;

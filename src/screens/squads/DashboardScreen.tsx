@@ -24,7 +24,7 @@ export default function SquadsScreen({ navigation }: MainTabScreenProps<'Squads'
           <Ionicons name="megaphone-outline" size={18} color="#A78BFA" />
         ) : (
           <Image 
-            source={{ uri: item.avatar || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=150&q=80' }} 
+            source={{ uri: item.avatar  }} 
             style={styles.squadAvatar} 
           />
         )}

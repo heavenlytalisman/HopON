@@ -20,7 +20,7 @@ export default function FriendProfileScreen({ route, navigation }: RootStackScre
   const friendHandle = `@${friendName.toLowerCase().replace(/\\s+/g, '')}`;
 
   // Default banner fallback
-  const bannerUri = 'https://images.unsplash.com/photo-1550745165-9bc0b252726f';
+  const bannerUri = null;
   
   // No bio implemented in route yet
   const bio = null;
@@ -40,8 +40,8 @@ export default function FriendProfileScreen({ route, navigation }: RootStackScre
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Banner Section */}
-        <View style={styles.bannerContainer}>
-          <Image source={{ uri: bannerUri }} style={styles.bannerImage} />
+        <View style={[styles.bannerContainer, !bannerUri && { backgroundColor: Colors.surfaceAlt } ]}>
+          {bannerUri ? <Image source={{ uri: bannerUri }} style={styles.bannerImage} /> : null}
           <LinearGradient
             colors={['transparent', Colors.background]}
             style={styles.bannerGradient}

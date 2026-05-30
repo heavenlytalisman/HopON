@@ -109,7 +109,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
   };
 
   const displayAvatar = profile?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.nickname || 'G')}&background=7C3AED&color=FFF&size=150`;
-  const displayBanner = profile?.banner || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f'; // Fallback retro gaming pattern
+  const displayBanner = profile?.banner;
 
   if (loading) {
     return (
@@ -125,8 +125,8 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
       <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
         
         {/* Banner Section */}
-        <View style={styles.bannerContainer}>
-          <Image source={{ uri: displayBanner }} style={styles.bannerImage} />
+        <View style={[styles.bannerContainer, !displayBanner && { backgroundColor: Colors.surfaceAlt }]}>
+          {displayBanner ? <Image source={{ uri: displayBanner }} style={styles.bannerImage} /> : null}
           <View style={styles.headerOverlay}>
             <SafeAreaView style={styles.safeHeaderRow}>
               <View style={{ flex: 1 }} />
