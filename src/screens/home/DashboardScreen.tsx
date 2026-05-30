@@ -12,6 +12,7 @@ const { width } = Dimensions.get('window');
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useFriends } from '../../hooks/useFriends';
 import { useFeed } from '../../hooks/useFeed';
+import { useSquads } from '../../hooks/useSquads';
 
 // Mock data removed (moved to respective screens where possible)
 
@@ -21,39 +22,20 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
   const { friends, loadingFriends } = useFriends();
   const { posts, loading: feedLoading } = useFeed();
   
-  const [showSOS, setShowSOS] = useState(false);
-  const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [showFriends, setShowFriends] = useState(false);
   
   const displayAvatar = profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z';
   
   const onlineFriends = friends.filter(f => true); // Assume all friends are online for now or add status logic later
 
-  const triggerSOS = () => {
-    setShowSOS(true);
-    // Vibrate pattern: 500ms on, 200ms off, repeat
-    Vibration.vibrate([500, 200, 500, 200], true);
-  };
+  const { squads } = useSquads();
+  const isSquadOnline = squads.some(squad => 
+    squad.members.some(memberId => memberId !== profile?.uid)
+  );
 
-  const cancelSOS = () => {
-    setShowSOS(false);
-    setShowQuickReplies(false);
-    Vibration.cancel();
-  };
-
-  const handleAccept = () => {
-    cancelSOS();
-    navigation.navigate('SquadDetail' as any, { squadId: '1', squadName: 'Squad Alpha' });
-  };
-
-  const handleDecline = () => {
-    setShowQuickReplies(true);
-  };
-
-  const handleQuickReply = (msg: string) => {
-    cancelSOS();
-    // Message sent silently
-  };
+  const recentActivityPosts = posts.filter(post => 
+    post.author.name === profile?.nickname || friends.some(f => f.nickname === post.author.name)
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -82,7 +64,9 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
         <View style={styles.greetingSection}>
           <Text style={styles.greetingTitle}>Yo, {profile?.nickname || 'Arjun'}</Text>
           <Text style={styles.greetingSubtitle}>
-            Your squad is <Text style={{ color: Colors.success }}>● ONLINE</Text>
+            Your squad is <Text style={{ color: isSquadOnline ? Colors.success : Colors.textMuted }}>
+              {isSquadOnline ? '● ONLINE' : '○ OFFLINE'}
+            </Text>
           </Text>
         </View>
 
@@ -96,8 +80,8 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
           />
           <View style={styles.heroContent}>
             <Text style={styles.heroSubtitle}>Squad is</Text>
-            <Text style={styles.heroTitle}>ONLINE</Text>
-            <Text style={styles.heroDesc}>See who's around and{'\n'}HopON to play!</Text>
+            <Text style={[styles.heroTitle, !isSquadOnline && { color: Colors.textMuted }]}>{isSquadOnline ? 'ONLINE' : 'OFFLINE'}</Text>
+            <Text style={styles.heroDesc}>{isSquadOnline ? "See who's around and\nHopON to play!" : "Nobody's around right now.\nCheck back later!"}</Text>
             <TouchableOpacity style={styles.heroButton} onPress={() => navigation.navigate('Squads')}>
               <LinearGradient colors={['#6366F1', '#8B5CF6']} style={styles.heroButtonGradient} start={{x: 0, y: 0}} end={{x: 1, y: 0}}>
                 <Text style={styles.heroButtonText}>View Squad</Text>
@@ -121,8 +105,6 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
             iconName="people-outline" 
             title="No friends yet" 
             subtitle="Add friends to see who's online and hop into games together!" 
-            actionTitle="Find Friends"
-            onAction={() => navigation.navigate('Friends' as any)}
           />
         ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalList}>
@@ -153,22 +135,6 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
           </ScrollView>
         )}
 
-        {/* Action Buttons Row */}
-        <View style={styles.actionRowContainer}>
-          <View style={[styles.actionRow, isDesktop && styles.desktopActionRowItem]}>
-            <TouchableOpacity style={styles.actionCard} onPress={triggerSOS}>
-              <View style={styles.actionIconBox}>
-                <Ionicons name="flash" size={24} color="#FFF" />
-              </View>
-              <View style={{flex: 1}}>
-                <Text style={styles.actionTitle}>Hop On Now</Text>
-                <Text style={styles.actionDesc}>Send an alert to your squad and get everyone together!</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
         {/* Bottom Lists Row */}
         <View style={[styles.twoColumnRow, columns === 2 && styles.desktopTwoColumnRow]}>
 
@@ -179,15 +145,15 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
               <Text style={styles.sectionTitle}>Recent Activity</Text>
               <TouchableOpacity onPress={() => navigation.navigate('RecentActivity' as any)}><Text style={styles.seeAllText}>See all</Text></TouchableOpacity>
             </View>
-            <View style={styles.listContainer}>
-              {posts.length === 0 && !feedLoading ? (
-                <EmptyState 
-                  iconName="pulse-outline" 
-                  title="No recent activity" 
-                  subtitle="Follow more people or join squads to see what's happening." 
-                />
-              ) : (
-                posts.slice(0, 3).map(post => (
+            {recentActivityPosts.length === 0 && !feedLoading ? (
+              <EmptyState 
+                iconName="pulse-outline" 
+                title="No recent activity" 
+                subtitle="Follow more people or join squads to see what's happening." 
+              />
+            ) : (
+              <View style={styles.listContainer}>
+                {recentActivityPosts.slice(0, 3).map(post => (
                   <TouchableOpacity 
                     key={post.id} 
                     style={styles.listItem}
@@ -204,71 +170,14 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
                       <Text style={styles.activityTime}>{post.timestamp}</Text>
                     </View>
                   </TouchableOpacity>
-                ))
-              )}
-            </View>
+                ))}
+              </View>
+            )}
           </View>
         </View>
 
       </ScrollView>
 
-      {/* SOS Alert Modal */}
-      <Modal
-        visible={showSOS}
-        transparent={false}
-        animationType="slide"
-        onRequestClose={cancelSOS}
-      >
-        <View style={styles.sosOverlay}>
-          <LinearGradient
-            colors={['#0F1219', '#1A1B26']}
-            style={StyleSheet.absoluteFillObject}
-          />
-          <SafeAreaView style={styles.sosContainer}>
-            <View style={styles.sosContentWrapper}>
-              <View style={styles.sosHeader}>
-                <View style={styles.sosIconWrapper}>
-                  <Ionicons name="notifications" size={48} color="#A78BFA" />
-                </View>
-                <Text style={styles.sosTitle}>Incoming Request</Text>
-              </View>
-              
-              <View style={styles.sosBody}>
-                <Text style={styles.sosMessage}>
-                  <Text style={{color: '#FFF', fontWeight: 'bold'}}>{profile?.nickname || 'Arjun'}</Text> wants the squad to hop on right now.
-                </Text>
-                <Text style={styles.sosTime}>{new Date().toLocaleTimeString()}</Text>
-              </View>
-            </View>
-
-            {!showQuickReplies ? (
-              <View style={styles.sosButtonGroup}>
-                <TouchableOpacity style={styles.sosAcceptBtn} onPress={handleAccept}>
-                  <LinearGradient colors={['#7C3AED', '#6366F1']} style={StyleSheet.absoluteFillObject} />
-                  <Text style={styles.sosAcceptText}>Hop On</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.sosDeclineBtn} onPress={handleDecline}>
-                  <Text style={styles.sosDeclineText}>Not Now</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <View style={styles.quickRepliesContainer}>
-                <Text style={styles.quickReplyPrompt}>Send a quick reply:</Text>
-                <View style={styles.chipsContainer}>
-                  {['Busy rn', 'Give me 10 mins', 'In a match', 'Maybe later'].map((reply, index) => (
-                    <TouchableOpacity key={index} style={styles.replyChip} onPress={() => handleQuickReply(reply)}>
-                      <Text style={styles.replyChipText}>{reply}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-                <TouchableOpacity style={styles.cancelReplyButton} onPress={() => setShowQuickReplies(false)}>
-                  <Text style={styles.cancelReplyText}>Cancel</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </SafeAreaView>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }

@@ -23,7 +23,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   return (
     <View style={[styles.container, fullScreen && styles.fullScreen]}>
       <View style={styles.iconContainer}>
-        <Ionicons name={iconName} size={48} color={Colors.primary} />
+        <Ionicons name={iconName} size={36} color={Colors.textMuted} />
       </View>
       <Text style={styles.title}>{title}</Text>
       {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
@@ -48,15 +48,16 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#1E293B',
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: 'rgba(30, 41, 59, 0.3)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.lg,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: 'rgba(51, 65, 85, 0.5)',
+    borderStyle: 'dashed',
   },
   title: {
     color: Colors.textPrimary,
