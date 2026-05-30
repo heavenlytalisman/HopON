@@ -40,7 +40,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
     post.author.name === profile?.nickname || friends.some(f => f.nickname === post.author.name)
   );
 
-  const isProfileSetup = !!profile?.avatar && true;
+  const isProfileSetup = !!profile?.avatar && !profile.avatar.includes('ui-avatars.com');
   const hasFriends = friends.length > 0;
   const hasSquads = squads.length > 0;
   const onboardingProgress = [isProfileSetup, hasFriends, hasSquads].filter(Boolean).length;
