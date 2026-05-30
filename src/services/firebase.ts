@@ -2,7 +2,7 @@ import { auth, db } from '../config/firebase';
 import { signInAnonymously } from 'firebase/auth';
 import {
   doc, setDoc, getDoc, collection, addDoc, updateDoc,
-  arrayUnion, getDocs, query, where, onSnapshot, orderBy,
+  arrayUnion, arrayRemove, getDocs, query, where, onSnapshot, orderBy,
   serverTimestamp, Unsubscribe,
 } from 'firebase/firestore';
 import type { User, Group, Post } from '../types';
@@ -108,6 +108,19 @@ export const joinGroup = async (groupId: string, userUid: string): Promise<boole
   } catch (error) {
     console.error('Error joining group: ', error);
     throw error;
+  }
+};
+
+export const removeMemberFromGroup = async (groupId: string, userUid: string): Promise<boolean> => {
+  try {
+    const groupRef = doc(db, 'groups', groupId);
+    await updateDoc(groupRef, {
+      members: arrayRemove(userUid),
+    });
+    return true;
+  } catch (error) {
+    console.error('Error removing member from group: ', error);
+    return false;
   }
 };
 

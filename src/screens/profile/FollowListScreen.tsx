@@ -6,11 +6,13 @@ import { Colors, Spacing } from '../../constants/theme';
 import type { RootStackScreenProps } from '../../types';
 
 import { EmptyState } from '../../components/ui/EmptyState';
+import { useFriends } from '../../hooks/useFriends';
 
 export default function FollowListScreen({ route, navigation }: RootStackScreenProps<'FollowList'>) {
   const { type, userName } = route.params;
   const isFollowers = type === 'followers';
-  const listData: any[] = []; // TODO: Wire up to real follower/following graph
+  const { friends } = useFriends();
+  const listData: any[] = userName ? [] : friends;
 
   const headerTitle = userName ? `${userName}'s ${isFollowers ? 'Followers' : 'Following'}` : (isFollowers ? 'Followers' : 'Following');
 

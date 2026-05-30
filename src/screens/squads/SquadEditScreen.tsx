@@ -6,6 +6,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useUI } from '../../context/UIContext';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
 import { useSquads } from '../../hooks/useSquads';
+import { removeMemberFromGroup } from '../../services/firebase';
 import type { RootStackScreenProps } from '../../types';
 import SquadInviteModal from '../../components/squads/SquadInviteModal';
 
@@ -49,9 +50,14 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
         { 
           text: 'Remove', 
           style: 'destructive', 
-          onPress: () => {
-            console.log('TODO: Implement member removal API', memberId);
-            showToast({ title: 'Removed', message: `${memberName} removed from squad.`, type: 'info' });
+          onPress: async () => {
+            const success = await removeMemberFromGroup(squadId, memberId);
+            if (success) {
+              showToast({ title: 'Removed', message: `${memberName} removed from squad.`, type: 'info' });
+              navigation.goBack();
+            } else {
+              showToast({ title: 'Error', message: `Failed to remove ${memberName}`, type: 'error' });
+            }
           } 
         }
       ]
