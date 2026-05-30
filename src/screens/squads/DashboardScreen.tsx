@@ -44,8 +44,8 @@ export default function SquadsScreen({ navigation }: MainTabScreenProps<'Squads'
         <Ionicons name="lock-closed-outline" size={20} color={Colors.textMuted} />
       ) : (
         <View style={styles.avatarsContainer}>
-          <Image source={{ uri: 'https://i.pravatar.cc/150?u=1' }} style={[styles.overlapAvatar, { zIndex: 3 }]} />
-          <Image source={{ uri: 'https://i.pravatar.cc/150?u=2' }} style={[styles.overlapAvatar, { zIndex: 2, marginLeft: -12 }]} />
+          <Image source={{ uri: '' }} style={[styles.overlapAvatar, { zIndex: 3 }]} />
+          <Image source={{ uri: '' }} style={[styles.overlapAvatar, { zIndex: 2, marginLeft: -12 }]} />
           {item.members.length > 2 && (
             <View style={[styles.moreAvatar, { zIndex: 1, marginLeft: -12 }]}>
               <Text style={styles.moreAvatarText}>+{item.members.length - 2}</Text>

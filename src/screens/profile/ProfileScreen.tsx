@@ -129,10 +129,10 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
           {displayBanner ? <Image source={{ uri: displayBanner }} style={styles.bannerImage} /> : null}
           <View style={styles.headerOverlay}>
             <SafeAreaView style={styles.safeHeaderRow}>
-              <View style={{ flex: 1 }} />
               <TouchableOpacity style={styles.iconButton} onPress={() => setSettingsVisible(true)}>
-                <Ionicons name="settings-outline" size={20} color="#FFF" />
+                <Ionicons name="settings-outline" size={22} color={Colors.textPrimary} />
               </TouchableOpacity>
+              <View style={{ flex: 1 }} />
             </SafeAreaView>
           </View>
         </View>
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   bannerImage: { width: '100%', height: '100%', resizeMode: 'cover' },
   headerOverlay: { position: 'absolute', top: 0, left: 0, right: 0 },
   safeHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingTop: Platform.OS === 'android' ? 40 : 10 },
-  iconButton: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' },
+  iconButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.surface, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: Colors.borderLight, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 5 },
   
   infoSection: { paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
   avatarRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: -40, marginBottom: Spacing.sm },

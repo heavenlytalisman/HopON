@@ -3,13 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, FlatList, Image } from
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
-
-const DUMMY_FRIENDS = [
-  { id: '1', name: 'Jake Paul', handle: '@jakepaul', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d', isOnline: true },
-  { id: '2', name: 'Alisha Marie', handle: '@alisha', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e', isOnline: false },
-  { id: '3', name: 'Markiplier', handle: '@markiplier', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704f', isOnline: true },
-  { id: '4', name: 'Lilly Singh', handle: '@lilly', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704a', isOnline: false },
-];
+import { useFriends } from '../../hooks/useFriends';
 
 interface SquadInviteModalProps {
   visible: boolean;
@@ -22,6 +16,7 @@ interface SquadInviteModalProps {
 export default function SquadInviteModal({ visible, onClose, squadId, squadName, squadAvatar }: SquadInviteModalProps) {
   const [inviteTab, setInviteTab] = useState<'friends' | 'qr'>('qr');
   const [invitedFriends, setInvitedFriends] = useState<Set<string>>(new Set());
+  const { friends } = useFriends();
 
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
@@ -51,26 +46,25 @@ export default function SquadInviteModal({ visible, onClose, squadId, squadName,
 
           {inviteTab === 'friends' ? (
             <FlatList
-              data={DUMMY_FRIENDS}
-              keyExtractor={(item) => item.id}
+              data={friends}
+              keyExtractor={(item) => item.uid}
               contentContainerStyle={styles.friendsListContainer}
               renderItem={({ item }) => {
-                const isInvited = invitedFriends.has(item.id);
+                const isInvited = invitedFriends.has(item.uid);
                 return (
                   <View style={styles.friendCard}>
                     <View style={styles.avatarContainer}>
-                      <Image source={{ uri: item.avatar }} style={styles.friendAvatar} />
-                      {item.isOnline && <View style={styles.onlineBadge} />}
+                      <Image source={{ uri: item.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(item.nickname)}&background=1E293B&color=FFF` }} style={styles.friendAvatar} />
                     </View>
                     <View style={styles.friendInfo}>
-                      <Text style={styles.friendName}>{item.name}</Text>
+                      <Text style={styles.friendName}>{item.nickname}</Text>
                       <Text style={styles.friendHandle}>{item.handle}</Text>
                     </View>
                     <TouchableOpacity 
                       style={[styles.inviteButton, isInvited && styles.invitedButton]}
                       onPress={() => {
                         if (!isInvited) {
-                          setInvitedFriends(prev => new Set(prev).add(item.id));
+                          setInvitedFriends(prev => new Set(prev).add(item.uid));
                         }
                       }}
                     >
@@ -91,7 +85,7 @@ export default function SquadInviteModal({ visible, onClose, squadId, squadName,
                   size={200}
                   color="#000000"
                   backgroundColor="#FFFFFF"
-                  logo={{ uri: squadAvatar || 'https://i.pravatar.cc/150' }}
+                  logo={squadAvatar ? { uri: squadAvatar } : undefined}
                   logoSize={40}
                   logoBackgroundColor="#FFFFFF"
                   logoBorderRadius={20}

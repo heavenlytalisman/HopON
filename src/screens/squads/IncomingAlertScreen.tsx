@@ -13,7 +13,7 @@ export default function IncomingAlertScreen({ navigation, route }: RootStackScre
   const caller: CallerInfo = route.params?.caller || {
     squadName: 'Night Owls',
     callerName: 'Alex Mercer',
-    avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
+    avatar: '',
   };
   
   const squadWallpaper = caller.squadWallpaper;

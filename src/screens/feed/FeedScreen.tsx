@@ -130,7 +130,7 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
               {postTexts.map((text, index) => (
                 <View key={index} style={styles.composeBoxRow}>
                   <View style={styles.composeLeft}>
-                    <Image source={{ uri: profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z' }} style={styles.composeAvatar} />
+                    <Image source={{ uri: profile?.avatar  }} style={styles.composeAvatar} />
                     {index < postTexts.length - 1 && <View style={styles.composeThreadLine} />}
                   </View>
                   <View style={styles.composeInputContainer}>

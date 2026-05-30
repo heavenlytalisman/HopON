@@ -147,7 +147,7 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
             <View style={styles.membersList}>
               {members.map((memberId) => (
                 <View key={memberId} style={styles.memberRow}>
-                  <Image source={{ uri: 'https://i.pravatar.cc/150?u=' + memberId }} style={styles.memberAvatar} />
+                  <Image source={{ uri: '' + memberId }} style={styles.memberAvatar} />
                   <View style={styles.memberInfo}>
                     <Text style={styles.memberName}>Member {memberId.slice(0, 4)}</Text>
                     <Text style={styles.memberHandle}>@{memberId.slice(0, 4)}</Text>

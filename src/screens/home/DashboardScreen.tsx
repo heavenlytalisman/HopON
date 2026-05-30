@@ -27,7 +27,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
   
   const [showFriends, setShowFriends] = useState(false);
   
-  const displayAvatar = profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z';
+  const displayAvatar = profile?.avatar ;
   
   const onlineFriends = friends.filter(f => true); // Assume all friends are online for now or add status logic later
 
@@ -40,7 +40,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
     post.author.name === profile?.nickname || friends.some(f => f.nickname === post.author.name)
   );
 
-  const isProfileSetup = !!profile?.avatar && !profile?.avatar.includes('pravatar.cc');
+  const isProfileSetup = !!profile?.avatar && true;
   const hasFriends = friends.length > 0;
   const hasSquads = squads.length > 0;
   const onboardingProgress = [isProfileSetup, hasFriends, hasSquads].filter(Boolean).length;
@@ -127,7 +127,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
                 onPress={() => navigation.navigate('FriendProfile', { friendId: user.uid, friendName: user.nickname, friendAvatar: user.avatar || '' })}
               >
                 <View style={[styles.avatarRing, { borderColor: Colors.success }]}>
-                  <Image source={{ uri: user.avatar || 'https://i.pravatar.cc/150?u=' + user.uid }} style={styles.onlineAvatar} />
+                  <Image source={{ uri: user.avatar  + user.uid }} style={styles.onlineAvatar} />
                   <View style={[styles.statusDot, { backgroundColor: Colors.success }]} />
                 </View>
                 <Text style={styles.onlineUserName} numberOfLines={1}>{user.nickname}</Text>

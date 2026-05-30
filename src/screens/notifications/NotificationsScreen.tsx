@@ -57,7 +57,7 @@ export default function NotificationsScreen({ navigation }: RootStackScreenProps
           ) : (
             followNotifs.map(follow => (
               <View key={follow.id} style={styles.notificationItem}>
-                <Image source={{ uri: follow.data?.avatar || 'https://i.pravatar.cc/150' }} style={styles.notificationAvatar} />
+                <Image source={{ uri: follow.data?.avatar  }} style={styles.notificationAvatar} />
                 <View style={styles.notificationInfo}>
                   <Text style={styles.notificationUser}>{follow.title} <Text style={styles.notificationAction}>{follow.body}</Text></Text>
                 </View>

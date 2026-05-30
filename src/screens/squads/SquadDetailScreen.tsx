@@ -133,7 +133,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
 
-  const myAvatar = profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z';
+  const myAvatar = profile?.avatar || '';
 
   useEffect(() => {
     if (messages.length > 0) {

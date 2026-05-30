@@ -26,7 +26,7 @@ export default function FriendsScreen({ navigation }: any) {
   const renderFriend = ({ item }: { item: Friend }) => (
     <View style={styles.friendCard}>
       <View style={styles.avatarContainer}>
-        <Image source={{ uri: item.avatar || 'https://i.pravatar.cc/150' }} style={styles.avatar} />
+        <Image source={{ uri: item.avatar  }} style={styles.avatar} />
         {item.isOnline && <View style={styles.onlineBadge} />}
       </View>
       <View style={styles.friendInfo}>

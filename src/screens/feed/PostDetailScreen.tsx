@@ -29,7 +29,7 @@ export default function PostDetailScreen({ route, navigation }: RootStackScreenP
       author: {
         name: profile?.nickname || 'You',
         handle: userHandle,
-        avatar: profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z'
+        avatar: profile?.avatar || ''
       },
       content: replyText.trim(),
       timestamp: 'Just now',
@@ -80,7 +80,7 @@ export default function PostDetailScreen({ route, navigation }: RootStackScreenP
 
           {/* Inline Reply Input (X Style) */}
           <View style={styles.inlineReplyContainer}>
-            <Image source={{ uri: profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z' }} style={styles.replyAvatar} />
+            <Image source={{ uri: profile?.avatar  }} style={styles.replyAvatar} />
             <TextInput 
               ref={inputRef}
               style={styles.replyInputBox}

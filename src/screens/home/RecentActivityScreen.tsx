@@ -39,7 +39,7 @@ export default function RecentActivityScreen({ navigation }: RootStackScreenProp
           <View style={styles.listContainer}>
             {recentActivityPosts.map((post, index) => (
               <View key={post.id} style={[styles.listItem, index === recentActivityPosts.length - 1 && { borderBottomWidth: 0 }]}>
-                <Image source={{ uri: post.author.avatar || 'https://i.pravatar.cc/150' }} style={styles.activityAvatar} />
+                <Image source={{ uri: post.author.avatar  }} style={styles.activityAvatar} />
                 <View style={styles.listInfo}>
                   <Text style={styles.activityUserText}>
                     <Text style={{color: Colors.textPrimary, fontWeight: '600'}}>{post.author.name}</Text> posted a new post
