@@ -6,7 +6,9 @@ import { useProfile } from '../../hooks/useProfile';
 import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
+import { EmptyState } from '../../components/ui/EmptyState';
 import FeedPost from '../../components/feed/FeedPost';
+import { useFeed } from '../../hooks/useFeed';
 import type { MainTabScreenProps, FeedPostData } from '../../types';
 
 export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profile'>) {
@@ -24,35 +26,8 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
   const [tempAvatarUri, setTempAvatarUri] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Mock Feed for the user's profile
-  const MOCK_MY_POSTS: FeedPostData[] = [
-    {
-      id: 'mp1',
-      author: {
-        name: profile?.nickname || 'User',
-        handle: getHandle(),
-        avatar: profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z',
-      },
-      timestamp: '2h',
-      content: 'Just updated my profile! HopON is looking clean today.',
-      likes: 12,
-      comments: 3,
-      reposts: 1,
-    },
-    {
-      id: 'mp2',
-      author: {
-        name: profile?.nickname || 'User',
-        handle: getHandle(),
-        avatar: profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z',
-      },
-      timestamp: '1d',
-      content: 'Anyone free for a quick ranked session?',
-      likes: 5,
-      comments: 1,
-      reposts: 0,
-    }
-  ];
+  const { posts, loading: feedLoading } = useFeed();
+  const myPosts = posts.filter((p) => p.author.handle === getHandle());
 
   const handleLogout = () => {
     setSettingsVisible(false);
@@ -202,15 +177,25 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
 
         {/* Feed Section */}
         <View style={styles.feedSection}>
-          {MOCK_MY_POSTS.map(p => (
-            <TouchableOpacity 
-              key={p.id}
-              activeOpacity={0.9} 
-              onPress={() => navigation.getParent()?.navigate('PostDetail', { postId: p.id, mockData: p })}
-            >
-              <FeedPost post={p} variant="feed" />
-            </TouchableOpacity>
-          ))}
+          {myPosts.length === 0 && !feedLoading ? (
+            <View style={{ paddingTop: Spacing.xl }}>
+              <EmptyState 
+                iconName="document-text-outline" 
+                title="No posts yet" 
+                subtitle="When you share your gaming moments, they'll show up here." 
+              />
+            </View>
+          ) : (
+            myPosts.map(p => (
+              <TouchableOpacity 
+                key={p.id}
+                activeOpacity={0.9} 
+                onPress={() => navigation.getParent()?.navigate('PostDetail', { postId: p.id, mockData: p })}
+              >
+                <FeedPost post={p} variant="feed" />
+              </TouchableOpacity>
+            ))
+          )}
         </View>
       </ScrollView>
 

@@ -9,42 +9,25 @@ import type { MainTabScreenProps } from '../../types';
 
 const { width } = Dimensions.get('window');
 
-const MOCK_ONLINE = [
-  { id: '1', name: 'Vasif', status: 'Online', statusColor: Colors.success, avatar: 'https://i.pravatar.cc/150?u=1' },
-  { id: '2', name: 'Rahid', status: 'Online', statusColor: Colors.success, avatar: 'https://i.pravatar.cc/150?u=2' },
-  { id: '3', name: 'Aman', status: 'Online', statusColor: Colors.success, avatar: 'https://i.pravatar.cc/150?u=3' },
-  { id: '4', name: 'Prem', status: 'Online', statusColor: Colors.success, avatar: 'https://i.pravatar.cc/150?u=4' },
-  { id: '5', name: 'Karan', status: 'Online', statusColor: Colors.success, avatar: 'https://i.pravatar.cc/150?u=5' },
-];
-
-const MOCK_FRIENDS = [
-  ...MOCK_ONLINE,
-  { id: '6', name: 'Jake', status: 'Offline', statusColor: Colors.textMuted, avatar: 'https://i.pravatar.cc/150?u=6' },
-  { id: '7', name: 'Mia', status: 'Offline', statusColor: Colors.textMuted, avatar: 'https://i.pravatar.cc/150?u=7' },
-];
-
-const MOCK_ROOMS = [
-  { id: '1', title: 'BGMI Rank Push', subtitle: '4 / 5', icon: 'game-controller' },
-  { id: '2', title: 'Late Night Chill', subtitle: 'Chill talk & music • 8', icon: 'moon' },
-  { id: '3', title: 'Football Match', subtitle: 'Man City vs Arsenal • 6', icon: 'football' },
-];
-
-const MOCK_ACTIVITY: { id: string; user: string; action: string; game: string; time: string; avatar: string; showJoin?: boolean }[] = [
-  { id: '1', user: 'Rahid', action: 'posted a new post', game: '"Just hit Diamond in Valorant! Let\'s go 🔥"', time: '2m ago', avatar: 'https://i.pravatar.cc/150?u=2' },
-  { id: '2', user: 'Aman', action: 'posted a new post', game: '"Anyone looking for a duo in EA FC 24?"', time: '15m ago', avatar: 'https://i.pravatar.cc/150?u=3' },
-  { id: '3', user: 'Karan', action: 'posted a new post', game: '"Anyone up for late night chill?"', time: '1h ago', avatar: 'https://i.pravatar.cc/150?u=5' },
-];
+import { EmptyState } from '../../components/ui/EmptyState';
+import { useFriends } from '../../hooks/useFriends';
+import { useFeed } from '../../hooks/useFeed';
 
 // Mock data removed (moved to respective screens where possible)
 
 export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const { profile } = useAuth();
   const { isDesktop, contentWidth, horizontalPadding, columns } = useResponsive();
+  const { friends, loadingFriends } = useFriends();
+  const { posts, loading: feedLoading } = useFeed();
+  
   const [showSOS, setShowSOS] = useState(false);
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const [showFriends, setShowFriends] = useState(false);
   
   const displayAvatar = profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z';
+  
+  const onlineFriends = friends.filter(f => true); // Assume all friends are online for now or add status logic later
 
   const triggerSOS = () => {
     setShowSOS(true);
@@ -127,43 +110,48 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
 
         {/* Friends Online */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Friends Online <Text style={{color: Colors.success, fontSize: 12}}>● 6 Online</Text></Text>
+          <Text style={styles.sectionTitle}>Friends <Text style={{color: Colors.success, fontSize: 12}}>● {onlineFriends.length} Online</Text></Text>
           <TouchableOpacity onPress={() => navigation.navigate('FriendList')}>
             <Text style={styles.seeAllText}>See all</Text>
           </TouchableOpacity>
         </View>
         
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalList}>
-          {MOCK_ONLINE.map((user) => (
-            <TouchableOpacity 
-              key={user.id} 
-              style={styles.onlineUserItem}
-              onPress={() => navigation.navigate('FriendProfile', { friendId: user.id, friendName: user.name, friendAvatar: user.avatar })}
-            >
-              <View style={[styles.avatarRing, { borderColor: user.statusColor }]}>
-                <Image source={{ uri: user.avatar }} style={styles.onlineAvatar} />
-                <View style={[styles.statusDot, { backgroundColor: user.statusColor }]} />
-                {('icon' in user) && (
-                  <View style={styles.statusIconBadge}>
-                    <Ionicons name={(user as any).icon} size={10} color="#FFF" />
-                  </View>
-                )}
+        {onlineFriends.length === 0 && !loadingFriends ? (
+          <EmptyState 
+            iconName="people-outline" 
+            title="No friends yet" 
+            subtitle="Add friends to see who's online and hop into games together!" 
+            actionTitle="Find Friends"
+            onAction={() => navigation.navigate('Friends' as any)}
+          />
+        ) : (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalList}>
+            {onlineFriends.map((user) => (
+              <TouchableOpacity 
+                key={user.id} 
+                style={styles.onlineUserItem}
+                onPress={() => navigation.navigate('FriendProfile', { friendId: user.id, friendName: user.nickname, friendAvatar: user.avatar })}
+              >
+                <View style={[styles.avatarRing, { borderColor: Colors.success }]}>
+                  <Image source={{ uri: user.avatar || 'https://i.pravatar.cc/150?u=' + user.id }} style={styles.onlineAvatar} />
+                  <View style={[styles.statusDot, { backgroundColor: Colors.success }]} />
+                </View>
+                <Text style={styles.onlineUserName} numberOfLines={1}>{user.nickname}</Text>
+                <Text style={[styles.onlineUserStatus, { color: Colors.success }]}>Online</Text>
+              </TouchableOpacity>
+            ))}
+            <View style={styles.onlineUserItem}>
+              <View style={[styles.avatarRing, { borderColor: '#1E293B', borderStyle: 'dashed' }]}>
+                <Image source={{ uri: displayAvatar }} style={[styles.onlineAvatar, { opacity: 0.5 }]} />
+                <View style={styles.addIconBadge}>
+                  <Ionicons name="add" size={14} color="#FFF" />
+                </View>
               </View>
-              <Text style={styles.onlineUserName}>{user.name}</Text>
-              <Text style={[styles.onlineUserStatus, { color: user.statusColor }]}>{user.status}</Text>
-            </TouchableOpacity>
-          ))}
-          <View style={styles.onlineUserItem}>
-            <View style={[styles.avatarRing, { borderColor: '#1E293B', borderStyle: 'dashed' }]}>
-              <Image source={{ uri: displayAvatar }} style={[styles.onlineAvatar, { opacity: 0.5 }]} />
-              <View style={styles.addIconBadge}>
-                <Ionicons name="add" size={14} color="#FFF" />
-              </View>
+              <Text style={styles.onlineUserName}>You</Text>
+              <Text style={[styles.onlineUserStatus, { color: Colors.success }]}>Online</Text>
             </View>
-            <Text style={styles.onlineUserName}>You</Text>
-            <Text style={[styles.onlineUserStatus, { color: Colors.success }]}>Online</Text>
-          </View>
-        </ScrollView>
+          </ScrollView>
+        )}
 
         {/* Action Buttons Row */}
         <View style={styles.actionRowContainer}>
@@ -192,44 +180,32 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
               <TouchableOpacity onPress={() => navigation.navigate('RecentActivity' as any)}><Text style={styles.seeAllText}>See all</Text></TouchableOpacity>
             </View>
             <View style={styles.listContainer}>
-              {MOCK_ACTIVITY.map(activity => (
-                <TouchableOpacity 
-                  key={activity.id} 
-                  style={styles.listItem}
-                  onPress={() => navigation.navigate('PostDetail' as any, { 
-                    postId: activity.id, 
-                    mockData: {
-                      id: activity.id,
-                      author: {
-                        name: activity.user,
-                        handle: `@${activity.user.toLowerCase().replace(' ', '')}`,
-                        avatar: activity.avatar
-                      },
-                      content: activity.game,
-                      timestamp: activity.time,
-                      likes: Math.floor(Math.random() * 100) + 10,
-                      comments: Math.floor(Math.random() * 20) + 2,
-                      reposts: Math.floor(Math.random() * 10),
-                    }
-                  })}
-                >
-                  <Image source={{ uri: activity.avatar }} style={styles.activityAvatar} />
-                  <View style={styles.listInfo}>
-                    <Text style={styles.activityUserText}>
-                      <Text style={{color: Colors.textPrimary, fontWeight: '600'}}>{activity.user}</Text> {activity.action}
-                    </Text>
-                    <Text style={styles.activityGameText} numberOfLines={1}>{activity.game}</Text>
-                  </View>
-                  <View style={styles.activityRight}>
-                    <Text style={styles.activityTime}>{activity.time}</Text>
-                    {activity.showJoin && (
-                      <TouchableOpacity style={styles.joinBtnPurple}>
-                        <Text style={styles.joinBtnText}>Join</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              ))}
+              {posts.length === 0 && !feedLoading ? (
+                <EmptyState 
+                  iconName="pulse-outline" 
+                  title="No recent activity" 
+                  subtitle="Follow more people or join squads to see what's happening." 
+                />
+              ) : (
+                posts.slice(0, 3).map(post => (
+                  <TouchableOpacity 
+                    key={post.id} 
+                    style={styles.listItem}
+                    onPress={() => navigation.navigate('PostDetail' as any, { postId: post.id })}
+                  >
+                    <Image source={{ uri: post.author.avatar }} style={styles.activityAvatar} />
+                    <View style={styles.listInfo}>
+                      <Text style={styles.activityUserText}>
+                        <Text style={{color: Colors.textPrimary, fontWeight: '600'}}>{post.author.name}</Text> posted
+                      </Text>
+                      <Text style={styles.activityGameText} numberOfLines={1}>{post.content}</Text>
+                    </View>
+                    <View style={styles.activityRight}>
+                      <Text style={styles.activityTime}>{post.timestamp}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))
+              )}
             </View>
           </View>
         </View>

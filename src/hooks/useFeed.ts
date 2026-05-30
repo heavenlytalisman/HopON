@@ -4,85 +4,7 @@ import { subscribeToFeed, createPost as createPostService } from '../services/fi
 import { useAuth } from '../context/AuthContext';
 import type { FeedPostData, Post } from '../types';
 
-const DUMMY_POSTS: FeedPostData[] = [
-  {
-    id: '1',
-    author: {
-      name: 'Alex Mercer',
-      handle: '@alexm_gaming',
-      avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
-    },
-    timestamp: '2h',
-    content: 'This new OST is absolutely carrying my ranked climb tonight. 🔥',
-    mediaType: 'song',
-    mediaData: {
-      title: 'Cybernetic Awakening',
-      artist: 'Synthwave Collective',
-      albumArt: 'https://i.scdn.co/image/ab67616d0000b273b5df5b5e3240e4f8d227b2b8',
-    },
-    likes: 142,
-    comments: 24,
-    reposts: 5,
-  },
-  {
-    id: '2',
-    author: {
-      name: 'Sarah K.',
-      handle: '@sarah_weeb',
-      avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e',
-    },
-    timestamp: '4h',
-    content: 'Just finished the season finale. The animation in this fight scene was INSANE! ✨⚔️',
-    mediaType: 'meme',
-    mediaData: {
-      url: 'https://images.unsplash.com/photo-1542451313056-b7c8e626645f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    },
-    likes: 1200,
-    comments: 89,
-    reposts: 12,
-  },
-  {
-    id: '3',
-    author: {
-      name: 'Viper',
-      handle: '@viper_strike',
-      avatar: 'https://i.pravatar.cc/150?u=v',
-    },
-    timestamp: '5h',
-    content: 'Just dropped a 40 bomb in Ascendant lobby. Let me tell you how.',
-    likes: 450,
-    comments: 12,
-    reposts: 8,
-    thread: [
-      {
-        id: '3-1',
-        author: {
-          name: 'Viper',
-          handle: '@viper_strike',
-          avatar: 'https://i.pravatar.cc/150?u=v',
-        },
-        timestamp: '5h',
-        content: 'First off, map control is everything. If you don\'t have mid, you don\'t have the game.',
-        likes: 310,
-        comments: 4,
-        reposts: 2,
-      },
-      {
-        id: '3-2',
-        author: {
-          name: 'Viper',
-          handle: '@viper_strike',
-          avatar: 'https://i.pravatar.cc/150?u=v',
-        },
-        timestamp: '5h',
-        content: 'Second, stop forcing every round! Play the eco, save for the OP.',
-        likes: 540,
-        comments: 20,
-        reposts: 15,
-      }
-    ]
-  },
-];
+
 
 export function useFeed() {
   const [posts, setPosts] = useState<FeedPostData[]>([]);
@@ -128,7 +50,7 @@ export function useFeed() {
         return mapPost(post);
       });
 
-      setPosts(formattedPosts.length > 0 ? formattedPosts : DUMMY_POSTS);
+      setPosts(formattedPosts);
       setLoading(false);
     });
 

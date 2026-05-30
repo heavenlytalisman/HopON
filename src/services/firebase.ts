@@ -184,6 +184,84 @@ export const sendFriendRequest = async (senderId: string, receiverId: string): P
   }
 };
 
+export const acceptFriendRequest = async (requestId: string, user1Id: string, user2Id: string): Promise<boolean> => {
+  try {
+    const reqRef = doc(db, 'friend_requests', requestId);
+    await updateDoc(reqRef, { status: 'accepted' });
+    
+    await addDoc(collection(db, 'friendships'), {
+      user1Id: user1Id < user2Id ? user1Id : user2Id,
+      user2Id: user1Id > user2Id ? user1Id : user2Id,
+      createdAt: new Date().toISOString()
+    });
+    return true;
+  } catch (error) {
+    console.error('Error accepting friend request:', error);
+    return false;
+  }
+};
+
+export const getFriends = async (userId: string): Promise<User[]> => {
+  try {
+    // Query where user1Id == userId
+    const q1 = query(collection(db, 'friendships'), where('user1Id', '==', userId));
+    const snap1 = await getDocs(q1);
+    
+    // Query where user2Id == userId
+    const q2 = query(collection(db, 'friendships'), where('user2Id', '==', userId));
+    const snap2 = await getDocs(q2);
+    
+    const friendIds = new Set<string>();
+    snap1.forEach(doc => friendIds.add(doc.data().user2Id));
+    snap2.forEach(doc => friendIds.add(doc.data().user1Id));
+    
+    const friends: User[] = [];
+    for (const id of Array.from(friendIds)) {
+      const userDoc = await getUserProfile(id);
+      if (userDoc) {
+        friends.push({ ...userDoc, id } as User & { id: string });
+      }
+    }
+    return friends;
+  } catch (error) {
+    console.error('Error getting friends:', error);
+    return [];
+  }
+};
+
+// ──────────────────────────────────────────────
+// Notification Services
+// ──────────────────────────────────────────────
+
+export const createNotification = async (userId: string, data: any): Promise<boolean> => {
+  try {
+    await addDoc(collection(db, 'notifications'), {
+      userId,
+      ...data,
+      createdAt: new Date().toISOString()
+    });
+    return true;
+  } catch (error) {
+    console.error('Error creating notification:', error);
+    return false;
+  }
+};
+
+export const subscribeToNotifications = (userId: string, callback: (notifications: any[]) => void): Unsubscribe => {
+  const q = query(
+    collection(db, 'notifications'), 
+    where('userId', '==', userId), 
+    orderBy('createdAt', 'desc')
+  );
+  return onSnapshot(q, (querySnapshot) => {
+    const notifs: any[] = [];
+    querySnapshot.forEach((docSnap) => {
+      notifs.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    callback(notifs);
+  });
+};
+
 // ──────────────────────────────────────────────
 // Feed Services
 // ──────────────────────────────────────────────

@@ -4,15 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useUI } from '../../context/UIContext';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
+import { useSquads } from '../../hooks/useSquads';
 import type { RootStackScreenProps } from '../../types';
 import SquadInviteModal from '../../components/squads/SquadInviteModal';
-
-// Dummy friends data to display in members list
-const DUMMY_MEMBERS = [
-  { id: '1', name: 'Alex Mercer', handle: '@alexm_gaming', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d', role: 'Member' },
-  { id: '2', name: 'Sarah K.', handle: '@sarah_weeb', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e', role: 'Member' },
-  { id: '3', name: 'Marcus Chen', handle: '@marcus_c', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704f', role: 'Member' },
-];
 
 export default function SquadEditScreen({ route, navigation }: RootStackScreenProps<'SquadEdit'>) {
   const { squadId, squadName: initialName, squadAvatar: initialAvatar } = route.params;
@@ -24,7 +18,10 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
   const squadWallpaper = (route.params as any).squadWallpaper || null;
   const wallpaperOpacity = (route.params as any).wallpaperOpacity || 0.6;
   
-  const [members, setMembers] = useState(DUMMY_MEMBERS);
+  const { squads } = useSquads();
+  const squad = squads.find(s => s.id === squadId);
+  const members = squad?.members || [];
+  
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
 
   const { showToast, showDialog } = useUI();
@@ -147,16 +144,16 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
             </View>
 
             <View style={styles.membersList}>
-              {members.map((member) => (
-                <View key={member.id} style={styles.memberRow}>
-                  <Image source={{ uri: member.avatar }} style={styles.memberAvatar} />
+              {members.map((memberId) => (
+                <View key={memberId} style={styles.memberRow}>
+                  <Image source={{ uri: 'https://i.pravatar.cc/150?u=' + memberId }} style={styles.memberAvatar} />
                   <View style={styles.memberInfo}>
-                    <Text style={styles.memberName}>{member.name}</Text>
-                    <Text style={styles.memberHandle}>{member.handle}</Text>
+                    <Text style={styles.memberName}>Member {memberId.slice(0, 4)}</Text>
+                    <Text style={styles.memberHandle}>@{memberId.slice(0, 4)}</Text>
                   </View>
                   <TouchableOpacity 
                     style={styles.removeBtn}
-                    onPress={() => handleRemoveMember(member.id, member.name)}
+                    onPress={() => handleRemoveMember(memberId, 'Member')}
                   >
                     <Text style={styles.removeBtnText}>Remove</Text>
                   </TouchableOpacity>

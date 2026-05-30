@@ -2,28 +2,16 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { useNotifications } from '../../hooks/useNotifications';
 import type { RootStackScreenProps } from '../../types';
-
-const MOCK_ACTIVITY = [
-  { id: 'n1', type: 'mention', user: 'Viper', target: 'valorant-comp', action: 'mentioned you in', time: '5m ago', avatar: 'https://i.pravatar.cc/150?u=v', read: false },
-  { id: 'n2', type: 'like', user: 'Rahid', target: 'your feed post', action: 'liked', time: '1h ago', avatar: 'https://i.pravatar.cc/150?u=2', read: false },
-  { id: 'n3', type: 'comment', user: 'Aman', target: 'your feed post', action: 'commented on', detail: '"Bro you carried us hard!"', time: '2h ago', avatar: 'https://i.pravatar.cc/150?u=3', read: true },
-];
-
-const MOCK_FOLLOWS = [
-  { id: 'f1', user: 'Alex Gaming', handle: '@alex_g', action: 'started following you', time: '10m ago', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d', isFollowingBack: false },
-  { id: 'f2', user: 'Sarah K.', handle: '@sarah_weeb', action: 'started following you', time: '1d ago', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e', isFollowingBack: true },
-];
 
 export default function NotificationsScreen({ navigation }: RootStackScreenProps<'Notifications'>) {
   const [activeTab, setActiveTab] = useState<'activity' | 'follows'>('follows');
-  const [followsData, setFollowsData] = useState(MOCK_FOLLOWS);
+  const { notifications, loading } = useNotifications();
 
-  const toggleFollowBack = (id: string) => {
-    setFollowsData(prev => prev.map(f => 
-      f.id === id ? { ...f, isFollowingBack: !f.isFollowingBack } : f
-    ));
-  };
+  const activityNotifs = notifications.filter(n => n.type !== 'friend_request');
+  const followNotifs = notifications.filter(n => n.type === 'friend_request');
 
   return (
     <SafeAreaView style={styles.container}>
@@ -53,43 +41,56 @@ export default function NotificationsScreen({ navigation }: RootStackScreenProps
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {activeTab === 'follows' ? (
-          followsData.map(follow => (
-            <View key={follow.id} style={styles.notificationItem}>
-              <Image source={{ uri: follow.avatar }} style={styles.notificationAvatar} />
-              <View style={styles.notificationInfo}>
-                <Text style={styles.notificationUser}>{follow.user} <Text style={styles.notificationAction}>{follow.action}</Text></Text>
-                <Text style={styles.notificationTime}>{follow.time}</Text>
+          followNotifs.length === 0 && !loading ? (
+            <EmptyState 
+              iconName="person-add-outline" 
+              title="No friend requests" 
+              subtitle="You have no pending friend requests." 
+            />
+          ) : (
+            followNotifs.map(follow => (
+              <View key={follow.id} style={styles.notificationItem}>
+                <Image source={{ uri: follow.data?.avatar || 'https://i.pravatar.cc/150' }} style={styles.notificationAvatar} />
+                <View style={styles.notificationInfo}>
+                  <Text style={styles.notificationUser}>{follow.title} <Text style={styles.notificationAction}>{follow.body}</Text></Text>
+                </View>
+                <TouchableOpacity 
+                  style={styles.followBtn}
+                  onPress={() => {}}
+                >
+                  <Text style={styles.followBtnText}>
+                    Accept
+                  </Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity 
-                style={[styles.followBtn, follow.isFollowingBack && styles.followingBtn]}
-                onPress={() => toggleFollowBack(follow.id)}
-              >
-                <Text style={[styles.followBtnText, follow.isFollowingBack && styles.followingBtnText]}>
-                  {follow.isFollowingBack ? 'Following' : 'Follow Back'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ))
+            ))
+          )
         ) : (
-          MOCK_ACTIVITY.map(notif => (
-            <TouchableOpacity 
-              key={notif.id} 
-              style={[styles.notificationItem, !notif.read && styles.notificationItemUnread]}
-              onPress={() => navigation.navigate('PostDetail' as any, { postId: 'mock1' })}
-            >
-              <Image source={{ uri: notif.avatar }} style={styles.notificationAvatar} />
-              <View style={styles.notificationInfo}>
-                <Text style={styles.notificationText}>
-                  <Text style={{fontWeight: 'bold', color: Colors.textPrimary}}>{notif.user}</Text> {notif.action} <Text style={{fontWeight: 'bold', color: Colors.textPrimary}}>{notif.target}</Text>
-                </Text>
-                {notif.detail && (
-                  <Text style={styles.notificationDetail}>"{notif.detail}"</Text>
-                )}
-                <Text style={styles.notificationTime}>{notif.time}</Text>
-              </View>
-              {!notif.read && <View style={styles.unreadDot} />}
-            </TouchableOpacity>
-          ))
+          activityNotifs.length === 0 && !loading ? (
+            <EmptyState 
+              iconName="notifications-outline" 
+              title="All caught up" 
+              subtitle="You have no new notifications." 
+            />
+          ) : (
+            activityNotifs.map(notif => (
+              <TouchableOpacity 
+                key={notif.id} 
+                style={[styles.notificationItem, !notif.read && styles.notificationItemUnread]}
+                onPress={() => {}}
+              >
+                <View style={styles.notificationInfo}>
+                  <Text style={styles.notificationText}>
+                    <Text style={{fontWeight: 'bold', color: Colors.textPrimary}}>{notif.title}</Text>
+                  </Text>
+                  {notif.body && (
+                    <Text style={styles.notificationDetail}>"{notif.body}"</Text>
+                  )}
+                </View>
+                {!notif.read && <View style={styles.unreadDot} />}
+              </TouchableOpacity>
+            ))
+          )
         )}
       </ScrollView>
     </SafeAreaView>

@@ -8,40 +8,8 @@ import type { RootStackScreenProps, FeedPostData } from '../../types';
 
 const { width } = Dimensions.get('window');
 
-const MOCK_FRIEND_POSTS: FeedPostData[] = [
-  {
-    id: 'f1',
-    author: {
-      name: '', // Will be injected from route params
-      handle: '', // Will be injected
-      avatar: '', // Will be injected
-    },
-    timestamp: '2h',
-    content: 'Just had the craziest clutch in Valorant! 1v4 defuse while blind. Still shaking! 🎯🔥',
-    likes: 42,
-    comments: 8,
-    reposts: 2,
-  },
-  {
-    id: 'f2',
-    author: {
-      name: '',
-      handle: '',
-      avatar: '',
-    },
-    timestamp: '1d',
-    content: 'Anyone down to run some duos later tonight? Need a solid teammate to grind to Diamond.',
-    likes: 15,
-    comments: 5,
-    reposts: 0,
-    mediaType: 'song',
-    mediaData: {
-      title: 'STARGAZING',
-      artist: 'Travis Scott',
-      albumArt: 'https://i.scdn.co/image/ab67616d0000b273072e9faef2ef7b6db63834a3',
-    }
-  },
-];
+import { EmptyState } from '../../components/ui/EmptyState';
+import { useFeed } from '../../hooks/useFeed';
 
 export default function FriendProfileScreen({ route, navigation }: RootStackScreenProps<'FriendProfile'>) {
   const { friendId, friendName, friendAvatar } = route.params;
@@ -56,15 +24,8 @@ export default function FriendProfileScreen({ route, navigation }: RootStackScre
   // Mock bio
   const bio = 'FPS Enthusiast | Hardstuck Ascendant | Coffee addict ☕ | Always down to hop on!';
 
-  // Inject author data into mock posts
-  const posts = MOCK_FRIEND_POSTS.map(p => ({
-    ...p,
-    author: {
-      name: friendName,
-      handle: friendHandle,
-      avatar: friendAvatar,
-    }
-  }));
+  const { posts, loading: feedLoading } = useFeed();
+  const friendPosts = posts.filter(p => p.author.handle === friendHandle);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -121,9 +82,17 @@ export default function FriendProfileScreen({ route, navigation }: RootStackScre
         {/* Feed Posts Section */}
         <View style={styles.postsSection}>
           <Text style={styles.postsSectionTitle}>Recent Posts</Text>
-          {posts.map(post => (
-            <FeedPost key={post.id} post={post} />
-          ))}
+          {friendPosts.length === 0 && !feedLoading ? (
+            <EmptyState 
+              iconName="game-controller-outline" 
+              title="Nothing to see here" 
+              subtitle={`${friendName} hasn't posted anything recently.`} 
+            />
+          ) : (
+            friendPosts.map(post => (
+              <FeedPost key={post.id} post={post} />
+            ))
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

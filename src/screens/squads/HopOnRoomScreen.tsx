@@ -3,16 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image, Animated
 import { Ionicons } from '@expo/vector-icons';
 import { useResponsive } from '../../hooks/useResponsive';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
-import type { RootStackScreenProps, SquadMember } from '../../types';
-
-const { width } = Dimensions.get('window');
-
-const DUMMY_SQUAD_MEMBERS: SquadMember[] = [
-  { id: '1', name: 'Alex Mercer', status: 'accepted', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' },
-  { id: '2', name: 'Sarah K.', status: 'pending', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e' },
-  { id: '3', name: 'Marcus Chen', status: 'denied', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704f' },
-  { id: '4', name: 'Elena R.', status: 'pending', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704g' },
-];
+import type { RootStackScreenProps } from '../../types';
 
 export default function HopOnRoomScreen({ navigation, route }: RootStackScreenProps<'HopOnRoom'>) {
   const { squadName, squadWallpaper } = route.params || { squadName: 'Squad' };
@@ -28,23 +19,6 @@ export default function HopOnRoomScreen({ navigation, route }: RootStackScreenPr
     ).start();
   }, []);
 
-  const getStatusColor = (status: SquadMember['status']) => {
-    switch (status) {
-      case 'accepted': return Colors.success;
-      case 'denied': return Colors.error;
-      case 'pending': return Colors.warning;
-      default: return Colors.textMuted;
-    }
-  };
-
-  const getStatusText = (status: SquadMember['status']) => {
-    switch (status) {
-      case 'accepted': return 'Joined';
-      case 'denied': return 'Declined';
-      case 'pending': return 'Calling...';
-      default: return '';
-    }
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -62,15 +36,10 @@ export default function HopOnRoomScreen({ navigation, route }: RootStackScreenPr
         </View>
 
         <View style={styles.gridContainer}>
-          {DUMMY_SQUAD_MEMBERS.map((member) => (
-            <View key={member.id} style={styles.memberCard}>
-              <Animated.View style={[styles.avatarContainer, member.status === 'pending' && { opacity: pulseAnim }]}>
-                <Image source={{ uri: member.avatar }} style={[styles.avatar, member.status === 'denied' && styles.avatarMuted]} />
-              </Animated.View>
-              <Text style={styles.memberName} numberOfLines={1}>{member.name}</Text>
-              <Text style={[styles.memberStatus, { color: getStatusColor(member.status) }]}>{getStatusText(member.status)}</Text>
-            </View>
-          ))}
+          <Animated.View style={{ opacity: pulseAnim, alignItems: 'center' }}>
+            <Ionicons name="radio-outline" size={64} color={Colors.primaryLight} />
+            <Text style={{ color: Colors.textMuted, marginTop: Spacing.md, fontSize: 16 }}>Waiting for members to join...</Text>
+          </Animated.View>
         </View>
 
         <View style={styles.footer}>

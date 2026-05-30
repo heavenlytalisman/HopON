@@ -1,12 +1,32 @@
-import { useState } from 'react';
-import { searchUsersByHandle, sendFriendRequest } from '../services/firebase';
+import { useState, useEffect } from 'react';
+import { searchUsersByHandle, sendFriendRequest, getFriends } from '../services/firebase';
 import { useAuth } from '../context/AuthContext';
-import type { Friend } from '../types';
+import type { User, Friend } from '../types';
 
 export function useFriends() {
   const [searchResults, setSearchResults] = useState<Friend[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [friends, setFriends] = useState<User[]>([]);
+  const [loadingFriends, setLoadingFriends] = useState(true);
   const { firebaseUser } = useAuth();
+
+  useEffect(() => {
+    loadFriends();
+  }, [firebaseUser]);
+
+  const loadFriends = async () => {
+    if (!firebaseUser) return;
+    setLoadingFriends(true);
+    try {
+      const f = await getFriends(firebaseUser.uid);
+      setFriends(f);
+    } catch (e) {
+      console.error(e);
+      setFriends([]);
+    } finally {
+      setLoadingFriends(false);
+    }
+  };
 
   const search = async (text: string) => {
     if (text.length > 2) {
@@ -31,5 +51,5 @@ export function useFriends() {
     return sendFriendRequest(firebaseUser.uid, userId);
   };
 
-  return { searchResults, isSearching, search, sendRequest };
+  return { friends, loadingFriends, searchResults, isSearching, search, sendRequest, refreshFriends: loadFriends };
 }

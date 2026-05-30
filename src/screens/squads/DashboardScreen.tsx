@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSquads } from '../../hooks/useSquads';
 import { useAuth } from '../../context/AuthContext';
 import { useResponsive } from '../../hooks/useResponsive';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../constants/theme';
 import type { MainTabScreenProps, Group } from '../../types';
 
@@ -73,6 +74,14 @@ export default function SquadsScreen({ navigation }: MainTabScreenProps<'Squads'
 
         {loading ? (
           <ActivityIndicator color={Colors.primaryLight} style={{ marginTop: 40 }} />
+        ) : squads.length === 0 ? (
+          <EmptyState 
+            iconName="people-circle-outline" 
+            title="No squads yet" 
+            subtitle="Create a new squad or join an existing one to hop on with friends." 
+            actionTitle="Create Squad"
+            onAction={() => navigation.navigate('CreateSquad')}
+          />
         ) : (
           <FlatList
             data={squads}

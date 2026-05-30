@@ -1,20 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, FlatList, TextInput, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { useFriends } from '../../hooks/useFriends';
 import { useResponsive } from '../../hooks/useResponsive';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
 import type { MainTabScreenProps, Friend } from '../../types';
 
-const DUMMY_FRIENDS: Friend[] = [
-  { id: '1', name: 'Alex Mercer', handle: '@alexm_gaming', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d', isOnline: true },
-  { id: '2', name: 'Sarah K.', handle: '@sarah_weeb', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e', isOnline: false },
-  { id: '3', name: 'Marcus Chen', handle: '@marcus_c', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704f', isOnline: true },
-];
-
 export default function FriendsScreen({ navigation }: any) {
   const [searchQuery, setSearchQuery] = useState('');
-  const { searchResults, isSearching, search, sendRequest } = useFriends();
+  const { friends, loadingFriends, searchResults, isSearching, search, sendRequest } = useFriends();
   const { contentWidth, horizontalPadding } = useResponsive();
 
   const handleSearch = (text: string) => {
@@ -64,14 +59,22 @@ export default function FriendsScreen({ navigation }: any) {
         </View>
 
         <View style={styles.listContainer}>
-          <Text style={styles.sectionTitle}>{isSearching ? `Search Results (${searchResults.length})` : `My Squad (${DUMMY_FRIENDS.length})`}</Text>
-          <FlatList
-            data={isSearching ? searchResults : DUMMY_FRIENDS}
-            keyExtractor={(item) => item.id}
-            renderItem={renderFriend}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-          />
+          <Text style={styles.sectionTitle}>{isSearching ? `Search Results (${searchResults.length})` : `My Squad (${friends.length})`}</Text>
+          {!isSearching && friends.length === 0 && !loadingFriends ? (
+            <EmptyState 
+              iconName="person-add-outline" 
+              title="Grow your squad" 
+              subtitle="Search for users above and send them a friend request." 
+            />
+          ) : (
+            <FlatList
+              data={isSearching ? searchResults : friends as any[]}
+              keyExtractor={(item) => item.id}
+              renderItem={renderFriend as any}
+              contentContainerStyle={styles.listContent}
+              showsVerticalScrollIndicator={false}
+            />
+          )}
         </View>
       </View>
     </SafeAreaView>

@@ -2,23 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing } from '../../constants/theme';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { useFriends } from '../../hooks/useFriends';
 import type { RootStackScreenProps } from '../../types';
 
-const MOCK_ONLINE = [
-  { id: '1', name: 'Vasif', status: 'Online', statusColor: Colors.success, avatar: 'https://i.pravatar.cc/150?u=1' },
-  { id: '2', name: 'Rahid', status: 'Online', statusColor: Colors.success, avatar: 'https://i.pravatar.cc/150?u=2' },
-  { id: '3', name: 'Aman', status: 'Online', statusColor: Colors.success, avatar: 'https://i.pravatar.cc/150?u=3' },
-  { id: '4', name: 'Prem', status: 'Online', statusColor: Colors.success, avatar: 'https://i.pravatar.cc/150?u=4' },
-  { id: '5', name: 'Karan', status: 'Online', statusColor: Colors.success, avatar: 'https://i.pravatar.cc/150?u=5' },
-];
-
-const MOCK_FRIENDS = [
-  ...MOCK_ONLINE,
-  { id: '6', name: 'Jake', status: 'Offline', statusColor: Colors.textMuted, avatar: 'https://i.pravatar.cc/150?u=6' },
-  { id: '7', name: 'Mia', status: 'Offline', statusColor: Colors.textMuted, avatar: 'https://i.pravatar.cc/150?u=7' },
-];
-
 export default function FriendListScreen({ navigation }: RootStackScreenProps<'FriendList'>) {
+  const { friends, loadingFriends } = useFriends();
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -30,27 +19,37 @@ export default function FriendListScreen({ navigation }: RootStackScreenProps<'F
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: Spacing.lg }}>
-        {MOCK_FRIENDS.map((friend) => (
-          <TouchableOpacity 
-            key={friend.id} 
-            style={styles.friendListItem}
-            onPress={() => navigation.navigate('FriendProfile', { 
-              friendId: friend.id, 
-              friendName: friend.name, 
-              friendAvatar: friend.avatar 
-            })}
-          >
-            <View style={[styles.avatarRing, { borderColor: friend.statusColor }]}>
-              <Image source={{ uri: friend.avatar }} style={styles.avatarImage} />
-              <View style={[styles.statusDot, { backgroundColor: friend.statusColor }]} />
-            </View>
-            <View style={styles.friendListInfo}>
-              <Text style={styles.friendListName}>{friend.name}</Text>
-              <Text style={[styles.friendListStatus, { color: friend.statusColor }]}>{friend.status}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
-          </TouchableOpacity>
-        ))}
+        {friends.length === 0 && !loadingFriends ? (
+          <EmptyState 
+            iconName="people-outline" 
+            title="No friends found" 
+            subtitle="Add friends to grow your network!" 
+            actionTitle="Find Friends"
+            onAction={() => navigation.navigate('Main', { screen: 'Friends' })}
+          />
+        ) : (
+          friends.map((friend) => (
+            <TouchableOpacity 
+              key={friend.id} 
+              style={styles.friendListItem}
+              onPress={() => navigation.navigate('FriendProfile', { 
+                friendId: friend.id, 
+                friendName: friend.nickname, 
+                friendAvatar: friend.avatar 
+              })}
+            >
+              <View style={[styles.avatarRing, { borderColor: Colors.success }]}>
+                <Image source={{ uri: friend.avatar || 'https://i.pravatar.cc/150?u=' + friend.id }} style={styles.avatarImage} />
+                <View style={[styles.statusDot, { backgroundColor: Colors.success }]} />
+              </View>
+              <View style={styles.friendListInfo}>
+                <Text style={styles.friendListName}>{friend.nickname}</Text>
+                <Text style={[styles.friendListStatus, { color: Colors.success }]}>Online</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
     </SafeAreaView>
   );

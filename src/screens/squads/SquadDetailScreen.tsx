@@ -39,12 +39,7 @@ interface StickerPack {
   stickers: string[];
 }
 
-const INITIAL_MESSAGES: Message[] = [
-  { id: '2', sender: '@Viper', avatar: 'https://i.pravatar.cc/150?u=3', text: 'We need one more for the lobby. Who is online?', isMe: false },
-  { id: '3', sender: 'You', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704z', text: 'Give me 5 mins, just finishing up a call.', isMe: true },
-  { id: '4', sender: '@ApexQueen', avatar: 'https://i.pravatar.cc/150?u=4', text: "I'm in the lobby now. Setting up the loadout.", isMe: false },
-  { id: '5', sender: '@AlexM', avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d', stickerUrl: 'https://images.unsplash.com/photo-1596854407944-bf87f6fdd49e?auto=format&fit=crop&w=150&q=80', isMe: false },
-];
+import { EmptyState } from '../../components/ui/EmptyState';
 
 const SwipeableMessage = ({ item, onReply, onLongPress, children }: any) => {
   const pan = useRef(new Animated.ValueXY()).current;
@@ -106,7 +101,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
   const { contentWidth, horizontalPadding } = useResponsive();
   const flatListRef = useRef<FlatList>(null);
 
-  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [showStickerPicker, setShowStickerPicker] = useState(false);
@@ -522,9 +517,16 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
           data={messages}
           keyExtractor={(item) => item.id}
           renderItem={renderMessage}
-          contentContainerStyle={styles.chatContainer}
+          contentContainerStyle={[styles.chatContainer, messages.length === 0 && { flex: 1, justifyContent: 'center' }]}
           showsVerticalScrollIndicator={false}
           onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          ListEmptyComponent={
+            <EmptyState 
+              iconName="chatbubbles-outline" 
+              title="No messages yet" 
+              subtitle="Be the first to say hi to the squad!" 
+            />
+          }
         />
 
         {(showGifPicker || showStickerPicker) && (
