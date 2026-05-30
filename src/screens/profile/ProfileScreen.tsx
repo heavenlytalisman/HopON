@@ -107,7 +107,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
     }
   };
 
-  const displayAvatar = profile?.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z';
+  const displayAvatar = profile?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.nickname || 'G')}&background=7C3AED&color=FFF&size=150`;
   const displayBanner = profile?.banner || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f'; // Fallback retro gaming pattern
 
   if (loading) {
@@ -157,11 +157,11 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
 
             <View style={styles.statsRow}>
               <TouchableOpacity style={styles.statBox} onPress={() => navigation.navigate('FollowList', { type: 'following', userName: profile?.nickname || 'User' })}>
-                <Text style={styles.statCount}>24</Text>
+                <Text style={styles.statCount}>0</Text>
                 <Text style={styles.statLabel}>Following</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.statBox} onPress={() => navigation.navigate('FollowList', { type: 'followers', userName: profile?.nickname || 'User' })}>
-                <Text style={styles.statCount}>108</Text>
+                <Text style={styles.statCount}>0</Text>
                 <Text style={styles.statLabel}>Followers</Text>
               </TouchableOpacity>
             </View>
@@ -190,7 +190,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
               <TouchableOpacity 
                 key={p.id}
                 activeOpacity={0.9} 
-                onPress={() => navigation.getParent()?.navigate('PostDetail', { postId: p.id, mockData: p })}
+                onPress={() => navigation.getParent()?.navigate('PostDetail', { postId: p.id, postData: p })}
               >
                 <FeedPost post={p} variant="feed" />
               </TouchableOpacity>

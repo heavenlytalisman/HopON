@@ -62,13 +62,13 @@ export function useFeed() {
     if (validContents.length === 0 || !profile) return;
     setIsPosting(true);
     
-    // For mock thread purposes, map the rest of the contents to a thread array
+    // Map the rest of the contents to a thread array if the user posts a multi-part thread
     const thread = validContents.slice(1).map((content, i) => ({
       id: `temp-${Date.now()}-${i}`,
       authorId: profile.uid || 'unknown',
       authorName: profile.nickname,
       authorHandle: `@${profile.nickname.toLowerCase().replace(/\s+/g, '')}`,
-      authorAvatar: profile.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z',
+      authorAvatar: profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.nickname)}&background=7C3AED&color=FFF&size=150`,
       content: content,
       timestamp: serverTimestamp(),
       likes: 0,
@@ -81,7 +81,7 @@ export function useFeed() {
         authorId: profile.uid || 'unknown',
         authorName: profile.nickname,
         authorHandle: `@${profile.nickname.toLowerCase().replace(/\s+/g, '')}`,
-        authorAvatar: profile.avatar || 'https://i.pravatar.cc/150?u=a042581f4e29026704z',
+        authorAvatar: profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.nickname)}&background=7C3AED&color=FFF&size=150`,
         content: validContents[0],
         timestamp: serverTimestamp(),
         thread: thread.length > 0 ? thread : undefined,

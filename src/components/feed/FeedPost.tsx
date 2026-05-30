@@ -155,7 +155,7 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
     if (!isAlreadyReposted && profile) {
       try {
         await createPost({
-          authorId: 'repost', // Mock id for original author
+          authorId: profile.uid,
           authorName: post.author.name,
           authorHandle: post.author.handle,
           authorAvatar: post.author.avatar,
@@ -215,7 +215,7 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
 
   const handleComment = (p: FeedPostData) => {
     if (variant === 'feed') {
-      navigation.push('PostDetail', { postId: p.id, mockData: p });
+      navigation.push('PostDetail', { postId: p.id, postData: p });
     } else {
       if (onCommentPress) onCommentPress();
     }

@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { ComponentProps } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../constants/theme';
 
 interface EmptyStateProps {
-  iconName?: keyof typeof Ionicons.glyphMap;
+  iconName?: ComponentProps<typeof Ionicons>['name'];
   title: string;
   subtitle?: string;
   actionTitle?: string;

@@ -28,22 +28,22 @@ export default function FriendListScreen({ navigation }: RootStackScreenProps<'F
             onAction={() => navigation.navigate('SearchUsers')}
           />
         ) : (
-          friends.map((friend) => (
+          friends.map((user) => (
             <TouchableOpacity 
-              key={friend.id} 
+              key={user.uid} 
               style={styles.friendListItem}
               onPress={() => navigation.navigate('FriendProfile', { 
-                friendId: friend.id, 
-                friendName: friend.nickname, 
-                friendAvatar: friend.avatar 
+                friendId: user.uid, 
+                friendName: user.nickname, 
+                friendAvatar: user.avatar || '' 
               })}
             >
               <View style={[styles.avatarRing, { borderColor: Colors.success }]}>
-                <Image source={{ uri: friend.avatar || 'https://i.pravatar.cc/150?u=' + friend.id }} style={styles.avatarImage} />
+                <Image source={{ uri: user.avatar || 'https://i.pravatar.cc/150?u=' + user.uid }} style={styles.avatarImage} />
                 <View style={[styles.statusDot, { backgroundColor: Colors.success }]} />
               </View>
               <View style={styles.friendListInfo}>
-                <Text style={styles.friendListName}>{friend.nickname}</Text>
+                <Text style={styles.friendListName}>{user.nickname}</Text>
                 <Text style={[styles.friendListStatus, { color: Colors.success }]}>Online</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />

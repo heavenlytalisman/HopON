@@ -8,60 +8,13 @@ import type { RootStackScreenProps, FeedPostData } from '../../types';
 
 const { width } = Dimensions.get('window');
 
-const DEFAULT_MOCK_POST: FeedPostData = {
-  id: 'pd1',
-  author: {
-    name: 'Rahid',
-    handle: '@rahid',
-    avatar: 'https://i.pravatar.cc/150?u=2',
-  },
-  timestamp: '11:46 AM • Oct 11, 2022',
-  content: 'Anyone down to run some duos? Need a solid teammate for the weekend grind!',
-  likes: 24600,
-  comments: 137,
-  reposts: 6550,
-};
-
-const MOCK_COMMENTS_THREAD: FeedPostData = {
-  id: 'c0',
-  author: {
-    name: 'Rahid',
-    handle: '@rahid',
-    avatar: 'https://i.pravatar.cc/150?u=2',
-  },
-  timestamp: '1m',
-  content: 'Just hopped on! Join my squad.',
-  likes: 2,
-  comments: 0,
-  reposts: 0,
-  thread: [
-    {
-      id: 'c1',
-      author: {
-        name: 'Rahid',
-        handle: '@rahid',
-        avatar: 'https://i.pravatar.cc/150?u=2',
-      },
-      timestamp: 'Just now',
-      content: 'Room is almost full, grab the last spot!',
-      likes: 1,
-      comments: 0,
-      reposts: 0,
-    }
-  ]
-};
-
 export default function PostDetailScreen({ route, navigation }: RootStackScreenProps<'PostDetail'>) {
-  const { mockData } = route.params;
+  const { postData } = route.params;
   const { profile } = useAuth();
 
-  // Initialize main post and inject mock comments into its replies array if missing
+  // Initialize main post
   const [mainPost, setMainPost] = useState<FeedPostData>(() => {
-    const post = mockData || DEFAULT_MOCK_POST;
-    if (!post.replies) {
-      post.replies = [MOCK_COMMENTS_THREAD];
-    }
-    return post;
+    return postData;
   });
   const [replyText, setReplyText] = useState('');
   const inputRef = useRef<TextInput>(null);

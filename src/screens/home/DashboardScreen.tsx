@@ -123,12 +123,12 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalList}>
             {onlineFriends.map((user) => (
               <TouchableOpacity 
-                key={user.id} 
+                key={user.uid} 
                 style={styles.onlineUserItem}
-                onPress={() => navigation.navigate('FriendProfile', { friendId: user.id, friendName: user.nickname, friendAvatar: user.avatar })}
+                onPress={() => navigation.navigate('FriendProfile', { friendId: user.uid, friendName: user.nickname, friendAvatar: user.avatar || '' })}
               >
                 <View style={[styles.avatarRing, { borderColor: Colors.success }]}>
-                  <Image source={{ uri: user.avatar || 'https://i.pravatar.cc/150?u=' + user.id }} style={styles.onlineAvatar} />
+                  <Image source={{ uri: user.avatar || 'https://i.pravatar.cc/150?u=' + user.uid }} style={styles.onlineAvatar} />
                   <View style={[styles.statusDot, { backgroundColor: Colors.success }]} />
                 </View>
                 <Text style={styles.onlineUserName} numberOfLines={1}>{user.nickname}</Text>

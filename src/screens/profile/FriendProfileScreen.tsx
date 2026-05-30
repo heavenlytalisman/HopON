@@ -18,11 +18,11 @@ export default function FriendProfileScreen({ route, navigation }: RootStackScre
   // Derive handle from name if not provided
   const friendHandle = `@${friendName.toLowerCase().replace(/\\s+/g, '')}`;
 
-  // Mock banner image (gaming related)
-  const bannerUri = 'https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80';
+  // Default banner fallback
+  const bannerUri = 'https://images.unsplash.com/photo-1550745165-9bc0b252726f';
   
-  // Mock bio
-  const bio = 'FPS Enthusiast | Hardstuck Ascendant | Coffee addict ☕ | Always down to hop on!';
+  // No bio implemented in route yet
+  const bio = null;
 
   const { posts, loading: feedLoading } = useFeed();
   const friendPosts = posts.filter(p => p.author.handle === friendHandle);
@@ -65,15 +65,15 @@ export default function FriendProfileScreen({ route, navigation }: RootStackScre
           <Text style={styles.name}>{friendName}</Text>
           <Text style={styles.handle}>{friendHandle}</Text>
           
-          <Text style={styles.bio}>{bio}</Text>
+          {bio ? <Text style={styles.bio}>{bio}</Text> : null}
           
           <View style={styles.statsRow}>
             <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('FollowList', { type: 'following', userName: friendName })}>
-              <Text style={styles.statValue}>142</Text>
+              <Text style={styles.statValue}>0</Text>
               <Text style={styles.statLabel}>Following</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('FollowList', { type: 'followers', userName: friendName })}>
-              <Text style={styles.statValue}>89</Text>
+              <Text style={styles.statValue}>0</Text>
               <Text style={styles.statLabel}>Followers</Text>
             </TouchableOpacity>
           </View>

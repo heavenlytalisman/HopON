@@ -4,24 +4,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing } from '../../constants/theme';
 import type { RootStackScreenProps } from '../../types';
 
-const MOCK_FOLLOWERS = [
-  { id: '1', name: 'Vasif', handle: '@vasif', avatar: 'https://i.pravatar.cc/150?u=1' },
-  { id: '2', name: 'Rahid', handle: '@rahid', avatar: 'https://i.pravatar.cc/150?u=2' },
-  { id: '3', name: 'Aman', handle: '@aman', avatar: 'https://i.pravatar.cc/150?u=3' },
-  { id: '4', name: 'Prem', handle: '@prem', avatar: 'https://i.pravatar.cc/150?u=4' },
-  { id: '5', name: 'Karan', handle: '@karan', avatar: 'https://i.pravatar.cc/150?u=5' },
-];
-
-const MOCK_FOLLOWING = [
-  { id: '1', name: 'Vasif', handle: '@vasif', avatar: 'https://i.pravatar.cc/150?u=1' },
-  { id: '6', name: 'Jake', handle: '@jake', avatar: 'https://i.pravatar.cc/150?u=6' },
-  { id: '7', name: 'Mia', handle: '@mia', avatar: 'https://i.pravatar.cc/150?u=7' },
-];
+import { EmptyState } from '../../components/ui/EmptyState';
 
 export default function FollowListScreen({ route, navigation }: RootStackScreenProps<'FollowList'>) {
   const { type, userName } = route.params;
   const isFollowers = type === 'followers';
-  const listData = isFollowers ? MOCK_FOLLOWERS : MOCK_FOLLOWING;
+  const listData: any[] = []; // TODO: Wire up to real follower/following graph
 
   const headerTitle = userName ? `${userName}'s ${isFollowers ? 'Followers' : 'Following'}` : (isFollowers ? 'Followers' : 'Following');
 
@@ -36,10 +24,19 @@ export default function FollowListScreen({ route, navigation }: RootStackScreenP
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: Spacing.lg }}>
-        {listData.map((user) => (
-          <TouchableOpacity 
-            key={user.id} 
-            style={styles.listItem}
+        {listData.length === 0 ? (
+          <View style={{ marginTop: 60 }}>
+            <EmptyState 
+              iconName="people-outline" 
+              title={`No ${isFollowers ? 'followers' : 'following'} yet`} 
+              subtitle={userName ? `When ${userName} connects with others, they'll appear here.` : "No connections found."} 
+            />
+          </View>
+        ) : (
+          listData.map((user) => (
+            <TouchableOpacity 
+              key={user.id} 
+              style={styles.listItem}
             onPress={() => navigation.navigate('FriendProfile', { 
               friendId: user.id, 
               friendName: user.name, 
@@ -53,9 +50,10 @@ export default function FollowListScreen({ route, navigation }: RootStackScreenP
             </View>
             <TouchableOpacity style={styles.actionButton}>
               <Text style={styles.actionButtonText}>{isFollowers ? 'Remove' : 'Following'}</Text>
+              </TouchableOpacity>
             </TouchableOpacity>
-          </TouchableOpacity>
-        ))}
+          ))
+        )}
       </ScrollView>
     </SafeAreaView>
   );

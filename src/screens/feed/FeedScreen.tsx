@@ -93,7 +93,7 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
           renderItem={({ item }) => (
             <TouchableOpacity 
               activeOpacity={0.9} 
-              onPress={() => navigation.navigate('PostDetail', { postId: item.id, mockData: item })}
+              onPress={() => navigation.navigate('PostDetail', { postId: item.id, postData: item })}
             >
               <FeedPost post={item} />
             </TouchableOpacity>

@@ -30,41 +30,12 @@ export default function SquadWallpaperScreen({ route, navigation }: RootStackScr
   const handleSave = () => {
     navigation.navigate({
       name: 'SquadEdit',
-      params: { squadWallpaper, wallpaperOpacity: opacity },
+      params: { squadId, squadName: 'Unknown', squadWallpaper: squadWallpaper || undefined, wallpaperOpacity: opacity },
       merge: true,
     });
   };
 
-  // Custom Slider Logic
-  const sliderPanResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: (evt, gestureState) => {
-        updateOpacityFromGesture(evt.nativeEvent.locationX);
-      },
-      onPanResponderMove: (evt, gestureState) => {
-        // We use gestureState.dx relative to initial touch, but it's easier to just track absolute position if possible.
-        // Actually, for a simple custom slider, it's better to calculate based on movement.
-      },
-    })
-  ).current;
-  
-  // A cleaner approach for the custom slider:
-  const handleSliderMove = (evt: any, gestureState: any, startX: number) => {
-    const newX = Math.max(0, Math.min(startX + gestureState.dx, SLIDER_WIDTH));
-    setOpacity(newX / SLIDER_WIDTH);
-  };
 
-  const pan = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {},
-      onPanResponderMove: (evt, gestureState) => {
-         // This needs to track the offset properly. Let's just use a simple touch handler.
-      },
-    })
-  ).current;
 
   // Let's implement a robust custom slider without PanResponder state headaches by just using an absolute position tracking
   const [sliderStartX, setSliderStartX] = useState(0);

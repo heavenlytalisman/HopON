@@ -143,7 +143,7 @@ export type RootStackParamList = {
   FriendList: undefined;
   FollowList: { type: 'followers' | 'following'; userId?: string; userName?: string };
   Notifications: undefined;
-  PostDetail: { postId: string; mockData?: any };
+  PostDetail: { postId: string; postData?: any };
   RecentActivity: undefined;
   QRScanner: undefined;
   SearchUsers: undefined;

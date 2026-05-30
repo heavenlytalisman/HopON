@@ -49,7 +49,7 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
           text: 'Remove', 
           style: 'destructive', 
           onPress: () => {
-            setMembers(prev => prev.filter(m => m.id !== memberId));
+            console.log('TODO: Implement member removal API', memberId);
             showToast({ title: 'Removed', message: `${memberName} removed from squad.`, type: 'info' });
           } 
         }
@@ -68,7 +68,7 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
     setTimeout(() => {
       navigation.navigate({
         name: 'SquadDetail',
-        params: { squadWallpaper, wallpaperOpacity },
+        params: { squadId, squadName, squadWallpaper, wallpaperOpacity },
         merge: true,
       });
     }, 1000);
