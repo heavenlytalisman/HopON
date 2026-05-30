@@ -33,11 +33,18 @@ export const loginAnonymously = async (nickname: string) => {
 // Profile Services
 // ──────────────────────────────────────────────
 
+const ensureAvatar = (user: User): User => {
+  if (!user.avatar) {
+    user.avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nickname || 'User')}&background=1E293B&color=FFF`;
+  }
+  return user;
+};
+
 export const getUserProfile = async (userId: string): Promise<User | null> => {
   try {
     const userDoc = await getDoc(doc(db, 'users', userId));
     if (userDoc.exists()) {
-      return userDoc.data() as User;
+      return ensureAvatar(userDoc.data() as User);
     }
     return null;
   } catch (error) {
@@ -157,7 +164,7 @@ export const searchUsersByHandle = async (handleQuery: string): Promise<User[]> 
     const querySnapshot = await getDocs(q);
     const results: (User & { id: string })[] = [];
     querySnapshot.forEach((docSnap) => {
-      results.push({ id: docSnap.id, ...docSnap.data() } as User & { id: string });
+      results.push(ensureAvatar({ id: docSnap.id, ...docSnap.data() } as User & { id: string }) as User & { id: string });
     });
 
     return results;
@@ -306,7 +313,11 @@ export const subscribeToFeed = (callback: (posts: Post[]) => void): Unsubscribe 
   return onSnapshot(q, (querySnapshot) => {
     const posts: Post[] = [];
     querySnapshot.forEach((docSnap) => {
-      posts.push({ id: docSnap.id, ...docSnap.data() } as Post);
+      const post = { id: docSnap.id, ...docSnap.data() } as Post;
+      if (!post.authorAvatar) {
+        post.authorAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(post.authorName || 'User')}&background=1E293B&color=FFF`;
+      }
+      posts.push(post);
     });
     callback(posts);
   });

@@ -129,10 +129,10 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
           {displayBanner ? <Image source={{ uri: displayBanner }} style={styles.bannerImage} /> : null}
           <View style={styles.headerOverlay}>
             <SafeAreaView style={styles.safeHeaderRow}>
+              <View style={{ flex: 1 }} />
               <TouchableOpacity style={styles.iconButton} onPress={() => setSettingsVisible(true)}>
                 <Ionicons name="settings-outline" size={22} color={Colors.textPrimary} />
               </TouchableOpacity>
-              <View style={{ flex: 1 }} />
             </SafeAreaView>
           </View>
         </View>
