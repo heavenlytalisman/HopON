@@ -16,7 +16,7 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "package": "com.anonymous.HopON"
+      "package": "com.hopon.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
