@@ -59,8 +59,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
           <View style={styles.content}>
 
             <View style={styles.topSection}>
-              {/* Logo Placeholder - User will replace this */}
-              <View style={styles.logoPlaceholder} />
+              <Ionicons name="planet" size={64} color={Colors.primary} style={{ marginBottom: Spacing.md }} />
 
               <Text style={[styles.brandTitle, isDesktop && styles.brandTitleDesktop]}>
                 HOP<Text style={styles.brandTitleAccent}>ON</Text>
