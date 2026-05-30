@@ -111,6 +111,19 @@ export const joinGroup = async (groupId: string, userUid: string): Promise<boole
   }
 };
 
+export const getGroup = async (groupId: string): Promise<Group | null> => {
+  try {
+    const groupDoc = await getDoc(doc(db, 'groups', groupId));
+    if (groupDoc.exists()) {
+      return { id: groupDoc.id, ...groupDoc.data() } as Group;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching group: ', error);
+    return null;
+  }
+};
+
 export const getUserGroups = async (userUid: string): Promise<Group[]> => {
   try {
     const q = query(collection(db, 'groups'), where('members', 'array-contains', userUid));

@@ -5,7 +5,7 @@ import { Camera, CameraView } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing } from '../../constants/theme';
 import type { RootStackScreenProps } from '../../types';
-import { joinGroup } from '../../services/firebase';
+import { joinGroup, getGroup } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
 
 const { width, height } = Dimensions.get('window');
@@ -31,8 +31,8 @@ export default function QRScannerScreen({ navigation }: RootStackScreenProps<'QR
       try {
         if (firebaseUser) {
           await joinGroup(squadId, firebaseUser.uid);
-          // Just a mock navigation, ideally we fetch the group to get its name and avatar
-          navigation.replace('SquadDetail', { squadId, squadName: 'Joined Squad' });
+          const group = await getGroup(squadId);
+          navigation.replace('SquadDetail', { squadId, squadName: group?.name || 'Joined Squad', squadAvatar: group?.avatar });
         } else {
           alert('You must be logged in to join a squad');
           navigation.goBack();
