@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, FlatList, StyleSheet, SafeAreaView, TouchableOpacity, Text, TextInput, Image, ActivityIndicator, Modal, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, FlatList, StyleSheet, TouchableOpacity, Text, TextInput, Image, ActivityIndicator, Modal, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import FeedPost from '../../components/feed/FeedPost';
 import { useFeed } from '../../hooks/useFeed';
