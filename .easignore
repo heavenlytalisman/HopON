@@ -43,8 +43,5 @@ yarn-error.*
 jdk17/
 jdk17.zip
 
-# local env files
-.env
-
-# Firebase Config
-google-services.json
+# NOTE: google-services.json is intentionally OMITTED here so EAS Build will upload it,
+# even though it is ignored in .gitignore!
