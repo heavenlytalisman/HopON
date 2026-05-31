@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "844079218774",
+    "project_id": "hopon-48671",
+    "storage_bucket": "hopon-48671.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:844079218774:android:77f8c5f4e3c33e4e25bbf7",
+        "android_client_info": {
+          "package_name": "com.hopon.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "844079218774-3m91r7vbntl8ngc0d0t9hi08vss2deji.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUYFZbMnB2pVPBWiJHzbHyRFNAzyvo1io"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "844079218774-3m91r7vbntl8ngc0d0t9hi08vss2deji.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

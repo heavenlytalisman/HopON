@@ -16,7 +16,8 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "package": "com.hopon.app"
+      "package": "com.hopon.app",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -26,13 +27,17 @@
         "expo-build-properties",
         {
           "android": {
-            "enableProguardInReleaseBuilds": false,
-            "enableShrinkResourcesInReleaseBuilds": false,
-            "enableMinifyInReleaseBuilds": false
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "enableMinifyInReleaseBuilds": true
           }
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      "expo-camera",
+      "expo-image-picker",
+      "expo-notifications",
+      "expo-av"
     ],
     "extra": {
       "eas": {
