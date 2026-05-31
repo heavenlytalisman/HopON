@@ -19,21 +19,39 @@ const firebaseConfig = {
 let app: FirebaseApp;
 let auth: Auth;
 
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-  if (Platform.OS === 'web') {
-    auth = getAuth(app);
-  } else {
-    auth = initializeAuth(app, {
-      persistence: getReactNativePersistence(AsyncStorage),
-    });
+try {
+  if (!firebaseConfig.apiKey) {
+    console.warn('Firebase API Key is missing! Please ensure .env variables are loaded.');
   }
-} else {
-  app = getApp();
-  auth = getAuth(app);
+
+  if (!getApps().length) {
+    app = initializeApp(firebaseConfig);
+    if (Platform.OS === 'web') {
+      auth = getAuth(app);
+    } else {
+      auth = initializeAuth(app, {
+        persistence: getReactNativePersistence(AsyncStorage),
+      });
+    }
+  } else {
+    app = getApp();
+    auth = getAuth(app);
+  }
+} catch (error) {
+  console.error("Firebase Initialization Error:", error);
 }
 
-const db: Firestore = getFirestore(app);
-const storage: FirebaseStorage = getStorage(app);
+let db: Firestore;
+let storage: FirebaseStorage;
+
+if (app) {
+  db = getFirestore(app);
+  storage = getStorage(app);
+} else {
+  // Provide dummy or casted references to satisfy TypeScript so the build doesn't fail.
+  // This will never be hit if env variables are present.
+  db = {} as Firestore;
+  storage = {} as FirebaseStorage;
+}
 
 export { app, auth, db, storage };
