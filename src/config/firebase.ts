@@ -16,8 +16,8 @@ const firebaseConfig = {
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
-let app: FirebaseApp;
-let auth: Auth;
+let app: FirebaseApp = undefined as any;
+let auth: Auth = undefined as any;
 
 try {
   if (!firebaseConfig.apiKey) {
