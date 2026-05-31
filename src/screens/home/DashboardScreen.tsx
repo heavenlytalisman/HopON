@@ -51,7 +51,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
         
         {/* Header */}
         <View style={styles.header}>
-          <Ionicons name="planet" size={28} color={Colors.primary} />
+          <Image source={require('../../../assets/icon.png')} style={{ width: 32, height: 32, borderRadius: 8 }} />
           <View style={styles.headerRight}>
             <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Notifications' as any)}>
               <Ionicons name="notifications-outline" size={24} color={Colors.textPrimary} />

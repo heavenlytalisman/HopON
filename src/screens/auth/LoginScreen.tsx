@@ -61,7 +61,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
           <View style={styles.content}>
 
             <View style={styles.topSection}>
-              <Ionicons name="planet" size={64} color={Colors.primary} style={{ marginBottom: Spacing.md }} />
+              <Image source={require('../../../assets/icon.png')} style={{ width: 80, height: 80, borderRadius: 20, marginBottom: Spacing.md }} />
 
               <Text style={[styles.brandTitle, isDesktop && styles.brandTitleDesktop]}>
                 HOP<Text style={styles.brandTitleAccent}>ON</Text>
