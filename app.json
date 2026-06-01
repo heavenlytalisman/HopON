@@ -25,9 +25,9 @@
         "expo-build-properties",
         {
           "android": {
-            "enableProguardInReleaseBuilds": false,
-            "enableShrinkResourcesInReleaseBuilds": false,
-            "enableMinifyInReleaseBuilds": false
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "enableMinifyInReleaseBuilds": true
           }
         }
       ],
@@ -36,7 +36,8 @@
       "expo-image-picker",
       "expo-notifications",
       "expo-audio",
-      "expo-asset"
+      "expo-asset",
+      "expo-image"
     ],
     "extra": {
       "eas": {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../constants/theme';
@@ -7,7 +7,8 @@ import { useFeed } from '../../hooks/useFeed';
 import { useAuth } from '../../context/AuthContext';
 import { useFriends } from '../../hooks/useFriends';
 import { EmptyState } from '../../components/ui/EmptyState';
-import type { RootStackScreenProps } from '../../types';
+import type { RootStackScreenProps } from '../../types';import { Image } from 'expo-image';
+
 
 export default function RecentActivityScreen({ navigation }: RootStackScreenProps<'RecentActivity'>) {
   const { posts } = useFeed();

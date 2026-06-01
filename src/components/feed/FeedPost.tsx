@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Share, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Share, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { createAudioPlayer, AudioPlayer } from 'expo-audio';
 import { useNavigation } from '@react-navigation/native';
@@ -11,7 +11,8 @@ import type { FeedPostData } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { createPost } from '../../services/firebase';
 import { serverTimestamp } from 'firebase/firestore';
-import { useUI } from '../../context/UIContext';
+import { useUI } from '../../context/UIContext';import { Image } from 'expo-image';
+
 
 interface FeedPostProps {
   post: FeedPostData;
@@ -71,7 +72,7 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
           <Image
             source={{ uri: mediaData.url }}
             style={styles.memeImage}
-            resizeMode="cover"
+            contentFit="cover"
           />
         );
       case 'anime':
@@ -97,7 +98,7 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
       case 'game':
         return (
           <View style={styles.gameCardCol}>
-            <Image source={{ uri: mediaData.poster }} style={styles.gameCoverLarge} resizeMode="cover" />
+            <Image source={{ uri: mediaData.poster }} style={styles.gameCoverLarge} contentFit="cover" />
             <View style={styles.gameInfoCol}>
               <Text style={styles.mediaTitle}>{mediaData.title}</Text>
               <Text style={styles.mediaSubtitle}>{mediaData.source} • ★ {mediaData.rating}</Text>

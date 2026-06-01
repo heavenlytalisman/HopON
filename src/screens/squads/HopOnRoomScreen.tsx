@@ -1,10 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useResponsive } from '../../hooks/useResponsive';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
-import type { RootStackScreenProps } from '../../types';
+import type { RootStackScreenProps } from '../../types';import { Image } from 'expo-image';
+
 
 export default function HopOnRoomScreen({ navigation, route }: RootStackScreenProps<'HopOnRoom'>) {
   const { squadName, squadWallpaper } = route.params || { squadName: 'Squad' };

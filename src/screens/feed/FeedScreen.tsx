@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, FlatList, StyleSheet, TouchableOpacity, Text, TextInput, Image, ActivityIndicator, Modal, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, FlatList, StyleSheet, TouchableOpacity, Text, TextInput, ActivityIndicator, Modal, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import FeedPost from '../../components/feed/FeedPost';
@@ -16,7 +16,8 @@ import MusicSearchModal from '../../components/feed/MusicSearchModal';
 import GifPickerModal from '../../components/feed/GifPickerModal';
 import MovieSearchModal from '../../components/feed/MovieSearchModal';
 import GameSearchModal from '../../components/feed/GameSearchModal';
-import * as ImagePicker from 'expo-image-picker';
+import * as ImagePicker from 'expo-image-picker';import { Image } from 'expo-image';
+
 
 export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
   const { posts, loading, isPosting, publishPost } = useFeed();

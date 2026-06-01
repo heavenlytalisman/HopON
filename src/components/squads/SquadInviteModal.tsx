@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, FlatList, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
-import { useFriends } from '../../hooks/useFriends';
+import { useFriends } from '../../hooks/useFriends';import { Image } from 'expo-image';
+
 
 interface SquadInviteModalProps {
   visible: boolean;

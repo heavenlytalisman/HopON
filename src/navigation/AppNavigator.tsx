@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet, Image, Platform } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
@@ -33,7 +33,8 @@ import FriendsScreen from '../screens/social/FriendsScreen';
 
 import { useAuth } from '../context/AuthContext';
 import { Colors } from '../constants/theme';
-import type { RootStackParamList, MainTabParamList } from '../types';
+import type { RootStackParamList, MainTabParamList } from '../types';import { Image } from 'expo-image';
+
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({

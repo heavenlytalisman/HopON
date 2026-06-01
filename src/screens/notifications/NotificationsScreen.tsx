@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useNotifications } from '../../hooks/useNotifications';
-import type { RootStackScreenProps } from '../../types';
+import type { RootStackScreenProps } from '../../types';import { Image } from 'expo-image';
+
 
 export default function NotificationsScreen({ navigation }: RootStackScreenProps<'Notifications'>) {
   const [activeTab, setActiveTab] = useState<'activity' | 'follows'>('follows');

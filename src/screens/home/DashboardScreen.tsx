@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Dimensions, Modal, Vibration, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Modal, Vibration, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,7 +14,8 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { useFriends } from '../../hooks/useFriends';
 import { useFeed } from '../../hooks/useFeed';
 import { useSquads } from '../../hooks/useSquads';
-import { useNotifications } from '../../hooks/useNotifications';
+import { useNotifications } from '../../hooks/useNotifications';import { Image } from 'expo-image';
+
 
 
 export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home'>) {

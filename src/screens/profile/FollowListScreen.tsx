@@ -1,12 +1,13 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing } from '../../constants/theme';
 import type { RootStackScreenProps } from '../../types';
 
 import { EmptyState } from '../../components/ui/EmptyState';
-import { useFriends } from '../../hooks/useFriends';
+import { useFriends } from '../../hooks/useFriends';import { Image } from 'expo-image';
+
 
 export default function FollowListScreen({ route, navigation }: RootStackScreenProps<'FollowList'>) {
   const { type, userName } = route.params;

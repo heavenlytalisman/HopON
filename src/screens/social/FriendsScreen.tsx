@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useFriends } from '../../hooks/useFriends';
 import { useResponsive } from '../../hooks/useResponsive';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
-import type { MainTabScreenProps, Friend } from '../../types';
+import type { MainTabScreenProps, Friend } from '../../types';import { Image } from 'expo-image';
+
 
 export default function FriendsScreen({ navigation }: any) {
   const [searchQuery, setSearchQuery] = useState('');

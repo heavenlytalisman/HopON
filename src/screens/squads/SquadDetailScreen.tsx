@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, Keyboard, Image, Modal, ScrollView, Animated, PanResponder, Dimensions, ActivityIndicator, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, Keyboard, Modal, ScrollView, Animated, PanResponder, Dimensions, ActivityIndicator, ImageBackground } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
@@ -40,7 +40,8 @@ interface StickerPack {
   stickers: string[];
 }
 
-import { EmptyState } from '../../components/ui/EmptyState';
+import { EmptyState } from '../../components/ui/EmptyState';import { Image } from 'expo-image';
+
 
 const SwipeableMessage = ({ item, onReply, onLongPress, children }: any) => {
   const pan = useRef(new Animated.ValueXY()).current;
@@ -811,7 +812,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
         <Modal visible={!!viewingPhoto} animationType="fade" transparent={true} onRequestClose={() => setViewingPhoto(null)}>
           <View style={styles.viewOnceFullscreen}>
             {viewingPhoto && (
-              <Image source={{ uri: viewingPhoto }} style={styles.viewOnceImage} resizeMode="contain" />
+              <Image source={{ uri: viewingPhoto }} style={styles.viewOnceImage} contentFit="contain" />
             )}
             <View style={styles.viewOnceHeader}>
               <View style={styles.viewOnceBadge}>

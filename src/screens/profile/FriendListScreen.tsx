@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing } from '../../constants/theme';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useFriends } from '../../hooks/useFriends';
-import type { RootStackScreenProps } from '../../types';
+import type { RootStackScreenProps } from '../../types';import { Image } from 'expo-image';
+
 
 export default function FriendListScreen({ navigation }: RootStackScreenProps<'FriendList'>) {
   const { friends, loadingFriends } = useFriends();

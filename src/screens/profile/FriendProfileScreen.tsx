@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -10,7 +10,8 @@ import type { RootStackScreenProps, FeedPostData } from '../../types';
 const { width } = Dimensions.get('window');
 
 import { EmptyState } from '../../components/ui/EmptyState';
-import { useFeed } from '../../hooks/useFeed';
+import { useFeed } from '../../hooks/useFeed';import { Image } from 'expo-image';
+
 
 export default function FriendProfileScreen({ route, navigation }: RootStackScreenProps<'FriendProfile'>) {
   const { friendId, friendName, friendAvatar } = route.params;

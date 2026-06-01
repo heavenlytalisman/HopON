@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput, ScrollView, Platform, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Platform, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -8,7 +8,8 @@ import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme'
 import { useSquads } from '../../hooks/useSquads';
 import { removeMemberFromGroup } from '../../services/firebase';
 import type { RootStackScreenProps } from '../../types';
-import SquadInviteModal from '../../components/squads/SquadInviteModal';
+import SquadInviteModal from '../../components/squads/SquadInviteModal';import { Image } from 'expo-image';
+
 
 export default function SquadEditScreen({ route, navigation }: RootStackScreenProps<'SquadEdit'>) {
   const { squadId, squadName: initialName, squadAvatar: initialAvatar } = route.params;

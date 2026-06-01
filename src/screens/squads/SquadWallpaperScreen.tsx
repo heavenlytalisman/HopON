@@ -1,10 +1,11 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, PanResponder, Dimensions, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, PanResponder, Dimensions, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
-import type { RootStackScreenProps } from '../../types';
+import type { RootStackScreenProps } from '../../types';import { Image } from 'expo-image';
+
 
 const { width } = Dimensions.get('window');
 const SLIDER_WIDTH = width - Spacing.xl * 2;

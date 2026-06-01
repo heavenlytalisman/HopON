@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Animated } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useResponsive } from '../../hooks/useResponsive';
 import { useUI } from '../../context/UIContext';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
-import type { RootStackScreenProps, CallerInfo } from '../../types';
+import type { RootStackScreenProps, CallerInfo } from '../../types';import { Image } from 'expo-image';
+
 
 const QUICK_REPLIES = ['Busy rn', 'Give me 10 mins', 'In a match', 'Maybe later'];
 
