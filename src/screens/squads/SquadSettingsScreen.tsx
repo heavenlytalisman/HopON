@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
+import { createAudioPlayer, AudioPlayer } from 'expo-audio';
 import { useUI } from '../../context/UIContext';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
 import type { RootStackScreenProps } from '../../types';
@@ -34,13 +34,17 @@ export default function SquadSettingsScreen({ route, navigation }: RootStackScre
   const [isSearching, setIsSearching] = useState(false);
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
   const [playingTrackId, setPlayingTrackId] = useState<number | null>(null);
-  const [soundObject, setSoundObject] = useState<Audio.Sound | null>(null);
+  const [player, setPlayer] = useState<AudioPlayer | null>(null);
   
   const { showToast, showDialog } = useUI();
 
   useEffect(() => {
-    return soundObject ? () => { soundObject.unloadAsync(); } : undefined;
-  }, [soundObject]);
+    return () => {
+      if (player) {
+        player.remove();
+      }
+    };
+  }, [player]);
 
   const searchSongs = async (query: string) => {
     setSearchQuery(query);
@@ -62,25 +66,20 @@ export default function SquadSettingsScreen({ route, navigation }: RootStackScre
 
   const playPreview = async (track: Track) => {
     try {
-      if (soundObject) {
-        await soundObject.unloadAsync();
-        setSoundObject(null);
+      if (player) {
+        player.pause();
+        player.remove();
+        setPlayer(null);
       }
       if (playingTrackId === track.trackId) {
         setPlayingTrackId(null);
         return; // Toggle off
       }
-      const { sound } = await Audio.Sound.createAsync({ uri: track.previewUrl });
-      setSoundObject(sound);
-      setPlayingTrackId(track.trackId);
-      await sound.playAsync();
       
-      sound.setOnPlaybackStatusUpdate((status: any) => {
-        if (status.isLoaded && status.didJustFinish) {
-          setPlayingTrackId(null);
-          sound.unloadAsync();
-        }
-      });
+      const newPlayer = createAudioPlayer(track.previewUrl);
+      setPlayer(newPlayer);
+      setPlayingTrackId(track.trackId);
+      newPlayer.play();
     } catch (error) {
       console.error("Error playing sound", error);
     }
@@ -135,8 +134,10 @@ export default function SquadSettingsScreen({ route, navigation }: RootStackScre
               ]}
               onPress={() => {
                 setSelectedSound(sound.id);
-                if (soundObject) {
-                  soundObject.unloadAsync();
+                if (player) {
+                  player.pause();
+                  player.remove();
+                  setPlayer(null);
                   setPlayingTrackId(null);
                 }
               }}

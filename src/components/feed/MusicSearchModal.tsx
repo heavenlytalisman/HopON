@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, FlatList, TouchableOpacity, Image, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
+import { createAudioPlayer, AudioPlayer } from 'expo-audio';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 
 interface MusicSearchModalProps {
@@ -16,7 +16,7 @@ export default function MusicSearchModal({ visible, onClose, onSelectSong }: Mus
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [player, setPlayer] = useState<AudioPlayer | null>(null);
   const [playingId, setPlayingId] = useState<string | null>(null);
 
   // Stop sound when modal closes
@@ -27,12 +27,12 @@ export default function MusicSearchModal({ visible, onClose, onSelectSong }: Mus
   }, [visible]);
 
   useEffect(() => {
-    return sound
-      ? () => {
-          sound.unloadAsync();
-        }
-      : undefined;
-  }, [sound]);
+    return () => {
+      if (player) {
+        player.remove();
+      }
+    };
+  }, [player]);
 
   useEffect(() => {
     if (visible && !query.trim() && results.length === 0) {
@@ -81,10 +81,10 @@ export default function MusicSearchModal({ visible, onClose, onSelectSong }: Mus
   };
 
   const stopSound = async () => {
-    if (sound) {
-      await sound.stopAsync();
-      await sound.unloadAsync();
-      setSound(null);
+    if (player) {
+      player.pause();
+      player.remove();
+      setPlayer(null);
       setPlayingId(null);
     }
   };
@@ -100,19 +100,10 @@ export default function MusicSearchModal({ visible, onClose, onSelectSong }: Mus
       // Stop currently playing
       await stopSound();
 
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: previewUrl },
-        { shouldPlay: true }
-      );
-      setSound(newSound);
+      const newPlayer = createAudioPlayer(previewUrl);
+      setPlayer(newPlayer);
       setPlayingId(trackId);
-
-      newSound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) {
-          setPlayingId(null);
-          setSound(null);
-        }
-      });
+      newPlayer.play();
     } catch (error) {
       console.error('Error playing sound:', error);
     }

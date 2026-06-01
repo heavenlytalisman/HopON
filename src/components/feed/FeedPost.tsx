@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Share, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
+import { createAudioPlayer, AudioPlayer } from 'expo-audio';
 import { useNavigation } from '@react-navigation/native';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
@@ -23,44 +23,36 @@ interface FeedPostProps {
 export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentPress }: FeedPostProps) {
   const { author, timestamp, content, mediaType, mediaData } = post;
   
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [player, setPlayer] = useState<AudioPlayer | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedPostOptions, setSelectedPostOptions] = useState<FeedPostData | null>(null);
   const { showToast, showDialog } = useUI();
 
   useEffect(() => {
-    return sound
-      ? () => {
-          sound.unloadAsync();
-        }
-      : undefined;
-  }, [sound]);
+    return () => {
+      if (player) {
+        player.remove();
+      }
+    };
+  }, [player]);
 
   const togglePlayback = async (previewUrl: string) => {
     if (!previewUrl) return;
 
     try {
-      if (sound) {
+      if (player) {
         if (isPlaying) {
-          await sound.pauseAsync();
+          player.pause();
           setIsPlaying(false);
         } else {
-          await sound.playAsync();
+          player.play();
           setIsPlaying(true);
         }
       } else {
-        const { sound: newSound } = await Audio.Sound.createAsync(
-          { uri: previewUrl },
-          { shouldPlay: true }
-        );
-        setSound(newSound);
+        const newPlayer = createAudioPlayer(previewUrl);
+        setPlayer(newPlayer);
         setIsPlaying(true);
-
-        newSound.setOnPlaybackStatusUpdate((status) => {
-          if (status.isLoaded && status.didJustFinish) {
-            setIsPlaying(false);
-          }
-        });
+        newPlayer.play();
       }
     } catch (error) {
       console.error('Error playing sound:', error);
