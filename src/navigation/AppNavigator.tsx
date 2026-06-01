@@ -9,6 +9,8 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 import FeedIcon from '../components/icons/FeedIcon';
 import LoginScreen from '../screens/auth/LoginScreen';
+import EmailLoginScreen from '../screens/auth/EmailLoginScreen';
+import RegisterScreen from '../screens/auth/RegisterScreen';
 import DashboardHomeScreen from '../screens/home/DashboardScreen';
 import FeedScreen from '../screens/feed/FeedScreen';
 import SquadsScreen from '../screens/squads/DashboardScreen';
@@ -33,7 +35,8 @@ import FriendsScreen from '../screens/social/FriendsScreen';
 
 import { useAuth } from '../context/AuthContext';
 import { Colors } from '../constants/theme';
-import type { RootStackParamList, MainTabParamList } from '../types';import { Image } from 'expo-image';
+import type { RootStackParamList, MainTabParamList } from '../types';
+import { Image } from 'expo-image';
 
 
 Notifications.setNotificationHandler({
@@ -145,6 +148,8 @@ export default function AppNavigator() {
       screenOptions={{ headerShown: false }}
     >
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="EmailLogin" component={EmailLoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="MainTabs" component={MainTabs} />
       {/* Profile is now in tabs, but we might keep the stack screen if accessed from other places */}
       <Stack.Screen name="Profile" component={ProfileScreen} />

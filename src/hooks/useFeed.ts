@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { serverTimestamp } from 'firebase/firestore';
-import { subscribeToFeed, createPost as createPostService } from '../services/firebase';
+import { subscribeToFeed, createPost as createPostService, togglePostLike, addReplyToPost } from '../services/firebase';
+import { storage } from '../config/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '../context/AuthContext';
 import type { FeedPostData, Post } from '../types';
 
@@ -31,6 +33,7 @@ export function useFeed() {
           return {
             id: p.id,
             author: (p as FeedPostData).author || {
+              id: (p as Post).authorId,
               name: (p as Post).authorName,
               handle: (p as Post).authorHandle,
               avatar: (p as Post).authorAvatar,
@@ -43,6 +46,8 @@ export function useFeed() {
             mediaType: p.mediaType,
             mediaData: p.mediaData,
             thread: p.thread ? p.thread.map(mapPost) : undefined,
+            replies: p.replies ? p.replies.map(mapPost) : undefined,
+            likedBy: p.likedBy || [],
             repostedBy: p.repostedBy,
           };
         };
@@ -77,6 +82,22 @@ export function useFeed() {
     }));
 
     try {
+      let finalMediaData = attachedMedia ? { ...attachedMedia } : undefined;
+
+      // Detect local file URIs and upload to Firebase Storage
+      if (finalMediaData && finalMediaData.url && finalMediaData.url.startsWith('file://')) {
+        const response = await fetch(finalMediaData.url);
+        const blob = await response.blob();
+        
+        const fileExt = finalMediaData.url.split('.').pop() || 'jpg';
+        const fileName = `posts/${profile.uid}_${Date.now()}.${fileExt}`;
+        const storageRef = ref(storage, fileName);
+        
+        await uploadBytes(storageRef, blob);
+        const downloadUrl = await getDownloadURL(storageRef);
+        finalMediaData.url = downloadUrl;
+      }
+
       await createPostService({
         authorId: profile.uid || 'unknown',
         authorName: profile.nickname,
@@ -86,12 +107,37 @@ export function useFeed() {
         timestamp: serverTimestamp(),
         thread: thread.length > 0 ? thread : undefined,
         mediaType: attachedMediaType as any,
-        mediaData: attachedMedia ? attachedMedia : undefined,
+        mediaData: finalMediaData,
       });
     } finally {
       setIsPosting(false);
     }
   };
 
-  return { posts, loading, isPosting, publishPost };
+  const likePost = async (postId: string) => {
+    if (!profile?.uid) return;
+    try {
+      await togglePostLike(postId, profile.uid);
+    } catch (error) {
+      console.error('Error liking post:', error);
+    }
+  };
+
+  const replyToPost = async (postId: string, content: string) => {
+    if (!profile?.uid || !content.trim()) return;
+    try {
+      await addReplyToPost(postId, {
+        authorId: profile.uid,
+        authorName: profile.nickname,
+        authorHandle: `@${profile.nickname.toLowerCase().replace(/\s+/g, '')}`,
+        authorAvatar: profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.nickname)}&background=7C3AED&color=FFF`,
+        content: content.trim(),
+        timestamp: serverTimestamp(),
+      } as any);
+    } catch (error) {
+      console.error('Error replying to post:', error);
+    }
+  };
+
+  return { posts, loading, isPosting, publishPost, likePost, replyToPost };
 }

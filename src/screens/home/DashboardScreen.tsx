@@ -29,7 +29,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
 
   const displayAvatar = profile?.avatar;
 
-  const onlineFriends = friends.filter(f => true); // Assume all friends are online for now or add status logic later
+  const onlineFriends = friends.filter((f: any) => f.isOnline);
 
   const { squads } = useSquads();
   const isSquadOnline = squads.some(squad =>
@@ -126,7 +126,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
                 onPress={() => navigation.navigate('FriendProfile', { friendId: user.uid, friendName: user.nickname, friendAvatar: user.avatar || '' })}
               >
                 <View style={[styles.avatarRing, { borderColor: Colors.success }]}>
-                  <Image source={{ uri: user.avatar + user.uid }} style={styles.onlineAvatar} />
+                  <Image source={{ uri: user.avatar }} style={styles.onlineAvatar} />
                   <View style={[styles.statusDot, { backgroundColor: Colors.success }]} />
                 </View>
                 <Text style={styles.onlineUserName} numberOfLines={1}>{user.nickname}</Text>

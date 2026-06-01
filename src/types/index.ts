@@ -7,6 +7,7 @@ import type { CompositeScreenProps, NavigatorScreenParams } from '@react-navigat
 // ──────────────────────────────────────────────
 
 export interface User {
+  id?: string;
   uid: string;
   nickname: string;
   handle?: string;
@@ -22,7 +23,11 @@ export interface Group {
   id: string;
   name: string;
   avatar?: string;
+  wallpaper?: string;
+  ringtone?: string;
   members: string[];
+  ownerId?: string;
+  memberAvatars?: string[];
   createdAt?: Date | string;
   // UI-only fields for mock data
   online?: number;
@@ -43,6 +48,8 @@ export interface Post {
   mediaType?: 'meme' | 'anime' | 'movie' | 'song' | 'game';
   mediaData?: MediaData;
   thread?: Post[];
+  replies?: Post[];
+  likedBy?: string[];
   repostedBy?: {
     name: string;
     handle: string;
@@ -63,6 +70,7 @@ export type MediaData = {
 export interface FeedPostData {
   id: string;
   author: {
+    id: string;
     name: string;
     handle: string;
     avatar: string;
@@ -76,6 +84,7 @@ export interface FeedPostData {
   mediaData?: MediaData;
   thread?: FeedPostData[]; // For flat author continuations
   replies?: FeedPostData[]; // For nested child comments
+  likedBy?: string[];
   repostedBy?: {
     name: string;
     handle: string;
@@ -108,6 +117,7 @@ export interface SquadMember {
 }
 
 export interface CallerInfo {
+  squadId?: string;
   squadName: string;
   callerName: string;
   avatar: string;
@@ -129,6 +139,8 @@ export interface Friend {
 
 export type RootStackParamList = {
   Login: undefined;
+  EmailLogin: undefined;
+  Register: undefined;
   MainTabs: NavigatorScreenParams<MainTabParamList> | undefined;
   Profile: undefined;
   SquadDetail: { squadId: string; squadName: string; squadAvatar?: string; squadWallpaper?: string; wallpaperOpacity?: number };
@@ -136,7 +148,7 @@ export type RootStackParamList = {
   SquadSettings: { squadId: string; squadName: string; squadAvatar?: string };
   SquadWallpaper: { squadId: string; squadWallpaper?: string; wallpaperOpacity?: number };
   CreateSquad: undefined;
-  HopOnRoom: { squadName: string; squadWallpaper?: string };
+  HopOnRoom: { squadId: string; squadName: string; squadWallpaper?: string };
   IncomingAlert: { caller?: CallerInfo } | undefined;
   QuickSquadSelect: undefined;
   FriendProfile: { friendId: string; friendName: string; friendAvatar: string };

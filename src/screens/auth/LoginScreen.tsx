@@ -7,8 +7,8 @@ import { BlurView } from 'expo-blur';
 import { useAuth } from '../../context/AuthContext';
 import { useResponsive } from '../../hooks/useResponsive';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../constants/theme';
-import type { RootStackScreenProps } from '../../types';import { Image } from 'expo-image';
-
+import type { RootStackScreenProps } from '../../types';
+import { Image } from 'expo-image';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -38,8 +38,6 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
       setLoading(false);
     }
   };
-
-
 
   return (
     <View style={styles.container}>
@@ -100,7 +98,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
               </TouchableOpacity>
               */}
 
-              <TouchableOpacity style={styles.glassButton} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.glassButton} activeOpacity={0.7} onPress={() => navigation.navigate('EmailLogin')}>
                 <View style={styles.glassButtonContent}>
                   <Ionicons name="mail-outline" size={24} color="#FFFFFF" />
                   <Text style={styles.glassButtonText}>Continue with Email</Text>

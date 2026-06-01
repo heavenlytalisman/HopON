@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { createAudioPlayer, AudioPlayer } from 'expo-audio';
 import { useUI } from '../../context/UIContext';
+import { removeMemberFromGroup, updateGroupDetails } from '../../services/firebase';
+import { useAuth } from '../../context/AuthContext';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
 import type { RootStackScreenProps } from '../../types';import { Image } from 'expo-image';
 
@@ -38,6 +40,7 @@ export default function SquadSettingsScreen({ route, navigation }: RootStackScre
   const [player, setPlayer] = useState<AudioPlayer | null>(null);
   
   const { showToast, showDialog } = useUI();
+  const { profile } = useAuth();
 
   useEffect(() => {
     return () => {
@@ -91,14 +94,19 @@ export default function SquadSettingsScreen({ route, navigation }: RootStackScre
     setSelectedTrack(track);
   };
 
-  const handleSave = () => {
-    showToast({
-      title: 'Preferences updated',
-      type: 'success',
-    });
-    setTimeout(() => {
-      navigation.goBack();
-    }, 1000);
+  const handleSave = async () => {
+    try {
+      await updateGroupDetails(squadId, { ringtone: String(selectedSound) });
+      showToast({
+        title: 'Preferences updated',
+        type: 'success',
+      });
+      setTimeout(() => {
+        navigation.goBack();
+      }, 1000);
+    } catch (error) {
+      showToast({ title: 'Error', message: 'Failed to save preferences', type: 'error' });
+    }
   };
 
   const handleLeaveSquad = () => {
@@ -107,7 +115,16 @@ export default function SquadSettingsScreen({ route, navigation }: RootStackScre
       message: 'Are you sure you want to leave this squad? This action cannot be undone.',
       actions: [
         { text: 'Cancel', style: 'cancel', onPress: () => {} },
-        { text: 'Leave', style: 'destructive', onPress: () => navigation.navigate('MainTabs', { screen: 'Squads' } as any) }
+        { 
+          text: 'Leave', 
+          style: 'destructive', 
+          onPress: async () => {
+            if (profile?.uid) {
+              await removeMemberFromGroup(squadId, profile.uid);
+              navigation.navigate('MainTabs', { screen: 'Squads' } as any);
+            }
+          } 
+        }
       ]
     });
   };

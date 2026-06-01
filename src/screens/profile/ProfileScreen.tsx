@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useProfile } from '../../hooks/useProfile';
+import { useFriends } from '../../hooks/useFriends';
 import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
@@ -29,6 +30,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
   const [isSaving, setIsSaving] = useState(false);
 
   const { posts, loading: feedLoading } = useFeed();
+  const { friends } = useFriends();
   const myPosts = posts.filter((p) => p.author.handle === getHandle());
 
   const handleLogout = () => {

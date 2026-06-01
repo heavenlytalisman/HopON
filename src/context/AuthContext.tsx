@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { AppState } from 'react-native';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { auth } from '../config/firebase';
-import { getUserProfile, loginAnonymously, updateUserPushToken } from '../services/firebase';
+import { getUserProfile, loginAnonymously, updateUserPushToken, loginWithEmail, registerWithEmail, updateUserPresence } from '../services/firebase';
 import { registerForPushNotificationsAsync } from '../services/notifications';
 import type { User } from '../types';
 
@@ -10,6 +11,8 @@ interface AuthContextType {
   profile: User | null;
   isLoading: boolean;
   login: (nickname: string) => Promise<void>;
+  loginEmail: (email: string, pass: string) => Promise<void>;
+  registerEmail: (email: string, pass: string, handle: string, nickname: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -27,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (user) {
         const data = await getUserProfile(user.uid);
         setProfile(data);
+        await updateUserPresence(user.uid, true);
       } else {
         setProfile(null);
       }
@@ -34,6 +38,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     return unsubscribe;
   }, []);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', async (nextAppState) => {
+      if (firebaseUser) {
+        if (nextAppState === 'active') {
+          await updateUserPresence(firebaseUser.uid, true);
+        } else if (nextAppState === 'background' || nextAppState === 'inactive') {
+          await updateUserPresence(firebaseUser.uid, false);
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [firebaseUser]);
 
   const login = async (nickname: string) => {
     const user = await loginAnonymously(nickname);
@@ -49,7 +69,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(data);
   };
 
+  const loginEmail = async (email: string, pass: string) => {
+    const user = await loginWithEmail(email, pass);
+    const token = await registerForPushNotificationsAsync();
+    if (token) {
+      await updateUserPushToken(user.uid, token);
+    }
+    const data = await getUserProfile(user.uid);
+    setProfile(data);
+  };
+
+  const registerEmail = async (email: string, pass: string, handle: string, nickname: string) => {
+    const user = await registerWithEmail(email, pass, handle, nickname);
+    const token = await registerForPushNotificationsAsync();
+    if (token) {
+      await updateUserPushToken(user.uid, token);
+    }
+    const data = await getUserProfile(user.uid);
+    setProfile(data);
+  };
+
   const logout = async () => {
+    if (firebaseUser) {
+      await updateUserPresence(firebaseUser.uid, false);
+    }
     await auth.signOut();
     setProfile(null);
   };
@@ -62,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ firebaseUser, profile, isLoading, login, logout, refreshProfile }}>
+    <AuthContext.Provider value={{ firebaseUser, profile, isLoading, login, loginEmail, registerEmail, logout, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

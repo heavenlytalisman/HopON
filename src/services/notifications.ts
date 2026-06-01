@@ -53,6 +53,22 @@ export const registerForPushNotificationsAsync = async (): Promise<string | null
   return token;
 };
 
+const stripUndefined = (obj: any) => {
+  const newObj = { ...obj };
+  Object.keys(newObj).forEach(key => {
+    if (newObj[key] === undefined) {
+      delete newObj[key];
+    } else if (newObj[key] !== null && typeof newObj[key] === 'object' && newObj[key].constructor?.name === 'Object') {
+      const nested = { ...newObj[key] };
+      Object.keys(nested).forEach(nKey => {
+        if (nested[nKey] === undefined) delete nested[nKey];
+      });
+      newObj[key] = nested;
+    }
+  });
+  return newObj;
+};
+
 export const sendPushNotification = async (
   expoPushToken: string,
   title: string,
@@ -70,7 +86,7 @@ export const sendPushNotification = async (
       token: expoPushToken,
       title,
       body,
-      data: data || {},
+      data: stripUndefined(data || {}),
       status: 'pending',
       createdAt: serverTimestamp(),
     });

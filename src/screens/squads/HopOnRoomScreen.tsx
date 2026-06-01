@@ -1,16 +1,22 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useResponsive } from '../../hooks/useResponsive';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
+import { joinHopOnRoom, leaveHopOnRoom, subscribeToHopOnRoom } from '../../services/firebase';
+import { useAuth } from '../../context/AuthContext';
+import { User } from '../../types';
 import type { RootStackScreenProps } from '../../types';import { Image } from 'expo-image';
 
 
 export default function HopOnRoomScreen({ navigation, route }: RootStackScreenProps<'HopOnRoom'>) {
-  const { squadName, squadWallpaper } = route.params || { squadName: 'Squad' };
+  const { squadId, squadName, squadWallpaper } = route.params || { squadId: '', squadName: 'Squad' };
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const { contentWidth, horizontalPadding } = useResponsive();
+  const { profile } = useAuth();
+  
+  const [activeMembers, setActiveMembers] = useState<User[]>([]);
 
   useEffect(() => {
     Animated.loop(
@@ -21,6 +27,30 @@ export default function HopOnRoomScreen({ navigation, route }: RootStackScreenPr
     ).start();
   }, []);
 
+  useEffect(() => {
+    if (!squadId || !profile?.uid) return;
+    
+    // Join the room on mount
+    joinHopOnRoom(squadId, profile.uid);
+    
+    // Subscribe to active members
+    const unsubscribe = subscribeToHopOnRoom(squadId, (members) => {
+      setActiveMembers(members);
+    });
+    
+    // Leave room on unmount
+    return () => {
+      leaveHopOnRoom(squadId, profile.uid);
+      unsubscribe();
+    };
+  }, [squadId, profile?.uid]);
+
+  const handleLeave = () => {
+    if (squadId && profile?.uid) {
+      leaveHopOnRoom(squadId, profile.uid);
+    }
+    navigation.goBack();
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -38,14 +68,28 @@ export default function HopOnRoomScreen({ navigation, route }: RootStackScreenPr
         </View>
 
         <View style={styles.gridContainer}>
-          <Animated.View style={{ opacity: pulseAnim, alignItems: 'center' }}>
-            <Ionicons name="radio-outline" size={64} color={Colors.primaryLight} />
-            <Text style={{ color: Colors.textMuted, marginTop: Spacing.md, fontSize: 16 }}>Waiting for members to join...</Text>
-          </Animated.View>
+          {activeMembers.length <= 1 ? (
+            <Animated.View style={{ opacity: pulseAnim, alignItems: 'center' }}>
+              <Ionicons name="radio-outline" size={64} color={Colors.primaryLight} />
+              <Text style={{ color: Colors.textMuted, marginTop: Spacing.md, fontSize: 16, textAlign: 'center' }}>
+                You are in the lobby.\nWaiting for members to join...
+              </Text>
+            </Animated.View>
+          ) : (
+            activeMembers.map(member => (
+              <View key={member.id} style={styles.memberCard}>
+                <View style={styles.avatarContainer}>
+                  <Image source={{ uri: member.avatar }} style={styles.avatar} />
+                </View>
+                <Text style={styles.memberName} numberOfLines={1}>{member.nickname}</Text>
+                <Text style={[styles.memberStatus, { color: Colors.success }]}>Ready</Text>
+              </View>
+            ))
+          )}
         </View>
 
         <View style={styles.footer}>
-          <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity style={styles.cancelButton} onPress={handleLeave}>
             <Ionicons name="call" size={32} color="#FFF" style={{ transform: [{ rotate: '135deg' }] }} />
           </TouchableOpacity>
         </View>

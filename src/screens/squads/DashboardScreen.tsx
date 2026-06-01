@@ -1,19 +1,26 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useSquads } from '../../hooks/useSquads';
 import { useAuth } from '../../context/AuthContext';
 import { useResponsive } from '../../hooks/useResponsive';
+import { useFocusEffect } from '@react-navigation/native';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../constants/theme';
-import type { MainTabScreenProps, Group } from '../../types';import { Image } from 'expo-image';
-
+import type { MainTabScreenProps, Group } from '../../types';
+import { Image } from 'expo-image';
 
 export default function SquadsScreen({ navigation }: MainTabScreenProps<'Squads'>) {
-  const { squads, loading } = useSquads();
+  const { squads, loading, refreshSquads } = useSquads();
   const { profile } = useAuth();
   const { contentWidth, horizontalPadding } = useResponsive();
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshSquads();
+    }, [])
+  );
 
   const renderGroupItem = ({ item }: { item: Group }) => (
     <TouchableOpacity
@@ -45,11 +52,16 @@ export default function SquadsScreen({ navigation }: MainTabScreenProps<'Squads'
         <Ionicons name="lock-closed-outline" size={20} color={Colors.textMuted} />
       ) : (
         <View style={styles.avatarsContainer}>
-          <Image source={{ uri: '' }} style={[styles.overlapAvatar, { zIndex: 3 }]} />
-          <Image source={{ uri: '' }} style={[styles.overlapAvatar, { zIndex: 2, marginLeft: -12 }]} />
-          {item.members.length > 2 && (
-            <View style={[styles.moreAvatar, { zIndex: 1, marginLeft: -12 }]}>
-              <Text style={styles.moreAvatarText}>+{item.members.length - 2}</Text>
+          {item.memberAvatars?.slice(0, 2).map((avatarUri, idx) => (
+            <Image 
+              key={`${item.id}-avatar-${idx}`}
+              source={{ uri: avatarUri }} 
+              style={[styles.overlapAvatar, { zIndex: 3 - idx, marginLeft: idx > 0 ? -12 : 0 }]} 
+            />
+          ))}
+          {item.members.length > (item.memberAvatars?.length || 0) && (
+            <View style={[styles.moreAvatar, { zIndex: 1, marginLeft: (item.memberAvatars?.length || 0) > 0 ? -12 : 0 }]}>
+              <Text style={styles.moreAvatarText}>+{item.members.length - (item.memberAvatars?.slice(0, 2).length || 0)}</Text>
             </View>
           )}
         </View>

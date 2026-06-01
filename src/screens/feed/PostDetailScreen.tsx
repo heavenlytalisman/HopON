@@ -1,61 +1,42 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, TextInput, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, TextInput, KeyboardAvoidingView, Platform, Keyboard, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import FeedPost from '../../components/feed/FeedPost';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import { useAuth } from '../../context/AuthContext';
-import type { RootStackScreenProps, FeedPostData } from '../../types';import { Image } from 'expo-image';
-
+import { useFeed } from '../../hooks/useFeed';
+import type { RootStackScreenProps, FeedPostData } from '../../types';
+import { Image } from 'expo-image';
 
 const { width } = Dimensions.get('window');
 
 export default function PostDetailScreen({ route, navigation }: RootStackScreenProps<'PostDetail'>) {
-  const { postData } = route.params;
+  const { postData, postId } = route.params;
   const { profile } = useAuth();
+  const { replyToPost, posts } = useFeed();
 
   // Initialize main post
-  const [mainPost, setMainPost] = useState<FeedPostData>(() => {
-    return postData;
+  const [mainPost, setMainPost] = useState<FeedPostData | undefined>(() => {
+    return postData || posts.find(p => p.id === postId);
   });
   const [replyText, setReplyText] = useState('');
   const inputRef = useRef<TextInput>(null);
 
-  const handleSubmitReply = () => {
-    if (!replyText.trim()) return;
-    
-    const userHandle = profile?.handle ? profile.handle : '@user';
-    const newReply: FeedPostData = {
-      id: `new_${Date.now()}`,
-      author: {
-        name: profile?.nickname || 'You',
-        handle: userHandle,
-        avatar: profile?.avatar || ''
-      },
-      content: replyText.trim(),
-      timestamp: 'Just now',
-      likes: 0,
-      comments: 0,
-      reposts: 0,
-    };
-
-    setMainPost(prev => {
-      // Follow parent-child thread logic
-      if (userHandle === prev.author.handle) {
-        // Flat author continuation (Thread)
-        return {
-          ...prev,
-          thread: [newReply, ...(prev.thread || [])]
-        };
-      } else {
-        // Nested child comment (Replies)
-        return {
-          ...prev,
-          replies: [newReply, ...(prev.replies || [])]
-        };
+  useEffect(() => {
+    if (postId) {
+      const updated = posts.find(p => p.id === postId);
+      if (updated) {
+        setMainPost(updated);
       }
-    });
+    }
+  }, [posts, postId]);
 
+  const handleSubmitReply = async () => {
+    if (!replyText.trim() || !postId) return;
+    
+    await replyToPost(postId, replyText.trim());
+    
     setReplyText('');
     Keyboard.dismiss();
   };
@@ -63,6 +44,23 @@ export default function PostDetailScreen({ route, navigation }: RootStackScreenP
   const handleCommentPress = () => {
     inputRef.current?.focus();
   };
+
+  if (!mainPost) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Post</Text>
+          <View style={{ width: 40 }} />
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="small" color={Colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>

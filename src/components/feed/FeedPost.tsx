@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import type { FeedPostData } from '../../types';
 import { useAuth } from '../../context/AuthContext';
-import { createPost } from '../../services/firebase';
+import { createPost, togglePostLike, incrementRepost, deletePost } from '../../services/firebase';
 import { serverTimestamp } from 'firebase/firestore';
 import { useUI } from '../../context/UIContext';import { Image } from 'expo-image';
 
@@ -134,19 +134,29 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
   const { profile } = useAuth();
 
   // Local state to handle interactions for the post and its thread
-  const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
+
   const [repostedPosts, setRepostedPosts] = useState<Record<string, boolean>>({});
 
-  const handleLike = (id: string) => {
-    setLikedPosts(prev => ({ ...prev, [id]: !prev[id] }));
+  const handleLike = async (id: string) => {
+    if (!profile?.uid) return;
+    try {
+      await togglePostLike(id, profile.uid);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleRepost = async (id: string) => {
     const isAlreadyReposted = repostedPosts[id];
-    setRepostedPosts(prev => ({ ...prev, [id]: !isAlreadyReposted }));
+    
+    // Prevent double reposting the same original post in a single session
+    if (isAlreadyReposted) return;
+    
+    setRepostedPosts(prev => ({ ...prev, [id]: true }));
 
-    if (!isAlreadyReposted && profile) {
+    if (profile) {
       try {
+        // Create duplicate with repostedBy metadata
         await createPost({
           authorId: profile.uid,
           authorName: post.author.name,
@@ -163,6 +173,9 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
             uid: profile.uid,
           }
         });
+        
+        // Increment the original post's reposts counter
+        await incrementRepost(id);
       } catch (error) {
         console.error('Error reposting:', error);
       }
@@ -218,18 +231,27 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
     setSelectedPostOptions(p);
   };
 
-  const executePostOption = () => {
+  const executePostOption = async () => {
     if (!selectedPostOptions) return;
     const isOwnPost = profile ? selectedPostOptions.author.handle === `@${profile.nickname.toLowerCase().replace(/\s+/g, '')}` : false;
     
+    const targetPostId = selectedPostOptions.id;
     setSelectedPostOptions(null);
-    setTimeout(() => {
+    
+    if (isOwnPost) {
+      await deletePost(targetPostId);
       showToast({ 
-        title: isOwnPost ? 'Post Deleted' : 'Post Hidden', 
-        message: isOwnPost ? 'Your post was removed.' : 'This post will no longer appear in your feed.', 
+        title: 'Post Deleted', 
+        message: 'Your post was removed.', 
         type: 'info' 
       });
-    }, 300);
+    } else {
+      showToast({ 
+        title: 'Post Hidden', 
+        message: 'This post will no longer appear in your feed.', 
+        type: 'info' 
+      });
+    }
   };
 
   const renderHiddenShareCard = () => {
@@ -263,9 +285,9 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
   };
 
   if (variant === 'detail') {
-    const isLiked = likedPosts[post.id];
+    const isLiked = profile?.uid ? post.likedBy?.includes(profile.uid) : false;
     const isReposted = repostedPosts[post.id];
-    const likesCount = (post.likes || 0) + (isLiked ? 1 : 0);
+    const likesCount = post.likes || 0;
     const repostsCount = (post.reposts || 0) + (isReposted ? 1 : 0);
 
     return (
@@ -325,9 +347,9 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
   // --- Feed Variant Below ---
 
   const renderSinglePost = (p: FeedPostData, isLast: boolean, isThreadChild = false) => {
-    const isLiked = likedPosts[p.id];
+    const isLiked = profile?.uid ? p.likedBy?.includes(profile.uid) : false;
     const isReposted = repostedPosts[p.id];
-    const likesCount = (p.likes || 0) + (isLiked ? 1 : 0);
+    const likesCount = p.likes || 0;
     const repostsCount = (p.reposts || 0) + (isReposted ? 1 : 0);
 
     return (

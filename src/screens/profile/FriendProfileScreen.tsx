@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,19 +6,27 @@ import { LinearGradient } from 'expo-linear-gradient';
 import FeedPost from '../../components/feed/FeedPost';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
 import type { RootStackScreenProps, FeedPostData } from '../../types';
+import { Image } from 'expo-image';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { useFeed } from '../../hooks/useFeed';
+import { useFriends } from '../../hooks/useFriends';
 
 const { width } = Dimensions.get('window');
 
-import { EmptyState } from '../../components/ui/EmptyState';
-import { useFeed } from '../../hooks/useFeed';import { Image } from 'expo-image';
-
-
 export default function FriendProfileScreen({ route, navigation }: RootStackScreenProps<'FriendProfile'>) {
   const { friendId, friendName, friendAvatar } = route.params;
+  const { friends, sendRequest } = useFriends();
+  const { posts, loading: feedLoading } = useFeed();
   const [isFollowing, setIsFollowing] = useState(false);
 
-  // Derive handle from name if not provided
-  const friendHandle = `@${friendName.toLowerCase().replace(/\\s+/g, '')}`;
+  useEffect(() => {
+    if (friends.some(f => f.id === friendId)) {
+      setIsFollowing(true);
+    }
+  }, [friends, friendId]);
+
+  // Derive handle from name if not provided (for UI display only)
+  const friendHandle = `@${friendName.toLowerCase().replace(/\s+/g, '')}`;
 
   // Default banner fallback
   const bannerUri = null;
@@ -26,8 +34,7 @@ export default function FriendProfileScreen({ route, navigation }: RootStackScre
   // No bio implemented in route yet
   const bio = null;
 
-  const { posts, loading: feedLoading } = useFeed();
-  const friendPosts = posts.filter(p => p.author.handle === friendHandle);
+  const friendPosts = posts.filter(p => p.author.id === friendId);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -55,11 +62,18 @@ export default function FriendProfileScreen({ route, navigation }: RootStackScre
             <Image source={{ uri: friendAvatar }} style={styles.avatar} />
             <TouchableOpacity 
               style={[styles.actionButton, isFollowing && styles.actionButtonFollowing]} 
-              onPress={() => setIsFollowing(!isFollowing)}
+              onPress={async () => {
+                if (!isFollowing) {
+                  const success = await sendRequest(friendId);
+                  if (success) {
+                    setIsFollowing(true);
+                  }
+                }
+              }}
             >
               {!isFollowing && <Ionicons name="person-add" size={16} color="#FFF" style={{ marginRight: 6 }} />}
               <Text style={[styles.actionButtonText, isFollowing && styles.actionButtonTextFollowing]}>
-                {isFollowing ? 'Following' : 'Follow'}
+                {isFollowing ? 'Requested' : 'Follow'}
               </Text>
             </TouchableOpacity>
           </View>

@@ -7,12 +7,14 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Clipboard from 'expo-clipboard';
 import { LinearGradient } from 'expo-linear-gradient';
 import { sendPushNotification } from '../../services/notifications';
-import { getGroupMemberTokens } from '../../services/firebase';
+import { getGroupMemberTokens, getGroup, sendMessage, subscribeToGroupMessages, subscribeToGroupDetails } from '../../services/firebase';
+import { storage } from '../../config/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '../../context/AuthContext';
 import { useResponsive } from '../../hooks/useResponsive';
 import { useUI } from '../../context/UIContext';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
-import type { RootStackScreenProps } from '../../types';
+import type { RootStackScreenProps, Group } from '../../types';
 import SquadInviteModal from '../../components/squads/SquadInviteModal';
 
 const { width } = Dimensions.get('window');
@@ -104,6 +106,29 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
   const flatListRef = useRef<FlatList>(null);
 
   const [messages, setMessages] = useState<Message[]>([]);
+  const [squadDetails, setSquadDetails] = useState<Group | null>(null);
+
+  useEffect(() => {
+    if (squadId) {
+      const unsubscribeDetails = subscribeToGroupDetails(squadId, (details) => {
+        setSquadDetails(details);
+      });
+
+      const unsubscribeMessages = subscribeToGroupMessages(squadId, (fetchedMessages) => {
+        const processed = fetchedMessages.map(msg => ({
+          ...msg,
+          isMe: msg.sender === (profile?.nickname || 'Unknown'),
+        }));
+        setMessages(processed as Message[]);
+      });
+
+      return () => {
+        unsubscribeDetails();
+        unsubscribeMessages();
+      };
+    }
+  }, [squadId, profile?.nickname]);
+
   const [inputText, setInputText] = useState('');
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [showStickerPicker, setShowStickerPicker] = useState(false);
@@ -194,7 +219,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
   };
 
   const handleHopOn = async () => {
-    navigation.navigate('HopOnRoom', { squadName, squadWallpaper });
+    navigation.navigate('HopOnRoom', { squadName, squadWallpaper, squadId });
 
     try {
       if (firebaseUser) {
@@ -204,7 +229,14 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
             token,
             `HOP ON: ${squadName}`,
             `${profile?.nickname || 'Someone'} is deploying an alert to the squad!`,
-            { screen: 'IncomingAlert', squadWallpaper },
+            { 
+              screen: 'IncomingAlert', 
+              squadWallpaper,
+              squadId,
+              callerName: profile?.nickname || 'Someone',
+              callerAvatar: profile?.avatar || '',
+              squadName
+            },
           );
         }
       }
@@ -213,7 +245,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
     }
   };
 
-  const handleSendText = () => {
+  const handleSendText = async () => {
     if (!inputText.trim()) return;
     
     const replyData = replyingTo ? {
@@ -221,42 +253,42 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
       text: replyingTo.text || (replyingTo.gifUrl ? 'GIF' : 'Sticker')
     } : undefined;
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      sender: 'You',
-      avatar: myAvatar,
+    const messageData = {
+      sender: profile?.nickname || 'Unknown',
+      avatar: profile?.avatar || `https://ui-avatars.com/api/?name=Unknown&background=2D3748&color=FFF`,
       text: inputText.trim(),
-      isMe: true,
       replyTo: replyData,
     };
-    setMessages((prev) => [...prev, newMessage]);
+    
     setInputText('');
     setShowGifPicker(false);
     setShowStickerPicker(false);
     setReplyingTo(null);
+    
+    await sendMessage(squadId, messageData);
   };
 
-  const handleSendGif = (gifUrl: string) => {
+  const handleSendGif = async (gifUrl: string) => {
     const replyData = replyingTo ? {
       sender: replyingTo.sender,
       text: replyingTo.text || (replyingTo.gifUrl ? 'GIF' : 'Sticker')
     } : undefined;
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      sender: 'You',
-      avatar: myAvatar,
+    const messageData = {
+      sender: profile?.nickname || 'Unknown',
+      avatar: profile?.avatar || `https://ui-avatars.com/api/?name=Unknown&background=2D3748&color=FFF`,
       gifUrl,
-      isMe: true,
       replyTo: replyData,
     };
-    setMessages((prev) => [...prev, newMessage]);
+    
     setRecentGifs((prev) => {
       const filtered = prev.filter(url => url !== gifUrl);
       return [gifUrl, ...filtered].slice(0, 20);
     });
     setShowGifPicker(false);
     setReplyingTo(null);
+    
+    await sendMessage(squadId, messageData);
   };
 
   const toggleFavoriteGif = (gifUrl: string) => {
@@ -266,23 +298,23 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
     });
   };
 
-  const handleSendSticker = (stickerUrl: string) => {
+  const handleSendSticker = async (stickerUrl: string) => {
     const replyData = replyingTo ? {
       sender: replyingTo.sender,
       text: replyingTo.text || (replyingTo.gifUrl ? 'GIF' : 'Sticker')
     } : undefined;
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      sender: 'You',
-      avatar: myAvatar,
+    const messageData = {
+      sender: profile?.nickname || 'Unknown',
+      avatar: profile?.avatar || `https://ui-avatars.com/api/?name=Unknown&background=2D3748&color=FFF`,
       stickerUrl,
-      isMe: true,
       replyTo: replyData,
     };
-    setMessages((prev) => [...prev, newMessage]);
+    
     setShowStickerPicker(false);
     setReplyingTo(null);
+    
+    await sendMessage(squadId, messageData);
   };
 
   const pickStickerImage = async () => {
@@ -294,14 +326,32 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
     });
     
     if (!result.canceled && result.assets && result.assets.length > 0) {
-      const newSticker = result.assets[0].uri;
-      setStickerPacks((prev) => {
-        const newPacks = [...prev];
-        newPacks[activePackIndex].stickers = [newSticker, ...newPacks[activePackIndex].stickers];
-        return newPacks;
-      });
+      const uri = result.assets[0].uri;
+      setIsUploading(true);
+      try {
+        let finalUri = uri;
+        if (uri.startsWith('file://')) {
+          const response = await fetch(uri);
+          const blob = await response.blob();
+          const fileRef = ref(storage, `stickers/${profile?.uid || 'user'}_${Date.now()}`);
+          await uploadBytes(fileRef, blob);
+          finalUri = await getDownloadURL(fileRef);
+        }
+
+        setStickerPacks((prev) => {
+          const newPacks = [...prev];
+          newPacks[activePackIndex].stickers = [finalUri, ...newPacks[activePackIndex].stickers];
+          return newPacks;
+        });
+      } catch (error) {
+        console.error('Error uploading sticker', error);
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
+
+  const [isUploading, setIsUploading] = useState(false);
 
   const pickViewOncePhoto = async () => {
     const result = await ImagePicker.launchCameraAsync({
@@ -316,16 +366,31 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
     }
   };
 
-  const handleSendViewOncePhoto = (uri: string) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      sender: 'You',
-      avatar: myAvatar,
-      viewOncePhotoUrl: uri,
-      viewOnceViewed: false,
-      isMe: true,
-    };
-    setMessages((prev) => [...prev, newMessage]);
+  const handleSendViewOncePhoto = async (uri: string) => {
+    setIsUploading(true);
+    try {
+      let finalUri = uri;
+      if (uri.startsWith('file://')) {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        const fileRef = ref(storage, `view_once/${squadId}_${Date.now()}`);
+        await uploadBytes(fileRef, blob);
+        finalUri = await getDownloadURL(fileRef);
+      }
+
+      const messageData = {
+        sender: profile?.nickname || 'Unknown',
+        avatar: profile?.avatar || `https://ui-avatars.com/api/?name=Unknown&background=2D3748&color=FFF`,
+        viewOncePhotoUrl: finalUri,
+        viewOnceViewed: false,
+      };
+      
+      await sendMessage(squadId, messageData);
+    } catch (error) {
+      console.error('Error uploading view once photo', error);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleOpenNewPackModal = () => {
@@ -481,7 +546,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
       >
         {squadWallpaper && (
           <>
-            <Image source={{ uri: squadWallpaper }} style={StyleSheet.absoluteFillObject} />
+            <Image source={{ uri: squadDetails?.wallpaper || squadWallpaper }} style={StyleSheet.absoluteFillObject} />
             <View style={[StyleSheet.absoluteFillObject, { backgroundColor: `rgba(11, 13, 23, ${wallpaperOpacity})` }]} />
           </>
         )}
@@ -492,7 +557,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.headerInfoTouchable}
-            onPress={() => navigation.navigate('SquadEdit', { squadId, squadName, squadAvatar })}
+            onPress={() => navigation.navigate('SquadEdit', { squadId, squadName: squadDetails?.name || squadName, squadAvatar: squadDetails?.avatar || squadAvatar })}
             activeOpacity={0.7}
           >
             <Image source={{ uri: squadAvatar  }} style={styles.headerSquadAvatar} />
@@ -508,7 +573,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
             <TouchableOpacity style={styles.headerIconBtn} onPress={() => setInviteModalVisible(true)}>
               <Ionicons name="person-add-outline" size={18} color={Colors.textMuted} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate('SquadSettings', { squadId, squadName, squadAvatar })}>
+            <TouchableOpacity style={styles.headerIconBtn} onPress={() => navigation.navigate('SquadSettings', { squadId, squadName: squadDetails?.name || squadName, squadAvatar: squadDetails?.avatar || squadAvatar })}>
               <Ionicons name="settings-outline" size={18} color={Colors.textMuted} />
             </TouchableOpacity>
           </View>

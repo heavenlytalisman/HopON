@@ -3,6 +3,9 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList, Dimensions } from '
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useSquads } from '../../hooks/useSquads';
+import { getGroupMemberTokens } from '../../services/firebase';
+import { sendPushNotification } from '../../services/notifications';
+import { useAuth } from '../../context/AuthContext';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
 import type { RootStackScreenProps } from '../../types';import { Image } from 'expo-image';
@@ -12,10 +15,34 @@ const { height } = Dimensions.get('window');
 
 export default function QuickSquadSelectScreen({ navigation }: RootStackScreenProps<'QuickSquadSelect'>) {
   const { squads, loading } = useSquads();
+  const { profile, firebaseUser } = useAuth();
 
-  const handleSelectSquad = (squadName: string) => {
+  const handleSelectSquad = async (squadId: string, squadName: string, squadWallpaper?: string) => {
     navigation.goBack();
-    navigation.navigate('HopOnRoom', { squadName });
+    navigation.navigate('HopOnRoom', { squadName, squadWallpaper, squadId });
+    
+    try {
+      if (firebaseUser) {
+        const tokens = await getGroupMemberTokens(squadId, firebaseUser.uid);
+        for (const token of tokens) {
+          await sendPushNotification(
+            token,
+            `HOP ON: ${squadName}`,
+            `${profile?.nickname || 'Someone'} is deploying an alert to the squad!`,
+            { 
+              screen: 'IncomingAlert', 
+              squadWallpaper,
+              squadId,
+              callerName: profile?.nickname || 'Someone',
+              callerAvatar: profile?.avatar || '',
+              squadName
+            },
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Error sending push alert:', error);
+    }
   };
 
   return (
@@ -51,7 +78,7 @@ export default function QuickSquadSelectScreen({ navigation }: RootStackScreenPr
             keyExtractor={item => item.id}
             contentContainerStyle={styles.listContent}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.squadItem} onPress={() => handleSelectSquad(item.name)}>
+              <TouchableOpacity style={styles.squadItem} onPress={() => handleSelectSquad(item.id, item.name, item.wallpaper)}>
                 <View style={styles.squadIconBox}>
                   <Image 
                     source={{ uri: item.avatar  }} 

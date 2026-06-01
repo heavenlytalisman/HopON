@@ -41,7 +41,7 @@ export default function FriendListScreen({ navigation }: RootStackScreenProps<'F
               })}
             >
               <View style={[styles.avatarRing, { borderColor: Colors.success }]}>
-                <Image source={{ uri: user.avatar  + user.uid }} style={styles.avatarImage} />
+                <Image source={{ uri: user.avatar }} style={styles.avatarImage} />
                 <View style={[styles.statusDot, { backgroundColor: Colors.success }]} />
               </View>
               <View style={styles.friendListInfo}>

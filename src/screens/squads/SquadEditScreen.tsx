@@ -1,14 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Platform, KeyboardAvoidingView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Platform, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useUI } from '../../context/UIContext';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
 import { useSquads } from '../../hooks/useSquads';
-import { removeMemberFromGroup } from '../../services/firebase';
-import type { RootStackScreenProps } from '../../types';
-import SquadInviteModal from '../../components/squads/SquadInviteModal';import { Image } from 'expo-image';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '../../config/firebase';
+import { removeMemberFromGroup, getUserProfile, updateGroupDetails } from '../../services/firebase';
+import { useAuth } from '../../context/AuthContext';
+import type { RootStackScreenProps, User } from '../../types';
+import SquadInviteModal from '../../components/squads/SquadInviteModal';
+import { Image } from 'expo-image';
 
 
 export default function SquadEditScreen({ route, navigation }: RootStackScreenProps<'SquadEdit'>) {
@@ -16,18 +20,31 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
 
   const [squadName, setSquadName] = useState(initialName);
   const [squadAvatar, setSquadAvatar] = useState(initialAvatar );
+  const [isSaving, setIsSaving] = useState(false);
   
   // Extract parameters passed back from SquadWallpaperScreen (or default to null/0.6)
   const squadWallpaper = (route.params as any).squadWallpaper || null;
   const wallpaperOpacity = (route.params as any).wallpaperOpacity || 0.6;
   
+  const { profile } = useAuth();
   const { squads } = useSquads();
   const squad = squads.find(s => s.id === squadId);
   const members = squad?.members || [];
   
+  const [memberProfiles, setMemberProfiles] = useState<User[]>([]);
   const [inviteModalVisible, setInviteModalVisible] = useState(false);
 
   const { showToast, showDialog } = useUI();
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      const profiles = await Promise.all(members.map(id => getUserProfile(id)));
+      setMemberProfiles(profiles.filter(p => p !== null) as User[]);
+    };
+    if (members.length > 0) {
+      fetchMembers();
+    }
+  }, [members]);
 
   const handlePickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -65,21 +82,53 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!squadName.trim()) {
       showToast({ title: 'Invalid Name', message: 'Squad name cannot be empty.', type: 'error' });
       return;
     }
     
-    // In a real app, we would make a Firebase call here.
-    showToast({ title: 'Success', message: 'Squad details updated successfully!', type: 'success' });
-    setTimeout(() => {
-      navigation.navigate({
-        name: 'SquadDetail',
-        params: { squadId, squadName, squadWallpaper, wallpaperOpacity },
-        merge: true,
-      });
-    }, 1000);
+    setIsSaving(true);
+    try {
+      const updates: any = { name: squadName.trim() };
+
+      if (squadAvatar && squadAvatar !== initialAvatar && squadAvatar.startsWith('file://')) {
+        const response = await fetch(squadAvatar);
+        const blob = await response.blob();
+        const fileRef = ref(storage, `squad_avatars/${squadId}_${Date.now()}`);
+        await uploadBytes(fileRef, blob);
+        updates.avatar = await getDownloadURL(fileRef);
+      }
+
+      if (squadWallpaper && squadWallpaper.startsWith('file://')) {
+        const response = await fetch(squadWallpaper);
+        const blob = await response.blob();
+        const fileRef = ref(storage, `squad_wallpapers/${squadId}_${Date.now()}`);
+        await uploadBytes(fileRef, blob);
+        updates.wallpaper = await getDownloadURL(fileRef);
+      }
+      
+      updates.wallpaperOpacity = wallpaperOpacity;
+
+      const success = await updateGroupDetails(squadId, updates);
+      if (success) {
+        showToast({ title: 'Success', message: 'Squad details updated successfully!', type: 'success' });
+        setTimeout(() => {
+          navigation.navigate({
+            name: 'SquadDetail',
+            params: { squadId, squadName: updates.name, squadWallpaper: updates.wallpaper || squadWallpaper, wallpaperOpacity },
+            merge: true,
+          });
+        }, 1000);
+      } else {
+        showToast({ title: 'Error', message: 'Failed to update squad details.', type: 'error' });
+      }
+    } catch (e) {
+      console.error('Error saving squad details:', e);
+      showToast({ title: 'Error', message: 'An error occurred while saving.', type: 'error' });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -93,8 +142,8 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
             <Text style={styles.headerBtnTextCancel}>Cancel</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Edit Squad</Text>
-          <TouchableOpacity style={styles.headerBtn} onPress={handleSave}>
-            <Text style={styles.headerBtnTextSave}>Save</Text>
+          <TouchableOpacity style={styles.headerBtn} onPress={handleSave} disabled={isSaving}>
+            {isSaving ? <ActivityIndicator size="small" color={Colors.primaryLight} /> : <Text style={styles.headerBtnTextSave}>Save</Text>}
           </TouchableOpacity>
         </View>
 
@@ -135,7 +184,7 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
                   <Text style={styles.settingsItemText}>Chat Wallpaper</Text>
                 </View>
                 <View style={styles.settingsItemRight}>
-                  {squadWallpaper && <View style={styles.activeDot} />}
+                  {!!squadWallpaper && <View style={styles.activeDot} />}
                   <Ionicons name="chevron-forward" size={20} color={Colors.border} />
                 </View>
               </TouchableOpacity>
@@ -152,19 +201,32 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
             </View>
 
             <View style={styles.membersList}>
-              {members.map((memberId) => (
-                <View key={memberId} style={styles.memberRow}>
-                  <Image source={{ uri: '' + memberId }} style={styles.memberAvatar} />
-                  <View style={styles.memberInfo}>
-                    <Text style={styles.memberName}>Member {memberId.slice(0, 4)}</Text>
-                    <Text style={styles.memberHandle}>@{memberId.slice(0, 4)}</Text>
-                  </View>
+              {memberProfiles.map((member) => (
+                <View key={member.uid} style={styles.memberRow}>
                   <TouchableOpacity 
-                    style={styles.removeBtn}
-                    onPress={() => handleRemoveMember(memberId, 'Member')}
+                    style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}
+                    onPress={() => {
+                      if (profile?.uid === member.uid) {
+                        navigation.navigate('Profile' as any);
+                      } else {
+                        navigation.navigate('FriendProfile', { friendId: member.uid, friendName: member.nickname || 'Unknown', friendAvatar: member.avatar || '' });
+                      }
+                    }}
                   >
-                    <Text style={styles.removeBtnText}>Remove</Text>
+                    <Image source={{ uri: member.avatar }} style={styles.memberAvatar} />
+                    <View style={styles.memberInfo}>
+                      <Text style={styles.memberName}>{member.nickname || 'Unknown Member'}</Text>
+                      <Text style={styles.memberHandle}>@{member.handle || member.uid.slice(0, 4)}</Text>
+                    </View>
                   </TouchableOpacity>
+                  {profile?.uid !== member.uid && (
+                    <TouchableOpacity 
+                      style={styles.removeBtn}
+                      onPress={() => handleRemoveMember(member.uid, member.nickname || 'Member')}
+                    >
+                      <Text style={styles.removeBtnText}>Remove</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
               ))}
             </View>

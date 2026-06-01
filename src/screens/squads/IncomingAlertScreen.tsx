@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useResponsive } from '../../hooks/useResponsive';
 import { useUI } from '../../context/UIContext';
+import { sendMessage } from '../../services/firebase';
+import { useAuth } from '../../context/AuthContext';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
 import type { RootStackScreenProps, CallerInfo } from '../../types';import { Image } from 'expo-image';
 
@@ -11,18 +13,21 @@ import type { RootStackScreenProps, CallerInfo } from '../../types';import { Im
 const QUICK_REPLIES = ['Busy rn', 'Give me 10 mins', 'In a match', 'Maybe later'];
 
 export default function IncomingAlertScreen({ navigation, route }: RootStackScreenProps<'IncomingAlert'>) {
+  // When opened via push notification, params might be directly in route.params
   const caller: CallerInfo = route.params?.caller || {
-    squadName: 'Night Owls',
-    callerName: 'Alex Mercer',
-    avatar: '',
+    squadName: (route.params as any)?.squadName || 'Night Owls',
+    callerName: (route.params as any)?.callerName || 'Alex Mercer',
+    avatar: (route.params as any)?.callerAvatar || '',
+    squadId: (route.params as any)?.squadId,
   };
   
-  const squadWallpaper = caller.squadWallpaper;
+  const squadWallpaper = caller.squadWallpaper || (route.params as any)?.squadWallpaper;
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const [showQuickReplies, setShowQuickReplies] = useState(false);
   const { contentWidth, horizontalPadding } = useResponsive();
   const { showToast, showDialog } = useUI();
+  const { profile } = useAuth();
 
   useEffect(() => {
     Animated.loop(
@@ -38,19 +43,29 @@ export default function IncomingAlertScreen({ navigation, route }: RootStackScre
       title: 'Accepted',
       message: 'You are joining the session!',
       actions: [
-        { text: 'Let\'s Go', onPress: () => navigation.navigate('HopOnRoom', { squadName: caller.squadName, squadWallpaper }) },
+        { text: 'Let\'s Go', onPress: () => navigation.navigate('HopOnRoom', { squadId: caller.squadId!, squadName: caller.squadName, squadWallpaper }) },
       ]
     });
   };
 
   const handleDeny = () => setShowQuickReplies(!showQuickReplies);
 
-  const handleQuickReply = (message: string) => {
+  const handleQuickReply = async (message: string) => {
     showToast({
       title: 'Sent',
       message: `You replied: "${message}"`,
       type: 'success'
     });
+    
+    if (caller.squadId && profile) {
+      const messageData = {
+        sender: profile.nickname,
+        avatar: profile.avatar || `https://ui-avatars.com/api/?name=Unknown`,
+        text: message,
+      };
+      await sendMessage(caller.squadId, messageData);
+    }
+    
     setTimeout(() => {
       navigation.goBack();
     }, 1000);

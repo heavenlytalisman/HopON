@@ -5,12 +5,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useNotifications } from '../../hooks/useNotifications';
+import { acceptFriendRequest, deleteNotification } from '../../services/firebase';
+import { useAuth } from '../../context/AuthContext';
 import type { RootStackScreenProps } from '../../types';import { Image } from 'expo-image';
 
 
 export default function NotificationsScreen({ navigation }: RootStackScreenProps<'Notifications'>) {
   const [activeTab, setActiveTab] = useState<'activity' | 'follows'>('follows');
   const { notifications, loading } = useNotifications();
+  const { firebaseUser } = useAuth();
 
   const activityNotifs = notifications.filter(n => n.type !== 'friend_request');
   const followNotifs = notifications.filter(n => n.type === 'friend_request');
@@ -64,7 +67,15 @@ export default function NotificationsScreen({ navigation }: RootStackScreenProps
                 </View>
                 <TouchableOpacity 
                   style={styles.followBtn}
-                  onPress={() => {}}
+                  onPress={async () => {
+                    if (firebaseUser && follow.data?.requestId && follow.data?.senderId) {
+                      const success = await acceptFriendRequest(follow.data.requestId, firebaseUser.uid, follow.data.senderId);
+                      if (success) {
+                        await deleteNotification(follow.id);
+                        alert('Friend request accepted!');
+                      }
+                    }
+                  }}
                 >
                   <Text style={styles.followBtnText}>
                     Accept

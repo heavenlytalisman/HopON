@@ -48,3 +48,8 @@ jdk17.zip
 
 # Firebase Config
 google-services.json
+
+# Scratch files
+*.apk
+fix_*.js
+update_*.js
