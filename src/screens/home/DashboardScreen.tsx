@@ -16,7 +16,6 @@ import { useFeed } from '../../hooks/useFeed';
 import { useSquads } from '../../hooks/useSquads';
 import { useNotifications } from '../../hooks/useNotifications';
 
-// Mock data removed (moved to respective screens where possible)
 
 export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const { profile } = useAuth();
@@ -24,19 +23,19 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
   const { friends, loadingFriends } = useFriends();
   const { posts, loading: feedLoading } = useFeed();
   const { notifications } = useNotifications();
-  
+
   const [showFriends, setShowFriends] = useState(false);
-  
-  const displayAvatar = profile?.avatar ;
-  
+
+  const displayAvatar = profile?.avatar;
+
   const onlineFriends = friends.filter(f => true); // Assume all friends are online for now or add status logic later
 
   const { squads } = useSquads();
-  const isSquadOnline = squads.some(squad => 
+  const isSquadOnline = squads.some(squad =>
     squad.members.some(memberId => memberId !== profile?.uid)
   );
 
-  const recentActivityPosts = posts.filter(post => 
+  const recentActivityPosts = posts.filter(post =>
     post.author.name === profile?.nickname || friends.some(f => f.nickname === post.author.name)
   );
 
@@ -48,10 +47,9 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollContent, { paddingHorizontal: horizontalPadding, maxWidth: contentWidth, alignSelf: 'center', width: '100%' }]}>
-        
+
         {/* Header */}
         <View style={styles.header}>
-          <Image source={require('../../../assets/icon.png')} style={{ width: 32, height: 32, borderRadius: 8 }} />
           <View style={styles.headerRight}>
             <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Notifications' as any)}>
               <Ionicons name="notifications-outline" size={24} color={Colors.textPrimary} />
@@ -83,15 +81,15 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
           <LinearGradient
             colors={['#1A1B26', '#0F1219']}
             style={StyleSheet.absoluteFillObject}
-            start={{x: 0, y: 0}}
-            end={{x: 1, y: 1}}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
           />
           <View style={styles.heroContent}>
             <Text style={styles.heroSubtitle}>Squad is</Text>
             <Text style={[styles.heroTitle, !isSquadOnline && { color: Colors.textMuted }]}>{isSquadOnline ? 'ONLINE' : 'OFFLINE'}</Text>
             <Text style={styles.heroDesc}>{isSquadOnline ? "See who's around and\nHopON to play!" : "Nobody's around right now.\nCheck back later!"}</Text>
             <TouchableOpacity style={styles.heroButton} onPress={() => navigation.navigate('Squads')}>
-              <LinearGradient colors={['#6366F1', '#8B5CF6']} style={styles.heroButtonGradient} start={{x: 0, y: 0}} end={{x: 1, y: 0}}>
+              <LinearGradient colors={['#6366F1', '#8B5CF6']} style={styles.heroButtonGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}>
                 <Text style={styles.heroButtonText}>View Squad</Text>
                 <Ionicons name="chevron-forward" size={16} color="#FFF" />
               </LinearGradient>
@@ -111,23 +109,23 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
             <Text style={styles.seeAllText}>See all</Text>
           </TouchableOpacity>
         </View>
-        
+
         {onlineFriends.length === 0 && !loadingFriends ? (
-          <EmptyState 
-            iconName="people-outline" 
-            title="No friends yet" 
-            subtitle="Add friends to see who's online and hop into games together!" 
+          <EmptyState
+            iconName="people-outline"
+            title="No friends yet"
+            subtitle="Add friends to see who's online and hop into games together!"
           />
         ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalList}>
             {onlineFriends.map((user) => (
-              <TouchableOpacity 
-                key={user.uid} 
+              <TouchableOpacity
+                key={user.uid}
                 style={styles.onlineUserItem}
                 onPress={() => navigation.navigate('FriendProfile', { friendId: user.uid, friendName: user.nickname, friendAvatar: user.avatar || '' })}
               >
                 <View style={[styles.avatarRing, { borderColor: Colors.success }]}>
-                  <Image source={{ uri: user.avatar  + user.uid }} style={styles.onlineAvatar} />
+                  <Image source={{ uri: user.avatar + user.uid }} style={styles.onlineAvatar} />
                   <View style={[styles.statusDot, { backgroundColor: Colors.success }]} />
                 </View>
                 <Text style={styles.onlineUserName} numberOfLines={1}>{user.nickname}</Text>
@@ -157,7 +155,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
             <View style={styles.progressBarBg}>
               <View style={[styles.progressBarFill, { width: `${(onboardingProgress / 3) * 100}%` }]} />
             </View>
-            
+
             <TouchableOpacity style={styles.onboardingTask} onPress={() => navigation.navigate('Profile')}>
               <View style={[styles.taskCheckbox, isProfileSetup && styles.taskCheckboxDone]}>
                 {isProfileSetup && <Ionicons name="checkmark" size={12} color="#FFF" />}
@@ -195,23 +193,23 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
               <TouchableOpacity onPress={() => navigation.navigate('RecentActivity' as any)}><Text style={styles.seeAllText}>See all</Text></TouchableOpacity>
             </View>
             {recentActivityPosts.length === 0 && !feedLoading ? (
-              <EmptyState 
-                iconName="pulse-outline" 
-                title="No recent activity" 
-                subtitle="Follow more people or join squads to see what's happening." 
+              <EmptyState
+                iconName="pulse-outline"
+                title="No recent activity"
+                subtitle="Follow more people or join squads to see what's happening."
               />
             ) : (
               <View style={styles.listContainer}>
                 {recentActivityPosts.slice(0, 3).map(post => (
-                  <TouchableOpacity 
-                    key={post.id} 
+                  <TouchableOpacity
+                    key={post.id}
                     style={styles.listItem}
                     onPress={() => navigation.navigate('PostDetail' as any, { postId: post.id })}
                   >
                     <Image source={{ uri: post.author.avatar }} style={styles.activityAvatar} />
                     <View style={styles.listInfo}>
                       <Text style={styles.activityUserText}>
-                        <Text style={{color: Colors.textPrimary, fontWeight: '600'}}>{post.author.name}</Text> posted
+                        <Text style={{ color: Colors.textPrimary, fontWeight: '600' }}>{post.author.name}</Text> posted
                       </Text>
                       <Text style={styles.activityGameText} numberOfLines={1}>{post.content}</Text>
                     </View>
@@ -241,7 +239,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     marginBottom: Spacing.xl,
   },

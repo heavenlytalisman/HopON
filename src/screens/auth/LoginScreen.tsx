@@ -61,17 +61,18 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
           <View style={styles.content}>
 
             <View style={styles.topSection}>
-              <Image source={require('../../../assets/icon.png')} style={{ width: 80, height: 80, borderRadius: 20, marginBottom: Spacing.md }} />
-
-              <Text style={[styles.brandTitle, isDesktop && styles.brandTitleDesktop]}>
-                HOP<Text style={styles.brandTitleAccent}>ON</Text>
-              </Text>
+              {/* Sleek Minimalist Logo */}
+              <View style={styles.logoContainer}>
+                <View style={styles.logoDot} />
+                <Text style={[styles.brandTitle, isDesktop && styles.brandTitleDesktop]}>
+                  HOP<Text style={styles.brandTitleAccent}>ON</Text>
+                </Text>
+              </View>
 
               <Text style={styles.subtitle}>Your squad is waiting.</Text>
               <Text style={styles.subtitleAccent}>
-                HopON <Text style={{ color: Colors.textSecondary }}>and never miss a moment.</Text>
+                hopon <Text style={{ color: Colors.textSecondary }}>and never miss a moment.</Text>
               </Text>
-
             </View>
 
             <View style={styles.authSection}>
@@ -174,32 +175,46 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.xl,
   },
-  logoPlaceholder: {
-    width: 80,
-    height: 80,
-    marginBottom: Spacing.md,
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.xxl,
+  },
+  logoDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: Colors.primaryLight,
+    marginRight: Spacing.md,
+    shadowColor: Colors.primaryLight,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 10,
+    elevation: 5,
   },
   brandTitle: {
-    fontSize: FontSizes.display,
-    fontWeight: '900',
-    color: Colors.textPrimary,
-    letterSpacing: 2,
-    marginBottom: Spacing.md,
+    fontSize: 42,
+    fontWeight: '300', // Sleek, light font
+    color: '#E2E8F0',
+    letterSpacing: 8,
   },
   brandTitleDesktop: {
-    fontSize: 52,
+    fontSize: 56,
   },
   brandTitleAccent: {
-    color: Colors.primaryLight,
+    color: '#FFFFFF',
+    fontWeight: '700', // Sharp contrast
   },
   subtitle: {
     fontSize: FontSizes.lg,
-    color: Colors.textPrimary,
+    color: Colors.textSecondary,
+    fontWeight: '400',
     marginBottom: Spacing.xs,
+    letterSpacing: 0.5,
   },
   subtitleAccent: {
-    fontSize: FontSizes.lg,
-    color: Colors.primaryLight,
+    fontSize: FontSizes.md,
+    color: Colors.textMuted,
     marginBottom: Spacing.xxl,
   },
   floatingIconsRow: {
