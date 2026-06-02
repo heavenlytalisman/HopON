@@ -81,17 +81,25 @@ export const sendPushNotification = async (
   }
 
   try {
-    const notificationRequestsRef = collection(db, 'notification_requests');
-    await addDoc(notificationRequestsRef, {
-      token: expoPushToken,
+    const message = {
+      to: expoPushToken,
+      sound: 'default',
       title,
       body,
       data: stripUndefined(data || {}),
-      status: 'pending',
-      createdAt: serverTimestamp(),
+    };
+
+    await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Accept-encoding': 'gzip, deflate',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(message),
     });
-    console.log('Push notification request created successfully.');
+    console.log('Push notification sent directly via Expo!');
   } catch (error) {
-    console.error('Error creating push notification request:', error);
+    console.error('Error sending push notification via Expo:', error);
   }
 };
