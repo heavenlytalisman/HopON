@@ -1,5 +1,6 @@
-export const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dwulqwvlx/image/upload';
-export const UPLOAD_PRESET = 'hopon_media';
+const CLOUD_NAME = process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dwulqwvlx';
+export const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
+export const UPLOAD_PRESET = process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'hopon_media';
 
 /**
  * Uploads a local image URI to Cloudinary via their unauthenticated REST API.
