@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';import { I
 
 
 // Standard public testing key for Tenor API
-const TENOR_API_KEY = 'LIVDSRZULELA'; 
+const TENOR_API_KEY = process.env.EXPO_PUBLIC_TENOR_API_KEY || 'LIVDSRZULELA'; 
 
 interface GifPickerModalProps {
   visible: boolean;

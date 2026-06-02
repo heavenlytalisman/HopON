@@ -147,7 +147,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
   const [trendingGifs, setTrendingGifs] = useState<{ url: string }[]>([]);
   const [searchGifs, setSearchGifs] = useState<{ url: string }[]>([]);
   const [isLoadingGifs, setIsLoadingGifs] = useState(false);
-  const TENOR_API_KEY = 'LIVDSRZULELA';
+  const TENOR_API_KEY = process.env.EXPO_PUBLIC_TENOR_API_KEY || 'LIVDSRZULELA';
 
   const [stickerPacks, setStickerPacks] = useState<StickerPack[]>([
     { id: '1', name: 'My Pack', stickers: [] }
