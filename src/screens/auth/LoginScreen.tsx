@@ -70,7 +70,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
 
               <Text style={styles.subtitle}>Your squad is waiting.</Text>
               <Text style={styles.subtitleAccent}>
-                hopon <Text style={{ color: Colors.textSecondary }}>and never miss a moment.</Text>
+                hop on <Text style={{ color: Colors.textSecondary }}>and never miss a moment.</Text>
               </Text>
             </View>
 
