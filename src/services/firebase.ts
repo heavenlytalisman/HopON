@@ -241,8 +241,10 @@ export const subscribeToGroupMessages = (groupId: string, callback: (messages: a
       messages.push({ id: docSnap.id, ...docSnap.data() });
     });
     callback(messages);
-  }, (error) => {
-    console.warn("subscribeToGroupMessages error:", error);
+  }, (error: any) => {
+    if (error.code !== 'permission-denied') {
+      console.warn("subscribeToGroupMessages error:", error);
+    }
   });
 };
 
@@ -252,8 +254,10 @@ export const subscribeToGroupDetails = (groupId: string, callback: (details: Gro
     if (docSnap.exists()) {
       callback({ id: docSnap.id, ...docSnap.data() } as Group);
     }
-  }, (error) => {
-    console.warn("subscribeToGroupDetails error:", error);
+  }, (error: any) => {
+    if (error.code !== 'permission-denied') {
+      console.warn("subscribeToGroupDetails error:", error);
+    }
   });
 };
 
@@ -415,8 +419,10 @@ export const subscribeToNotifications = (userId: string, callback: (notification
       notifs.push({ id: docSnap.id, ...docSnap.data() });
     });
     callback(notifs);
-  }, (error) => {
-    console.error("Firestore notification subscribe error:", error);
+  }, (error: any) => {
+    if (error.code !== 'permission-denied') {
+      console.error("Firestore notification subscribe error:", error);
+    }
     if (onError) onError(error);
   });
 };
@@ -479,8 +485,10 @@ export const subscribeToFeed = (callback: (posts: Post[]) => void): Unsubscribe 
       posts.push(post);
     });
     callback(posts);
-  }, (error) => {
-    console.warn("subscribeToFeed error:", error);
+  }, (error: any) => {
+    if (error.code !== 'permission-denied') {
+      console.warn("subscribeToFeed error:", error);
+    }
   });
 };
 
@@ -620,7 +628,9 @@ export const subscribeToHopOnRoom = (squadId: string, callback: (activeMembers: 
     } else {
       callback([]);
     }
-  }, (error) => {
-    console.error('Error subscribing to HopOn room:', error);
+  }, (error: any) => {
+    if (error.code !== 'permission-denied') {
+      console.error('Error subscribing to HopOn room:', error);
+    }
   });
 };
