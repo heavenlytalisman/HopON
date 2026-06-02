@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, TextInput, KeyboardAvoidingView, Platform, Keyboard, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, TextInput, KeyboardAvoidingView, Platform, Keyboard, ActivityIndicator , RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import FeedPost from '../../components/feed/FeedPost';
@@ -22,6 +22,12 @@ export default function PostDetailScreen({ route, navigation }: RootStackScreenP
   });
   const [replyText, setReplyText] = useState('');
   const inputRef = useRef<TextInput>(null);
+
+  const [refreshing, setRefreshing] = React.useState(false);
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1000);
+  }, []);
 
   useEffect(() => {
     if (postId) {
@@ -73,7 +79,7 @@ export default function PostDetailScreen({ route, navigation }: RootStackScreenP
           <View style={{ width: 40 }} />
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primaryLight} colors={[Colors.primaryLight]} />} showsVerticalScrollIndicator={false}>
           {/* Main Post (Detail Variant) */}
           <FeedPost post={mainPost} variant="detail" onCommentPress={handleCommentPress} />
 

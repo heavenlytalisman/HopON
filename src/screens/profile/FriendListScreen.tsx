@@ -1,15 +1,23 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView , RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing } from '../../constants/theme';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useFriends } from '../../hooks/useFriends';
-import type { RootStackScreenProps } from '../../types';import { Image } from 'expo-image';
+import type { RootStackScreenProps } from '../../types';
+import { Image } from 'expo-image';
 
 
 export default function FriendListScreen({ navigation }: RootStackScreenProps<'FriendList'>) {
-  const { friends, loadingFriends } = useFriends();
+  const { friends, loadingFriends, refreshFriends } = useFriends();
+
+  const [refreshing, setRefreshing] = React.useState(false);
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    if (refreshFriends) await refreshFriends();
+    setRefreshing(false);
+  }, [refreshFriends]);
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -20,7 +28,7 @@ export default function FriendListScreen({ navigation }: RootStackScreenProps<'F
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: Spacing.lg }}>
+      <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primaryLight} colors={[Colors.primaryLight]} />} showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: Spacing.lg }}>
         {friends.length === 0 && !loadingFriends ? (
           <EmptyState 
             iconName="people-outline" 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView , RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
@@ -7,10 +7,19 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { useNotifications } from '../../hooks/useNotifications';
 import { acceptFriendRequest, deleteNotification } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
-import type { RootStackScreenProps } from '../../types';import { Image } from 'expo-image';
+import type { RootStackScreenProps } from '../../types';
+import { Image } from 'expo-image';
 
 
 export default function NotificationsScreen({ navigation }: RootStackScreenProps<'Notifications'>) {
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1000);
+  }, []);
+
   const [activeTab, setActiveTab] = useState<'activity' | 'follows'>('follows');
   const { notifications, loading } = useNotifications();
   const { firebaseUser } = useAuth();
@@ -44,7 +53,7 @@ export default function NotificationsScreen({ navigation }: RootStackScreenProps
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primaryLight} colors={[Colors.primaryLight]} />} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {loading ? (
           <View style={{ marginTop: 80, alignItems: 'center' }}>
             <Text style={{ color: Colors.textMuted }}>Loading...</Text>

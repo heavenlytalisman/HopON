@@ -1,18 +1,26 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView , RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing } from '../../constants/theme';
 import type { RootStackScreenProps } from '../../types';
 
 import { EmptyState } from '../../components/ui/EmptyState';
-import { useFriends } from '../../hooks/useFriends';import { Image } from 'expo-image';
+import { useFriends } from '../../hooks/useFriends';
+import { Image } from 'expo-image';
 
 
 export default function FollowListScreen({ route, navigation }: RootStackScreenProps<'FollowList'>) {
   const { type, userName } = route.params;
   const isFollowers = type === 'followers';
-  const { friends } = useFriends();
+  const { friends, refreshFriends } = useFriends();
+
+  const [refreshing, setRefreshing] = React.useState(false);
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    if (refreshFriends) await refreshFriends();
+    setRefreshing(false);
+  }, [refreshFriends]);
   const listData: any[] = userName ? [] : friends;
 
   const headerTitle = userName ? `${userName}'s ${isFollowers ? 'Followers' : 'Following'}` : (isFollowers ? 'Followers' : 'Following');
@@ -27,7 +35,7 @@ export default function FollowListScreen({ route, navigation }: RootStackScreenP
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: Spacing.lg }}>
+      <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primaryLight} colors={[Colors.primaryLight]} />} showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: Spacing.lg }}>
         {listData.length === 0 ? (
           <View style={{ marginTop: 60 }}>
             <EmptyState 

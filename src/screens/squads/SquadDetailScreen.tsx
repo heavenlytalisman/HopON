@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, Keyboard, Modal, ScrollView, Animated, PanResponder, Dimensions, ActivityIndicator, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput, KeyboardAvoidingView, Platform, Keyboard, Modal, ScrollView, Animated, PanResponder, Dimensions, ActivityIndicator, ImageBackground , RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
@@ -42,7 +42,8 @@ interface StickerPack {
   stickers: string[];
 }
 
-import { EmptyState } from '../../components/ui/EmptyState';import { Image } from 'expo-image';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { Image } from 'expo-image';
 
 
 const SwipeableMessage = ({ item, onReply, onLongPress, children }: any) => {
@@ -100,6 +101,14 @@ const SwipeableMessage = ({ item, onReply, onLongPress, children }: any) => {
 };
 
 export default function SquadDetailScreen({ route, navigation }: RootStackScreenProps<'SquadDetail'>) {
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 1000);
+  }, []);
+
   const { squadName, squadId, squadAvatar, squadWallpaper, wallpaperOpacity = 0.6 } = route.params as any;
   const { firebaseUser, profile } = useAuth();
   const { contentWidth, horizontalPadding } = useResponsive();
@@ -563,8 +572,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
             <Image source={{ uri: squadAvatar  }} style={styles.headerSquadAvatar} />
             <View style={styles.headerCenter}>
               <Text style={styles.headerTitle} numberOfLines={1}>{squadName}</Text>
-              <Text style={styles.headerSubtitle}>3/4 Online</Text>
-            </View>
+              </View>
           </TouchableOpacity>
           <View style={styles.headerRight}>
             <TouchableOpacity style={styles.headerIconButton} onPress={handleHopOn}>
@@ -667,7 +675,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
         {showStickerPicker && (
           <View style={styles.stickerPickerContainer}>
             <View style={styles.packSelectorBar}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.packSelectorContent}>
+              <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primaryLight} colors={[Colors.primaryLight]} />} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.packSelectorContent}>
                 {stickerPacks.map((pack, index) => (
                   <TouchableOpacity 
                     key={pack.id} 

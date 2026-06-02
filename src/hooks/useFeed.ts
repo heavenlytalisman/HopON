@@ -15,6 +15,12 @@ export function useFeed() {
   const { profile } = useAuth();
 
   useEffect(() => {
+    if (!profile) {
+      setPosts([]);
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = subscribeToFeed((livePosts: Post[]) => {
       const formattedPosts: FeedPostData[] = livePosts.map((post) => {
         const mapPost = (p: Post | FeedPostData): FeedPostData => {
@@ -60,7 +66,7 @@ export function useFeed() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [profile]);
 
   const publishPost = async (contents: string[], attachedMediaType?: string, attachedMedia?: any) => {
     const validContents = contents.map(c => c.trim()).filter(c => c.length > 0);
@@ -75,7 +81,7 @@ export function useFeed() {
       authorHandle: `@${profile.nickname.toLowerCase().replace(/\s+/g, '')}`,
       authorAvatar: profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.nickname)}&background=7C3AED&color=FFF&size=150`,
       content: content,
-      timestamp: serverTimestamp(),
+      timestamp: new Date().toISOString(),
       likes: 0,
       comments: 0,
       reposts: 0,

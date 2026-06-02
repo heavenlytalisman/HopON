@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Modal, Vibration, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Modal, Vibration, Alert , RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,14 +14,16 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { useFriends } from '../../hooks/useFriends';
 import { useFeed } from '../../hooks/useFeed';
 import { useSquads } from '../../hooks/useSquads';
-import { useNotifications } from '../../hooks/useNotifications';import { Image } from 'expo-image';
+import { useNotifications } from '../../hooks/useNotifications';
+import { Image } from 'expo-image';
 
 
 
 export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home'>) {
+
   const { profile } = useAuth();
   const { isDesktop, contentWidth, horizontalPadding, columns } = useResponsive();
-  const { friends, loadingFriends } = useFriends();
+  const { friends, loadingFriends , refreshFriends } = useFriends();
   const { posts, loading: feedLoading } = useFeed();
   const { notifications } = useNotifications();
 
@@ -31,7 +33,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
 
   const onlineFriends = friends.filter((f: any) => f.isOnline);
 
-  const { squads } = useSquads();
+  const { squads , refreshSquads } = useSquads();
   const isSquadOnline = squads.some(squad =>
     squad.members.some(memberId => memberId !== profile?.uid)
   );
@@ -44,10 +46,18 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
   const hasFriends = friends.length > 0;
   const hasSquads = squads.length > 0;
   const onboardingProgress = [isProfileSetup, hasFriends, hasSquads].filter(Boolean).length;
+  const [refreshing, setRefreshing] = React.useState(false);
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    if (refreshSquads) await refreshSquads();
+    if (refreshFriends) await refreshFriends();
+    setRefreshing(false);
+  }, [refreshSquads, refreshFriends]);
+
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollContent, { paddingHorizontal: horizontalPadding, maxWidth: contentWidth, alignSelf: 'center', width: '100%' }]}>
+      <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primaryLight} colors={[Colors.primaryLight]} />} showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scrollContent, { paddingHorizontal: horizontalPadding, maxWidth: contentWidth, alignSelf: 'center', width: '100%' }]}>
 
         {/* Header */}
         <View style={styles.header}>

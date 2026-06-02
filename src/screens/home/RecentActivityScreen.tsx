@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView , RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../constants/theme';
@@ -7,13 +7,21 @@ import { useFeed } from '../../hooks/useFeed';
 import { useAuth } from '../../context/AuthContext';
 import { useFriends } from '../../hooks/useFriends';
 import { EmptyState } from '../../components/ui/EmptyState';
-import type { RootStackScreenProps } from '../../types';import { Image } from 'expo-image';
+import type { RootStackScreenProps } from '../../types';
+import { Image } from 'expo-image';
 
 
 export default function RecentActivityScreen({ navigation }: RootStackScreenProps<'RecentActivity'>) {
   const { posts } = useFeed();
   const { profile } = useAuth();
-  const { friends } = useFriends();
+  const { friends, refreshFriends } = useFriends();
+
+  const [refreshing, setRefreshing] = React.useState(false);
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    if (refreshFriends) await refreshFriends();
+    setRefreshing(false);
+  }, [refreshFriends]);
 
   const recentActivityPosts = posts.filter(post => {
     if (post.author.name === profile?.nickname) return true;
@@ -29,7 +37,7 @@ export default function RecentActivityScreen({ navigation }: RootStackScreenProp
         <Text style={styles.headerTitle}>Recent Activity</Text>
         <View style={{ width: 24 }} />
       </View>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primaryLight} colors={[Colors.primaryLight]} />} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {recentActivityPosts.length === 0 ? (
           <EmptyState 
             iconName="pulse-outline" 

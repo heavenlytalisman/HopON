@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView , RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -11,11 +11,12 @@ import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme'
 import { EmptyState } from '../../components/ui/EmptyState';
 import FeedPost from '../../components/feed/FeedPost';
 import { useFeed } from '../../hooks/useFeed';
-import type { MainTabScreenProps, FeedPostData } from '../../types';import { Image } from 'expo-image';
+import type { MainTabScreenProps, FeedPostData } from '../../types';
+import { Image } from 'expo-image';
 
 
 export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profile'>) {
-  const { profile, loading, updateAvatar, updateProfileDetails, getHandle } = useProfile();
+  const { profile, loading, updateAvatar, updateProfileDetails, getHandle, refreshProfile } = useProfile();
   const { logout } = useAuth();
   const { showToast, showDialog } = useUI();
 
@@ -31,6 +32,14 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
 
   const { posts, loading: feedLoading } = useFeed();
   const { friends } = useFriends();
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    if (refreshProfile) await refreshProfile();
+    setRefreshing(false);
+  }, [refreshProfile]);
   const myPosts = posts.filter((p) => p.author.handle === getHandle());
 
   const handleLogout = () => {
@@ -125,7 +134,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
   return (
     <View style={styles.container}>
       {/* Scrollable Profile Content */}
-      <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
+      <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primaryLight} colors={[Colors.primaryLight]} />} bounces={false} showsVerticalScrollIndicator={false}>
         
         {/* Banner Section */}
         <View style={[styles.bannerContainer, !displayBanner && { backgroundColor: Colors.surfaceAlt }]}>

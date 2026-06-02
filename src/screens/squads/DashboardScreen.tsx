@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator , RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useSquads } from '../../hooks/useSquads';
@@ -15,6 +15,16 @@ export default function SquadsScreen({ navigation }: MainTabScreenProps<'Squads'
   const { squads, loading, refreshSquads } = useSquads();
   const { profile } = useAuth();
   const { contentWidth, horizontalPadding } = useResponsive();
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    if (refreshSquads) {
+      await refreshSquads();
+    }
+    setRefreshing(false);
+  }, [refreshSquads]);
 
   useFocusEffect(
     useCallback(() => {
@@ -95,7 +105,7 @@ export default function SquadsScreen({ navigation }: MainTabScreenProps<'Squads'
             subtitle="Create a new squad or join an existing one to hop on with friends." 
           />
         ) : (
-          <FlatList
+          <FlatList refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primaryLight} colors={[Colors.primaryLight]} />}
             data={squads}
             keyExtractor={(item) => item.id}
             renderItem={renderGroupItem}

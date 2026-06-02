@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions , RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,8 +15,16 @@ const { width } = Dimensions.get('window');
 
 export default function FriendProfileScreen({ route, navigation }: RootStackScreenProps<'FriendProfile'>) {
   const { friendId, friendName, friendAvatar } = route.params;
-  const { friends, sendRequest } = useFriends();
+  const { friends, sendRequest, refreshFriends } = useFriends();
   const { posts, loading: feedLoading } = useFeed();
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    if (refreshFriends) await refreshFriends();
+    setRefreshing(false);
+  }, [refreshFriends]);
   const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
@@ -46,7 +54,7 @@ export default function FriendProfileScreen({ route, navigation }: RootStackScre
         <View style={{ width: 40 }} /> {/* Placeholder for balance */}
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primaryLight} colors={[Colors.primaryLight]} />} showsVerticalScrollIndicator={false}>
         {/* Banner Section */}
         <View style={[styles.bannerContainer, !bannerUri && { backgroundColor: Colors.surfaceAlt } ]}>
           {bannerUri ? <Image source={{ uri: bannerUri }} style={styles.bannerImage} /> : null}

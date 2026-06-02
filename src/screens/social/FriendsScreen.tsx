@@ -1,17 +1,26 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity , RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useFriends } from '../../hooks/useFriends';
 import { useResponsive } from '../../hooks/useResponsive';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
-import type { MainTabScreenProps, Friend } from '../../types';import { Image } from 'expo-image';
+import type { MainTabScreenProps, Friend } from '../../types';
+import { Image } from 'expo-image';
 
 
 export default function FriendsScreen({ navigation }: any) {
   const [searchQuery, setSearchQuery] = useState('');
-  const { friends, loadingFriends, searchResults, isSearching, search, sendRequest } = useFriends();
+  const { friends, loadingFriends, searchResults, isSearching, search, sendRequest, refreshFriends } = useFriends();
+
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    if (refreshFriends) await refreshFriends();
+    setRefreshing(false);
+  }, [refreshFriends]);
   const { contentWidth, horizontalPadding } = useResponsive();
 
   const handleSearch = (text: string) => {
@@ -64,7 +73,7 @@ export default function FriendsScreen({ navigation }: any) {
           {isSearching ? (
             <>
               <Text style={styles.sectionTitle}>Search Results ({searchResults.length})</Text>
-              <FlatList
+              <FlatList refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primaryLight} colors={[Colors.primaryLight]} />}
                 data={searchResults}
                 keyExtractor={(item) => item.id}
                 renderItem={renderFriend as any}

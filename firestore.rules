@@ -43,12 +43,12 @@ service cloud.firestore {
       allow delete: if request.auth != null && (request.auth.uid in resource.data.members) && resource.data.members.size() <= 1;
     }
 
-    // Messages collection
-    match /messages/{messageId} {
-      // Users can only read messages if they are a member of the group the message belongs to
-      allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/groups/$(resource.data.groupId)).data.members;
-      // Users can only send messages if they are a member of the target group
-      allow create: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/groups/$(request.resource.data.groupId)).data.members;
+    // Messages subcollection
+    match /groups/{groupId}/messages/{messageId} {
+      // Users can only read messages if they are a member of the group
+      allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+      // Users can only send messages if they are a member of the group
+      allow create: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
       allow update, delete: if false;
     }
 
