@@ -3,7 +3,6 @@ import { initializeAuth, getAuth, Auth } from 'firebase/auth';
 // @ts-ignore — getReactNativePersistence exists at runtime but lacks type declarations
 import { getReactNativePersistence } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
-import { getStorage, FirebaseStorage } from 'firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
@@ -42,16 +41,13 @@ try {
 }
 
 let db: Firestore;
-let storage: FirebaseStorage;
 
 if (app) {
   db = getFirestore(app);
-  storage = getStorage(app);
 } else {
   // Provide dummy or casted references to satisfy TypeScript so the build doesn't fail.
   // This will never be hit if env variables are present.
   db = {} as Firestore;
-  storage = {} as FirebaseStorage;
 }
 
-export { app, auth, db, storage };
+export { app, auth, db };

@@ -6,8 +6,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useUI } from '../../context/UIContext';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
 import { useSquads } from '../../hooks/useSquads';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../../config/firebase';
+import { uploadToCloudinary } from '../../services/cloudinary';
 import { removeMemberFromGroup, getUserProfile, updateGroupDetails } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
 import type { RootStackScreenProps, User } from '../../types';
@@ -93,19 +92,11 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
       const updates: any = { name: squadName.trim() };
 
       if (squadAvatar && squadAvatar !== initialAvatar && squadAvatar.startsWith('file://')) {
-        const response = await fetch(squadAvatar);
-        const blob = await response.blob();
-        const fileRef = ref(storage, `squad_avatars/${squadId}_${Date.now()}`);
-        await uploadBytes(fileRef, blob);
-        updates.avatar = await getDownloadURL(fileRef);
+        updates.avatar = await uploadToCloudinary(squadAvatar);
       }
 
       if (squadWallpaper && squadWallpaper.startsWith('file://')) {
-        const response = await fetch(squadWallpaper);
-        const blob = await response.blob();
-        const fileRef = ref(storage, `squad_wallpapers/${squadId}_${Date.now()}`);
-        await uploadBytes(fileRef, blob);
-        updates.wallpaper = await getDownloadURL(fileRef);
+        updates.wallpaper = await uploadToCloudinary(squadWallpaper);
       }
       
       updates.wallpaperOpacity = wallpaperOpacity;

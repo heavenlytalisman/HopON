@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../config/firebase';
+import { uploadToCloudinary } from '../services/cloudinary';
 import { getUserProfile, updateUserProfile } from '../services/firebase';
 import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
@@ -49,12 +48,7 @@ export function useProfile() {
   const updateAvatar = async (imageUri: string): Promise<boolean> => {
     if (!firebaseUser) return false;
     try {
-      const response = await fetch(imageUri);
-      const blob = await response.blob();
-      const fileRef = ref(storage, `avatars/${firebaseUser.uid}`);
-
-      await uploadBytes(fileRef, blob);
-      const downloadURL = await getDownloadURL(fileRef);
+      const downloadURL = await uploadToCloudinary(imageUri);
 
       const success = await updateUserProfile(firebaseUser.uid, { avatar: downloadURL } as Partial<User>);
       if (success) {
@@ -93,12 +87,8 @@ export function useProfile() {
       }
 
       if (details.bannerUri) {
-        // Upload banner to Firebase Storage
-        const response = await fetch(details.bannerUri);
-        const blob = await response.blob();
-        const fileRef = ref(storage, `banners/${firebaseUser.uid}`);
-        await uploadBytes(fileRef, blob);
-        const downloadURL = await getDownloadURL(fileRef);
+        // Upload banner to Cloudinary
+        const downloadURL = await uploadToCloudinary(details.bannerUri);
         updates.banner = downloadURL;
       }
 

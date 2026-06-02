@@ -8,8 +8,7 @@ import * as Clipboard from 'expo-clipboard';
 import { LinearGradient } from 'expo-linear-gradient';
 import { sendPushNotification } from '../../services/notifications';
 import { getGroupMemberTokens, getGroup, sendMessage, subscribeToGroupMessages, subscribeToGroupDetails } from '../../services/firebase';
-import { storage } from '../../config/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { uploadToCloudinary } from '../../services/cloudinary';
 import { useAuth } from '../../context/AuthContext';
 import { useResponsive } from '../../hooks/useResponsive';
 import { useUI } from '../../context/UIContext';
@@ -340,11 +339,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
       try {
         let finalUri = uri;
         if (uri.startsWith('file://')) {
-          const response = await fetch(uri);
-          const blob = await response.blob();
-          const fileRef = ref(storage, `stickers/${profile?.uid || 'user'}_${Date.now()}`);
-          await uploadBytes(fileRef, blob);
-          finalUri = await getDownloadURL(fileRef);
+          finalUri = await uploadToCloudinary(uri);
         }
 
         setStickerPacks((prev) => {
@@ -380,11 +375,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
     try {
       let finalUri = uri;
       if (uri.startsWith('file://')) {
-        const response = await fetch(uri);
-        const blob = await response.blob();
-        const fileRef = ref(storage, `view_once/${squadId}_${Date.now()}`);
-        await uploadBytes(fileRef, blob);
-        finalUri = await getDownloadURL(fileRef);
+        finalUri = await uploadToCloudinary(uri);
       }
 
       const messageData = {

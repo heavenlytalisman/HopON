@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { serverTimestamp } from 'firebase/firestore';
 import { subscribeToFeed, createPost as createPostService, togglePostLike, addReplyToPost } from '../services/firebase';
-import { storage } from '../config/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { uploadToCloudinary } from '../services/cloudinary';
 import { useAuth } from '../context/AuthContext';
 import type { FeedPostData, Post } from '../types';
 
@@ -90,17 +89,9 @@ export function useFeed() {
     try {
       let finalMediaData = attachedMedia ? { ...attachedMedia } : undefined;
 
-      // Detect local file URIs and upload to Firebase Storage
+      // Detect local file URIs and upload to Cloudinary
       if (finalMediaData && finalMediaData.url && finalMediaData.url.startsWith('file://')) {
-        const response = await fetch(finalMediaData.url);
-        const blob = await response.blob();
-        
-        const fileExt = finalMediaData.url.split('.').pop() || 'jpg';
-        const fileName = `posts/${profile.uid}_${Date.now()}.${fileExt}`;
-        const storageRef = ref(storage, fileName);
-        
-        await uploadBytes(storageRef, blob);
-        const downloadUrl = await getDownloadURL(storageRef);
+        const downloadUrl = await uploadToCloudinary(finalMediaData.url);
         finalMediaData.url = downloadUrl;
       }
 
