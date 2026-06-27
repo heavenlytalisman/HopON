@@ -1,0 +1,46 @@
+name: Build Unsigned iOS IPA
+
+on:
+  workflow_dispatch: # This allows you to trigger the build manually
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Generate iOS native code
+        run: npx expo prebuild -p ios
+
+      - name: Install iOS Pods
+        run: |
+          cd ios
+          pod install
+
+      - name: Compile Unsigned App
+        run: |
+          cd ios
+          xcodebuild -workspace HopON.xcworkspace -scheme HopON -configuration Release -sdk iphoneos OBJROOT=$PWD/build SYMROOT=$PWD/build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+
+      - name: Package into IPA
+        run: |
+          cd ios
+          mkdir -p Payload
+          cp -r build/Release-iphoneos/HopON.app Payload/
+          zip -r HopON.ipa Payload
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HopON-iOS-App
+          path: ios/HopON.ipa
