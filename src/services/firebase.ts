@@ -704,6 +704,17 @@ export const followUser = async (followerId: string, followingId: string): Promi
       followers: arrayUnion(followerId)
     });
     
+    const followerProfile = await getUserProfile(followerId);
+    await createNotification(followingId, {
+      type: 'follow',
+      title: followerProfile?.nickname || followerProfile?.name || 'Someone',
+      body: 'started following you',
+      data: {
+        followerId,
+        avatar: followerProfile?.avatar || '',
+      }
+    });
+    
     return true;
   } catch (error) {
     console.error('Error following user:', error);

@@ -19,6 +19,7 @@ export function useNotifications() {
       setNotifications(data);
       setLoading(false);
     }, (error) => {
+      console.error("useNotifications error:", error);
       setNotifications([]);
       setLoading(false);
     });

@@ -24,8 +24,8 @@ export default function NotificationsScreen({ navigation }: RootStackScreenProps
   const { notifications, loading } = useNotifications();
   const { firebaseUser } = useAuth();
 
-  const activityNotifs = notifications.filter(n => n.type !== 'friend_request');
-  const followNotifs = notifications.filter(n => n.type === 'friend_request');
+  const activityNotifs = notifications.filter(n => n.type !== 'friend_request' && n.type !== 'follow');
+  const followNotifs = notifications.filter(n => n.type === 'friend_request' || n.type === 'follow');
 
   return (
     <SafeAreaView style={styles.container}>
@@ -74,22 +74,24 @@ export default function NotificationsScreen({ navigation }: RootStackScreenProps
                 <View style={styles.notificationInfo}>
                   <Text style={styles.notificationUser}>{follow.title} <Text style={styles.notificationAction}>{follow.body}</Text></Text>
                 </View>
-                <TouchableOpacity 
-                  style={styles.followBtn}
-                  onPress={async () => {
-                    if (firebaseUser && follow.data?.requestId && follow.data?.senderId) {
-                      const success = await acceptFriendRequest(follow.data.requestId, firebaseUser.uid, follow.data.senderId);
-                      if (success) {
-                        await deleteNotification(follow.id);
-                        alert('Friend request accepted!');
+                {follow.type === 'friend_request' && (
+                  <TouchableOpacity 
+                    style={styles.followBtn}
+                    onPress={async () => {
+                      if (firebaseUser && follow.data?.requestId && follow.data?.senderId) {
+                        const success = await acceptFriendRequest(follow.data.requestId, firebaseUser.uid, follow.data.senderId);
+                        if (success) {
+                          await deleteNotification(follow.id);
+                          alert('Friend request accepted!');
+                        }
                       }
-                    }
-                  }}
-                >
-                  <Text style={styles.followBtnText}>
-                    Accept
-                  </Text>
-                </TouchableOpacity>
+                    }}
+                  >
+                    <Text style={styles.followBtnText}>
+                      Accept
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             ))
           )
