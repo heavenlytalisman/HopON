@@ -47,7 +47,7 @@ jobs:
 
           export NODE_BINARY=$(command -v node)
           set -o pipefail
-          xcodebuild -workspace HopON.xcworkspace -scheme HopON -configuration Release -sdk iphoneos OBJROOT=$PWD/build SYMROOT=$PWD/build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO | xcpretty
+          xcodebuild -workspace HopON.xcworkspace -scheme HopON -configuration Release -sdk iphoneos OBJROOT=$PWD/build SYMROOT=$PWD/build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 
       - name: Package into IPA
         run: |
