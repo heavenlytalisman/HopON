@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { uploadToCloudinary } from '../services/cloudinary';
-import { getUserProfile, updateUserProfile } from '../services/firebase';
+import { getUserProfile, updateUserProfile, subscribeToUserProfile } from '../services/firebase';
 import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
 import type { User } from '../types';
@@ -12,7 +12,19 @@ export function useProfile() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadProfile();
+    if (!firebaseUser) {
+      setProfile(null);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const unsubscribe = subscribeToUserProfile(firebaseUser.uid, (data) => {
+      if (data) setProfile(data);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, [firebaseUser]);
 
   const loadProfile = async () => {
@@ -22,8 +34,6 @@ export function useProfile() {
       if (data) setProfile(data);
     } catch (error) {
       console.error('Failed to load profile', error);
-    } finally {
-      setLoading(false);
     }
   };
 

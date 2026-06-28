@@ -90,13 +90,27 @@ export const getUserProfile = async (userId: string): Promise<User | null> => {
   try {
     const userDoc = await getDoc(doc(db, 'users', userId));
     if (userDoc.exists()) {
-      return ensureAvatar(userDoc.data() as User);
+      return ensureAvatar({ id: userDoc.id, ...userDoc.data() } as User);
     }
     return null;
   } catch (error) {
     console.error('Error fetching user profile:', error);
     return null;
   }
+};
+
+export const subscribeToUserProfile = (userId: string, callback: (profile: User | null) => void): import('firebase/firestore').Unsubscribe => {
+  const userRef = doc(db, 'users', userId);
+  return onSnapshot(userRef, (docSnap) => {
+    if (docSnap.exists()) {
+      callback(ensureAvatar({ id: docSnap.id, ...docSnap.data() } as User));
+    } else {
+      callback(null);
+    }
+  }, (error) => {
+    console.error('Error subscribing to user profile:', error);
+    callback(null);
+  });
 };
 
 export const updateUserProfile = async (userId: string, data: Partial<User>): Promise<boolean> => {

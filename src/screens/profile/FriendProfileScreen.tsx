@@ -11,7 +11,7 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { useFeed } from '../../hooks/useFeed';
 import { useFriends } from '../../hooks/useFriends';
 import { useFollows } from '../../hooks/useFollows';
-import { getUserProfile } from '../../services/firebase';
+import { getUserProfile, subscribeToUserProfile } from '../../services/firebase';
 import type { User } from '../../types';
 
 const { width } = Dimensions.get('window');
@@ -26,9 +26,6 @@ export default function FriendProfileScreen({ route, navigation }: RootStackScre
   const [friendProfile, setFriendProfile] = useState<User | null>(null);
 
   const loadFriendData = React.useCallback(async () => {
-    const profile = await getUserProfile(friendId);
-    if (profile) setFriendProfile(profile);
-    
     const following = await isFollowingUser(friendId);
     setIsFollowing(following);
   }, [friendId, isFollowingUser]);
@@ -43,7 +40,11 @@ export default function FriendProfileScreen({ route, navigation }: RootStackScre
 
   useEffect(() => {
     loadFriendData();
-  }, [loadFriendData]);
+    const unsubscribe = subscribeToUserProfile(friendId, (data) => {
+      if (data) setFriendProfile(data);
+    });
+    return () => unsubscribe();
+  }, [loadFriendData, friendId]);
 
   // Derive handle from name if not provided (for UI display only)
   const friendHandle = friendProfile?.handle || `@${friendName.toLowerCase().replace(/\s+/g, '')}`;
