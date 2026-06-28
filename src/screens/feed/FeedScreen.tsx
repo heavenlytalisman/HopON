@@ -16,7 +16,8 @@ import MusicSearchModal from '../../components/feed/MusicSearchModal';
 import GifPickerModal from '../../components/feed/GifPickerModal';
 import MovieSearchModal from '../../components/feed/MovieSearchModal';
 import GameSearchModal from '../../components/feed/GameSearchModal';
-import * as ImagePicker from 'expo-image-picker';import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
+import { Image } from 'expo-image';
 
 
 export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
@@ -92,7 +93,7 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={Colors.primaryLight} />
@@ -247,8 +248,7 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
                 </View>
               </View>
           </SafeAreaView>
-        </KeyboardAvoidingView>
-      </Modal>
+
 
       <MusicSearchModal 
         visible={isMusicSearchVisible}
@@ -289,6 +289,8 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
           setIsGameSearchVisible(false);
         }}
       />
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }

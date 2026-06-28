@@ -15,6 +15,8 @@ export interface User {
   banner?: string;
   bio?: string;
   pushToken?: string;
+  followers?: string[];
+  following?: string[];
   createdAt: Date | string;
   updatedAt?: string;
 }

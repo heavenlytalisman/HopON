@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Platform, ActivityIndicator } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useAuth } from '../context/AuthContext';
 
 import FeedIcon from '../components/icons/FeedIcon';
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -33,7 +34,7 @@ import PostDetailScreen from '../screens/feed/PostDetailScreen';
 import RecentActivityScreen from '../screens/home/RecentActivityScreen';
 import FriendsScreen from '../screens/social/FriendsScreen';
 
-import { useAuth } from '../context/AuthContext';
+
 import { Colors } from '../constants/theme';
 import type { RootStackParamList, MainTabParamList } from '../types';
 import { Image } from 'expo-image';
@@ -143,9 +144,19 @@ function MainTabs() {
 }
 
 export default function AppNavigator() {
+  const { firebaseUser, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#0B0D17', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#6366F1" />
+      </View>
+    );
+  }
+
   return (
     <Stack.Navigator
-      initialRouteName="Login"
+      initialRouteName={firebaseUser ? "MainTabs" : "Login"}
       screenOptions={{ headerShown: false }}
     >
       <Stack.Screen name="Login" component={LoginScreen} />

@@ -80,7 +80,7 @@ export default function SquadsScreen({ navigation }: MainTabScreenProps<'Squads'
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={[styles.content, { paddingHorizontal: horizontalPadding, maxWidth: contentWidth, alignSelf: 'center', width: '100%' }]}>
         <View style={styles.topBar}>
           <Text style={styles.headerTitle}>SQUADS</Text>

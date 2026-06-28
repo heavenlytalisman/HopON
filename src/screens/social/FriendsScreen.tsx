@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity , RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity , RefreshControl, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useFriends } from '../../hooks/useFriends';
 import { useResponsive } from '../../hooks/useResponsive';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
+import { useUI } from '../../context/UIContext';
 import type { MainTabScreenProps, Friend } from '../../types';
 import { Image } from 'expo-image';
 
 
 export default function FriendsScreen({ navigation }: any) {
+  const { showToast } = useUI();
   const [searchQuery, setSearchQuery] = useState('');
+  const [requestedUserIds, setRequestedUserIds] = useState<Set<string>>(new Set());
   const { friends, loadingFriends, searchResults, isSearching, search, sendRequest, refreshFriends } = useFriends();
 
   const [refreshing, setRefreshing] = React.useState(false);
@@ -29,8 +32,18 @@ export default function FriendsScreen({ navigation }: any) {
   };
 
   const handleAddFriend = async (userId: string) => {
+    if (requestedUserIds.has(userId)) return;
     const success = await sendRequest(userId);
-    if (success) alert('Friend request sent!');
+    if (success) {
+      setRequestedUserIds(prev => {
+        const newSet = new Set(prev);
+        newSet.add(userId);
+        return newSet;
+      });
+      showToast({ title: 'Success', message: 'Friend request sent!', type: 'success' });
+    } else {
+      showToast({ title: 'Error', message: 'Failed to send friend request. Please try again.', type: 'error' });
+    }
   };
 
   const renderFriend = ({ item }: { item: Friend }) => (
@@ -41,12 +54,17 @@ export default function FriendsScreen({ navigation }: any) {
       </View>
       <View style={styles.friendInfo}>
         <Text style={styles.friendName}>{item.nickname || item.name}</Text>
-        <Text style={styles.friendHandle}>{item.nickname ? `@${item.nickname}` : item.handle}</Text>
+        <Text style={styles.friendHandle}>{item.handle ? (item.handle.startsWith('@') ? item.handle : `@${item.handle}`) : `@${item.nickname || item.name}`}</Text>
       </View>
-      {isSearching && (
+      {isSearching && !requestedUserIds.has(item.id) && (
         <TouchableOpacity style={styles.addButtonSmall} onPress={() => handleAddFriend(item.id)}>
           <Ionicons name="person-add" size={16} color="#FFF" />
         </TouchableOpacity>
+      )}
+      {isSearching && requestedUserIds.has(item.id) && (
+        <View style={[styles.addButtonSmall, { backgroundColor: Colors.success }]}>
+          <Ionicons name="checkmark" size={16} color="#FFF" />
+        </View>
       )}
     </View>
   );
@@ -74,6 +92,7 @@ export default function FriendsScreen({ navigation }: any) {
             <>
               <Text style={styles.sectionTitle}>Search Results ({searchResults.length})</Text>
               <FlatList refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primaryLight} colors={[Colors.primaryLight]} />}
+                keyboardShouldPersistTaps="handled"
                 data={searchResults}
                 keyExtractor={(item) => item.id}
                 renderItem={renderFriend as any}

@@ -6,6 +6,7 @@ import {
   serverTimestamp, Unsubscribe,
 } from 'firebase/firestore';
 import type { User, Group, Post } from '../types';
+import { sendPushNotification } from './notifications';
 
 const stripUndefined = (obj: any) => {
   const newObj = { ...obj };
@@ -281,8 +282,8 @@ export const searchUsersByHandle = async (handleQuery: string): Promise<User[]> 
     const usersRef = collection(db, 'users');
     const q = query(
       usersRef,
-      where('nickname', '>=', handleQuery),
-      where('nickname', '<=', handleQuery + '\uf8ff'),
+      where('handle', '>=', handleQuery),
+      where('handle', '<=', handleQuery + '\uf8ff'),
     );
 
     const querySnapshot = await getDocs(q);
@@ -307,8 +308,40 @@ export const sendFriendRequest = async (senderId: string, receiverId: string): P
     const reqRef = doc(db, 'friend_requests', requestId);
     
     // Check if already requested
-    const docSnap = await getDoc(reqRef);
-    if (docSnap.exists() && docSnap.data().status !== 'rejected') {
+    let docSnap;
+    try {
+      docSnap = await getDoc(reqRef);
+    } catch (e: any) {
+      // In our security rules, reading a non-existent document might throw permission-denied
+      if (e.code === 'permission-denied') {
+        docSnap = null;
+      } else {
+        throw e;
+      }
+    }
+    
+    if (docSnap && docSnap.exists() && docSnap.data().status !== 'rejected') {
+      // Re-trigger the notification if it already exists so it gets the new UI payload
+      const senderProfile = await getUserProfile(senderId);
+      await createNotification(receiverId, {
+        type: 'friend_request',
+        title: senderProfile?.nickname || 'Someone',
+        body: 'wants to connect with you!',
+        data: {
+          senderId,
+          requestId,
+          avatar: senderProfile?.avatar || '',
+        }
+      });
+      const receiverProfile = await getUserProfile(receiverId);
+      if (receiverProfile?.pushToken) {
+        await sendPushNotification(
+          receiverProfile.pushToken,
+          'Friend Request',
+          `${senderProfile?.nickname || 'Someone'} wants to connect!`,
+          { route: 'Notifications' }
+        );
+      }
       return true; // Already pending or accepted
     }
 
@@ -320,15 +353,27 @@ export const sendFriendRequest = async (senderId: string, receiverId: string): P
     });
 
     // Create a notification for the receiver so they actually see the request
+    const senderProfile = await getUserProfile(senderId);
     await createNotification(receiverId, {
       type: 'friend_request',
-      title: 'New Friend Request',
-      body: 'Someone wants to connect!',
+      title: senderProfile?.nickname || 'Someone',
+      body: 'wants to connect with you!',
       data: {
         senderId,
         requestId,
+        avatar: senderProfile?.avatar || '',
       }
     });
+
+    const receiverProfile = await getUserProfile(receiverId);
+    if (receiverProfile?.pushToken) {
+      await sendPushNotification(
+        receiverProfile.pushToken,
+        'Friend Request',
+        `${senderProfile?.nickname || 'Someone'} wants to connect!`,
+        { route: 'Notifications' }
+      );
+    }
 
     console.log('Friend request sent from', senderId, 'to', receiverId);
     return true;
@@ -410,13 +455,18 @@ export const createNotification = async (userId: string, data: any): Promise<boo
 export const subscribeToNotifications = (userId: string, callback: (notifications: any[]) => void, onError?: (error: any) => void): Unsubscribe => {
   const q = query(
     collection(db, 'notifications'), 
-    where('userId', '==', userId), 
-    orderBy('createdAt', 'desc')
+    where('userId', '==', userId)
   );
   return onSnapshot(q, (querySnapshot) => {
     const notifs: any[] = [];
     querySnapshot.forEach((docSnap) => {
       notifs.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    // Sort locally to avoid needing a composite index in Firestore
+    notifs.sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
     });
     callback(notifs);
   }, (error: any) => {
@@ -633,4 +683,101 @@ export const subscribeToHopOnRoom = (squadId: string, callback: (activeMembers: 
       console.error('Error subscribing to HopOn room:', error);
     }
   });
+};
+
+// ──────────────────────────────────────────────
+// Follow Services
+// ──────────────────────────────────────────────
+
+export const followUser = async (followerId: string, followingId: string): Promise<boolean> => {
+  try {
+    if (followerId === followingId) return false;
+    
+    const followerRef = doc(db, 'users', followerId);
+    const followingRef = doc(db, 'users', followingId);
+    
+    // Use arrayUnion to add IDs
+    await updateDoc(followerRef, {
+      following: arrayUnion(followingId)
+    });
+    await updateDoc(followingRef, {
+      followers: arrayUnion(followerId)
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error following user:', error);
+    return false;
+  }
+};
+
+export const unfollowUser = async (followerId: string, followingId: string): Promise<boolean> => {
+  try {
+    const followerRef = doc(db, 'users', followerId);
+    const followingRef = doc(db, 'users', followingId);
+    
+    // Use arrayRemove to remove IDs
+    await updateDoc(followerRef, {
+      following: arrayRemove(followingId)
+    });
+    await updateDoc(followingRef, {
+      followers: arrayRemove(followerId)
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error unfollowing user:', error);
+    return false;
+  }
+};
+
+export const getFollowers = async (userId: string): Promise<User[]> => {
+  try {
+    const userDoc = await getUserProfile(userId);
+    if (!userDoc || !userDoc.followers || userDoc.followers.length === 0) return [];
+    
+    const followers: User[] = [];
+    for (const uid of userDoc.followers) {
+      const profile = await getUserProfile(uid);
+      if (profile) {
+        followers.push({ ...profile, id: uid } as User & { id: string });
+      }
+    }
+    return followers;
+  } catch (error) {
+    console.error('Error getting followers:', error);
+    return [];
+  }
+};
+
+export const getFollowing = async (userId: string): Promise<User[]> => {
+  try {
+    const userDoc = await getUserProfile(userId);
+    if (!userDoc || !userDoc.following || userDoc.following.length === 0) return [];
+    
+    const following: User[] = [];
+    for (const uid of userDoc.following) {
+      const profile = await getUserProfile(uid);
+      if (profile) {
+        following.push({ ...profile, id: uid } as User & { id: string });
+      }
+    }
+    return following;
+  } catch (error) {
+    console.error('Error getting following:', error);
+    return [];
+  }
+};
+
+export const checkIsFollowing = async (followerId: string, followingId: string): Promise<boolean> => {
+  try {
+    const followerDoc = await getUserProfile(followerId);
+    if (followerDoc && followerDoc.following) {
+      return followerDoc.following.includes(followingId);
+    }
+    return false;
+  } catch (error) {
+    console.error('Error checking follow status:', error);
+    return false;
+  }
 };

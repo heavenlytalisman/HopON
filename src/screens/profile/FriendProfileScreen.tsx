@@ -10,37 +10,49 @@ import { Image } from 'expo-image';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useFeed } from '../../hooks/useFeed';
 import { useFriends } from '../../hooks/useFriends';
+import { useFollows } from '../../hooks/useFollows';
+import { getUserProfile } from '../../services/firebase';
+import type { User } from '../../types';
 
 const { width } = Dimensions.get('window');
 
 export default function FriendProfileScreen({ route, navigation }: RootStackScreenProps<'FriendProfile'>) {
   const { friendId, friendName, friendAvatar } = route.params;
   const { friends, sendRequest, refreshFriends } = useFriends();
+  const { follow, unfollow, isFollowingUser } = useFollows();
   const { posts, loading: feedLoading } = useFeed();
 
   const [refreshing, setRefreshing] = React.useState(false);
+  const [friendProfile, setFriendProfile] = useState<User | null>(null);
+
+  const loadFriendData = React.useCallback(async () => {
+    const profile = await getUserProfile(friendId);
+    if (profile) setFriendProfile(profile);
+    
+    const following = await isFollowingUser(friendId);
+    setIsFollowing(following);
+  }, [friendId, isFollowingUser]);
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
     if (refreshFriends) await refreshFriends();
+    await loadFriendData();
     setRefreshing(false);
-  }, [refreshFriends]);
+  }, [refreshFriends, loadFriendData]);
   const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
-    if (friends.some(f => f.id === friendId)) {
-      setIsFollowing(true);
-    }
-  }, [friends, friendId]);
+    loadFriendData();
+  }, [loadFriendData]);
 
   // Derive handle from name if not provided (for UI display only)
-  const friendHandle = `@${friendName.toLowerCase().replace(/\s+/g, '')}`;
+  const friendHandle = friendProfile?.handle || `@${friendName.toLowerCase().replace(/\s+/g, '')}`;
 
   // Default banner fallback
-  const bannerUri = null;
+  const bannerUri = friendProfile?.banner || null;
   
   // No bio implemented in route yet
-  const bio = null;
+  const bio = friendProfile?.bio || null;
 
   const friendPosts = posts.filter(p => p.author.id === friendId);
 
@@ -72,16 +84,23 @@ export default function FriendProfileScreen({ route, navigation }: RootStackScre
               style={[styles.actionButton, isFollowing && styles.actionButtonFollowing]} 
               onPress={async () => {
                 if (!isFollowing) {
-                  const success = await sendRequest(friendId);
+                  const success = await follow(friendId);
                   if (success) {
                     setIsFollowing(true);
+                    setFriendProfile(prev => prev ? { ...prev, followers: [...(prev.followers || []), 'me'] } : prev);
+                  }
+                } else {
+                  const success = await unfollow(friendId);
+                  if (success) {
+                    setIsFollowing(false);
+                    setFriendProfile(prev => prev ? { ...prev, followers: (prev.followers || []).filter(id => id !== 'me') } : prev);
                   }
                 }
               }}
             >
               {!isFollowing && <Ionicons name="person-add" size={16} color="#FFF" style={{ marginRight: 6 }} />}
               <Text style={[styles.actionButtonText, isFollowing && styles.actionButtonTextFollowing]}>
-                {isFollowing ? 'Requested' : 'Follow'}
+                {isFollowing ? 'Following' : 'Follow'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -92,12 +111,12 @@ export default function FriendProfileScreen({ route, navigation }: RootStackScre
           {bio ? <Text style={styles.bio}>{bio}</Text> : null}
           
           <View style={styles.statsRow}>
-            <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('FollowList', { type: 'following', userName: friendName })}>
-              <Text style={styles.statValue}>0</Text>
+            <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('FollowList', { type: 'following', userName: friendName, userId: friendId })}>
+              <Text style={styles.statValue}>{friendProfile?.following?.length || 0}</Text>
               <Text style={styles.statLabel}>Following</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('FollowList', { type: 'followers', userName: friendName })}>
-              <Text style={styles.statValue}>0</Text>
+            <TouchableOpacity style={styles.statItem} onPress={() => navigation.navigate('FollowList', { type: 'followers', userName: friendName, userId: friendId })}>
+              <Text style={styles.statValue}>{friendProfile?.followers?.length || 0}</Text>
               <Text style={styles.statLabel}>Followers</Text>
             </TouchableOpacity>
           </View>

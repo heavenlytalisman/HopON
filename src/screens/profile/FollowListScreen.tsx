@@ -6,22 +6,38 @@ import { Colors, Spacing } from '../../constants/theme';
 import type { RootStackScreenProps } from '../../types';
 
 import { EmptyState } from '../../components/ui/EmptyState';
-import { useFriends } from '../../hooks/useFriends';
+import { useFollows } from '../../hooks/useFollows';
 import { Image } from 'expo-image';
-
+import type { User } from '../../types';
 
 export default function FollowListScreen({ route, navigation }: RootStackScreenProps<'FollowList'>) {
-  const { type, userName } = route.params;
+  const { type, userName, userId } = route.params;
   const isFollowers = type === 'followers';
-  const { friends, refreshFriends } = useFriends();
+  const { fetchFollowers, fetchFollowing } = useFollows();
+  const [listData, setListData] = React.useState<User[]>([]);
 
   const [refreshing, setRefreshing] = React.useState(false);
-  const onRefresh = React.useCallback(async () => {
+  
+  const loadData = React.useCallback(async () => {
+    if (!userId) return;
     setRefreshing(true);
-    if (refreshFriends) await refreshFriends();
+    if (isFollowers) {
+      const data = await fetchFollowers(userId);
+      setListData(data);
+    } else {
+      const data = await fetchFollowing(userId);
+      setListData(data);
+    }
     setRefreshing(false);
-  }, [refreshFriends]);
-  const listData: any[] = userName ? [] : friends;
+  }, [userId, isFollowers, fetchFollowers, fetchFollowing]);
+
+  const onRefresh = React.useCallback(async () => {
+    await loadData();
+  }, [loadData]);
+
+  React.useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const headerTitle = userName ? `${userName}'s ${isFollowers ? 'Followers' : 'Following'}` : (isFollowers ? 'Followers' : 'Following');
 
@@ -50,14 +66,14 @@ export default function FollowListScreen({ route, navigation }: RootStackScreenP
               key={user.id} 
               style={styles.listItem}
             onPress={() => navigation.navigate('FriendProfile', { 
-              friendId: user.id, 
-              friendName: user.name, 
-              friendAvatar: user.avatar 
+              friendId: user.id || user.uid, 
+              friendName: user.nickname || 'User', 
+              friendAvatar: user.avatar || ''
             })}
           >
             <Image source={{ uri: user.avatar }} style={styles.avatarImage} />
             <View style={styles.userInfo}>
-              <Text style={styles.userName}>{user.name}</Text>
+              <Text style={styles.userName}>{user.nickname}</Text>
               <Text style={styles.userHandle}>{user.handle}</Text>
             </View>
             <TouchableOpacity style={styles.actionButton}>

@@ -125,7 +125,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <ActivityIndicator size="large" color={Colors.primaryLight} style={{ flex: 1 }} />
       </SafeAreaView>
     );
@@ -140,7 +140,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
         <View style={[styles.bannerContainer, !displayBanner && { backgroundColor: Colors.surfaceAlt }]}>
           {displayBanner ? <Image source={{ uri: displayBanner }} style={styles.bannerImage} /> : null}
           <View style={styles.headerOverlay}>
-            <SafeAreaView style={styles.safeHeaderRow}>
+            <SafeAreaView style={styles.safeHeaderRow} edges={['top', 'left', 'right']}>
               <View style={{ flex: 1 }} />
               <TouchableOpacity style={styles.iconButton} onPress={() => setSettingsVisible(true)}>
                 <Ionicons name="settings-outline" size={22} color={Colors.textPrimary} />
@@ -169,12 +169,12 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
             ) : null}
 
             <View style={styles.statsRow}>
-              <TouchableOpacity style={styles.statBox} onPress={() => navigation.navigate('FollowList', { type: 'following', userName: profile?.nickname || 'User' })}>
-                <Text style={styles.statCount}>0</Text>
+              <TouchableOpacity style={styles.statBox} onPress={() => navigation.navigate('FollowList', { type: 'following', userName: profile?.nickname || 'User', userId: profile?.id || profile?.uid })}>
+                <Text style={styles.statCount}>{profile?.following?.length || 0}</Text>
                 <Text style={styles.statLabel}>Following</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.statBox} onPress={() => navigation.navigate('FollowList', { type: 'followers', userName: profile?.nickname || 'User' })}>
-                <Text style={styles.statCount}>0</Text>
+              <TouchableOpacity style={styles.statBox} onPress={() => navigation.navigate('FollowList', { type: 'followers', userName: profile?.nickname || 'User', userId: profile?.id || profile?.uid })}>
+                <Text style={styles.statCount}>{profile?.followers?.length || 0}</Text>
                 <Text style={styles.statLabel}>Followers</Text>
               </TouchableOpacity>
             </View>
