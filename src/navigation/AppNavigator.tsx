@@ -95,7 +95,8 @@ function MainTabs() {
         name="HopOnAction"
         component={NullScreen}
         options={{
-          title: 'HOP ON',
+          title: '',
+          tabBarShowLabel: false,
           tabBarIcon: () => (
             <View style={styles.fabContainer}>
               <LinearGradient
