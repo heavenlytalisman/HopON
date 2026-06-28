@@ -44,6 +44,9 @@
       "eas": {
         "projectId": "18a33b14-95c7-4964-b6b5-2115b817257c"
       }
+    },
+    "experiments": {
+      "domComponents": false
     }
   }
 }
