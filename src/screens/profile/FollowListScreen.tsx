@@ -13,31 +13,39 @@ import type { User } from '../../types';
 export default function FollowListScreen({ route, navigation }: RootStackScreenProps<'FollowList'>) {
   const { type, userName, userId } = route.params;
   const isFollowers = type === 'followers';
-  const { fetchFollowers, fetchFollowing } = useFollows();
+  const { fetchFollowers, fetchFollowing, subscribeToFollowers, subscribeToFollowing } = useFollows();
   const [listData, setListData] = React.useState<User[]>([]);
 
   const [refreshing, setRefreshing] = React.useState(false);
   
-  const loadData = React.useCallback(async () => {
+  React.useEffect(() => {
     if (!userId) return;
+    
     setRefreshing(true);
-    if (isFollowers) {
-      const data = await fetchFollowers(userId);
-      setListData(data);
-    } else {
-      const data = await fetchFollowing(userId);
-      setListData(data);
+    let unsubscribe: import('firebase/firestore').Unsubscribe | undefined;
+
+    if (isFollowers && subscribeToFollowers) {
+      unsubscribe = subscribeToFollowers(userId, (data) => {
+        setListData(data);
+        setRefreshing(false);
+      });
+    } else if (!isFollowers && subscribeToFollowing) {
+      unsubscribe = subscribeToFollowing(userId, (data) => {
+        setListData(data);
+        setRefreshing(false);
+      });
     }
-    setRefreshing(false);
-  }, [userId, isFollowers, fetchFollowers, fetchFollowing]);
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [userId, isFollowers, subscribeToFollowers, subscribeToFollowing]);
 
   const onRefresh = React.useCallback(async () => {
-    await loadData();
-  }, [loadData]);
-
-  React.useEffect(() => {
-    loadData();
-  }, [loadData]);
+    // Optional refresh fallback for manual trigger
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 500);
+  }, []);
 
   const headerTitle = userName ? `${userName}'s ${isFollowers ? 'Followers' : 'Following'}` : (isFollowers ? 'Followers' : 'Following');
 

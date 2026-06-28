@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { followUser, unfollowUser, getFollowers, getFollowing, checkIsFollowing } from '../services/firebase';
+import { followUser, unfollowUser, getFollowers, getFollowing, checkIsFollowing, subscribeToFollowers, subscribeToFollowing } from '../services/firebase';
 import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
 import type { User } from '../types';
@@ -54,5 +54,5 @@ export function useFollows() {
     return await checkIsFollowing(firebaseUser.uid, targetUserId);
   }, [firebaseUser]);
 
-  return { follow, unfollow, fetchFollowers, fetchFollowing, isFollowingUser, loading };
+  return { follow, unfollow, fetchFollowers, fetchFollowing, subscribeToFollowers, subscribeToFollowing, isFollowingUser, loading };
 }

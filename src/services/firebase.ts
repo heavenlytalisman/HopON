@@ -213,6 +213,20 @@ export const getUserGroups = async (userUid: string): Promise<Group[]> => {
   }
 };
 
+export const subscribeToUserGroups = (userUid: string, callback: (groups: Group[]) => void): import('firebase/firestore').Unsubscribe => {
+  const q = query(collection(db, 'groups'), where('members', 'array-contains', userUid));
+  return onSnapshot(q, (querySnapshot) => {
+    const groups: Group[] = [];
+    querySnapshot.forEach((docSnap) => {
+      groups.push({ id: docSnap.id, ...docSnap.data() } as Group);
+    });
+    callback(groups);
+  }, (error) => {
+    console.error('Error subscribing to user groups: ', error);
+    callback([]);
+  });
+};
+
 export const getGroupMemberTokens = async (groupId: string, excludeUid: string): Promise<string[]> => {
   try {
     const groupDoc = await getDoc(doc(db, 'groups', groupId));
@@ -446,6 +460,51 @@ export const getFriends = async (userId: string): Promise<User[]> => {
     console.error('Error getting friends:', error);
     return [];
   }
+};
+
+export const subscribeToFriends = (userId: string, callback: (friends: User[]) => void): (() => void) => {
+  const q1 = query(collection(db, 'friendships'), where('user1Id', '==', userId));
+  const q2 = query(collection(db, 'friendships'), where('user2Id', '==', userId));
+  
+  let snap1Docs: any[] = [];
+  let snap2Docs: any[] = [];
+  let unsub1: import('firebase/firestore').Unsubscribe | null = null;
+  let unsub2: import('firebase/firestore').Unsubscribe | null = null;
+  
+  const updateFriends = async () => {
+    try {
+      const friendIds = new Set<string>();
+      snap1Docs.forEach(doc => friendIds.add(doc.data().user2Id));
+      snap2Docs.forEach(doc => friendIds.add(doc.data().user1Id));
+      
+      const friends: User[] = [];
+      for (const id of Array.from(friendIds)) {
+        const userDoc = await getUserProfile(id); // Static fetch of profile when list updates to save costs
+        if (userDoc) {
+          friends.push({ ...userDoc, id } as User & { id: string });
+        }
+      }
+      callback(friends);
+    } catch (error) {
+      console.error('Error updating friends subscription:', error);
+      callback([]);
+    }
+  };
+
+  unsub1 = onSnapshot(q1, (snap) => {
+    snap1Docs = snap.docs;
+    updateFriends();
+  });
+
+  unsub2 = onSnapshot(q2, (snap) => {
+    snap2Docs = snap.docs;
+    updateFriends();
+  });
+
+  return () => {
+    if (unsub1) unsub1();
+    if (unsub2) unsub2();
+  };
 };
 
 // ──────────────────────────────────────────────
@@ -775,6 +834,37 @@ export const getFollowers = async (userId: string): Promise<User[]> => {
   }
 };
 
+export const subscribeToFollowers = (userId: string, callback: (followers: User[]) => void): import('firebase/firestore').Unsubscribe => {
+  const userRef = doc(db, 'users', userId);
+  return onSnapshot(userRef, async (docSnap) => {
+    try {
+      if (!docSnap.exists()) {
+        callback([]);
+        return;
+      }
+      
+      const userData = docSnap.data();
+      const followerIds = userData.followers || [];
+      if (followerIds.length === 0) {
+        callback([]);
+        return;
+      }
+      
+      const followers: User[] = [];
+      for (const uid of followerIds) {
+        const profile = await getUserProfile(uid); // Static fetch of profile when list updates to save costs
+        if (profile) {
+          followers.push({ ...profile, id: uid } as User & { id: string });
+        }
+      }
+      callback(followers);
+    } catch (error) {
+      console.error('Error subscribing to followers:', error);
+      callback([]);
+    }
+  });
+};
+
 export const getFollowing = async (userId: string): Promise<User[]> => {
   try {
     const userDoc = await getUserProfile(userId);
@@ -792,6 +882,37 @@ export const getFollowing = async (userId: string): Promise<User[]> => {
     console.error('Error getting following:', error);
     return [];
   }
+};
+
+export const subscribeToFollowing = (userId: string, callback: (following: User[]) => void): import('firebase/firestore').Unsubscribe => {
+  const userRef = doc(db, 'users', userId);
+  return onSnapshot(userRef, async (docSnap) => {
+    try {
+      if (!docSnap.exists()) {
+        callback([]);
+        return;
+      }
+      
+      const userData = docSnap.data();
+      const followingIds = userData.following || [];
+      if (followingIds.length === 0) {
+        callback([]);
+        return;
+      }
+      
+      const following: User[] = [];
+      for (const uid of followingIds) {
+        const profile = await getUserProfile(uid); // Static fetch of profile when list updates to save costs
+        if (profile) {
+          following.push({ ...profile, id: uid } as User & { id: string });
+        }
+      }
+      callback(following);
+    } catch (error) {
+      console.error('Error subscribing to following:', error);
+      callback([]);
+    }
+  });
 };
 
 export const checkIsFollowing = async (followerId: string, followingId: string): Promise<boolean> => {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { searchUsersByHandle, sendFriendRequest, getFriends } from '../services/firebase';
+import { searchUsersByHandle, sendFriendRequest, subscribeToFriends } from '../services/firebase';
 import { useAuth } from '../context/AuthContext';
 import type { User, Friend } from '../types';
 
@@ -11,21 +11,23 @@ export function useFriends() {
   const { firebaseUser } = useAuth();
 
   useEffect(() => {
-    loadFriends();
+    if (!firebaseUser) {
+      setFriends([]);
+      setLoadingFriends(false);
+      return;
+    }
+
+    setLoadingFriends(true);
+    const unsubscribe = subscribeToFriends(firebaseUser.uid, (f) => {
+      setFriends(f);
+      setLoadingFriends(false);
+    });
+
+    return () => unsubscribe();
   }, [firebaseUser]);
 
   const loadFriends = async () => {
-    if (!firebaseUser) return;
-    setLoadingFriends(true);
-    try {
-      const f = await getFriends(firebaseUser.uid);
-      setFriends(f);
-    } catch (e) {
-      console.error(e);
-      setFriends([]);
-    } finally {
-      setLoadingFriends(false);
-    }
+    // Kept for backward compatibility if any component calls refreshFriends explicitly
   };
 
   const search = async (text: string) => {

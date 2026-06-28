@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getUserGroups, createGroup } from '../services/firebase';
+import { subscribeToUserGroups, createGroup } from '../services/firebase';
 import { useAuth } from '../context/AuthContext';
 import type { Group } from '../types';
 
@@ -10,22 +10,26 @@ export function useSquads() {
   const [loading, setLoading] = useState(true);
   const { firebaseUser } = useAuth();
 
-  const loadSquads = async () => {
-    if (!firebaseUser) return;
-    setLoading(true);
-    try {
-      const userGroups = await getUserGroups(firebaseUser.uid);
-      setSquads(userGroups);
-    } catch {
-      setSquads([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    loadSquads();
+    if (!firebaseUser) {
+      setSquads([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const unsubscribe = subscribeToUserGroups(firebaseUser.uid, (groups) => {
+      setSquads(groups);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, [firebaseUser]);
+
+  const loadSquads = async () => {
+    // Left for backwards compatibility if any component calls refreshSquads
+    // though the real-time listener will handle updates automatically
+  };
 
   const createSquad = async (name: string): Promise<string | null> => {
     if (!firebaseUser) return null;
