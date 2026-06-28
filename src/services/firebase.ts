@@ -780,7 +780,7 @@ export const followUser = async (followerId: string, followingId: string): Promi
     const followerProfile = await getUserProfile(followerId);
     await createNotification(followingId, {
       type: 'follow',
-      title: followerProfile?.nickname || followerProfile?.name || 'Someone',
+      title: followerProfile?.nickname || 'Someone',
       body: 'started following you',
       data: {
         followerId,
