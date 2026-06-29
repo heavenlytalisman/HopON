@@ -10,8 +10,8 @@ service cloud.firestore {
     // Users collection
     match /users/{userId} {
       allow read: if request.auth != null;
-      // Users can update their own profile, but cannot change their UID
-      allow update: if request.auth != null && request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid']);
+      // Users can update their own profile, but cannot change their UID or createdAt
+      allow update: if request.auth != null && request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'createdAt']);
       allow create, delete: if request.auth != null && request.auth.uid == userId;
     }
 
