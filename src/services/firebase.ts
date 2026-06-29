@@ -339,38 +339,23 @@ export const searchUsersByHandle = async (searchQuery: string): Promise<User[]> 
   try {
     const usersRef = collection(db, 'users');
     
-    // Query by handle
-    const handleQ = query(
+    // Ensure we only search by the unique username (handle)
+    // Strip '@' if the user typed it, and convert to lowercase since handles are stored lowercase
+    const cleanQuery = searchQuery.replace('@', '').trim().toLowerCase();
+    
+    const q = query(
       usersRef,
-      where('handle', '>=', searchQuery.toLowerCase()),
-      where('handle', '<=', searchQuery.toLowerCase() + '\uf8ff'),
+      where('handle', '>=', cleanQuery),
+      where('handle', '<=', cleanQuery + '\uf8ff'),
     );
 
-    // Query by nickname (case-sensitive as stored)
-    const nicknameQ = query(
-      usersRef,
-      where('nickname', '>=', searchQuery),
-      where('nickname', '<=', searchQuery + '\uf8ff'),
-    );
-
-    const [handleSnapshot, nicknameSnapshot] = await Promise.all([
-      getDocs(handleQ),
-      getDocs(nicknameQ)
-    ]);
-
-    const resultsMap = new Map<string, User & { id: string }>();
-
-    handleSnapshot.forEach((docSnap) => {
-      resultsMap.set(docSnap.id, ensureAvatar({ id: docSnap.id, ...docSnap.data() } as User & { id: string }) as User & { id: string });
+    const querySnapshot = await getDocs(q);
+    const results: (User & { id: string })[] = [];
+    querySnapshot.forEach((docSnap) => {
+      results.push(ensureAvatar({ id: docSnap.id, ...docSnap.data() } as User & { id: string }) as User & { id: string });
     });
 
-    nicknameSnapshot.forEach((docSnap) => {
-      if (!resultsMap.has(docSnap.id)) {
-        resultsMap.set(docSnap.id, ensureAvatar({ id: docSnap.id, ...docSnap.data() } as User & { id: string }) as User & { id: string });
-      }
-    });
-
-    return Array.from(resultsMap.values());
+    return results;
   } catch (error) {
     console.error('Error searching users:', error);
     return [];
