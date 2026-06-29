@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-13
+    runs-on: macos-latest
 
     steps:
       - name: Checkout Code
@@ -45,6 +45,7 @@ jobs:
           # Strip the push notification entitlement since Apple strictly blocks unsigned builds with aps-environment
           /usr/libexec/PlistBuddy -c "Delete :aps-environment" HopON/HopON.entitlements || true
 
+          export DEVELOPER_DIR=/Applications/Xcode_15.4.app/Contents/Developer
           export NODE_BINARY=$(command -v node)
           set -o pipefail
           xcodebuild -workspace HopON.xcworkspace -scheme HopON -configuration Release -sdk iphoneos OBJROOT=$PWD/build SYMROOT=$PWD/build CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
