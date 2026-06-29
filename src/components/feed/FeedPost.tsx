@@ -11,7 +11,8 @@ import type { FeedPostData } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { createPost, togglePostLike, incrementRepost, deletePost } from '../../services/firebase';
 import { serverTimestamp } from 'firebase/firestore';
-import { useUI } from '../../context/UIContext';import { Image } from 'expo-image';
+import { useUI } from '../../context/UIContext';
+import { Image } from 'expo-image';
 
 
 interface FeedPostProps {
@@ -261,7 +262,7 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
         <View ref={shareCardRef} style={styles.storyCard} collapsable={false}>
           <LinearGradient
             colors={['#0B0D17', '#1E293B']}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
           />
           <View style={{ position: 'absolute', width: 400, height: 400, borderRadius: 200, backgroundColor: Colors.primary, opacity: 0.2, top: '20%' }} />
           

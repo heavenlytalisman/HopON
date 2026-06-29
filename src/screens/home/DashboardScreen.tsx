@@ -91,7 +91,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
         <View style={styles.heroCard}>
           <LinearGradient
             colors={['#1A1B26', '#0F1219']}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           />

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, FlatList, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, BorderRadius } from '../../constants/theme';import { Image } from 'expo-image';
+import { Colors, Spacing, BorderRadius } from '../../constants/theme';
+import { Image } from 'expo-image';
 
 
 interface MovieSearchModalProps {

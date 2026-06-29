@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
     borderRadius: 70,
   },
   avatarOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.4)',
     borderRadius: 70,
     justifyContent: 'center',

@@ -41,7 +41,7 @@ export default function EmailLoginScreen({ navigation }: RootStackScreenProps<'E
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#0B0D17', '#0A0A0A']} style={StyleSheet.absoluteFillObject} />
+      <LinearGradient colors={['#0B0D17', '#0A0A0A']} style={StyleSheet.absoluteFill} />
       
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView 

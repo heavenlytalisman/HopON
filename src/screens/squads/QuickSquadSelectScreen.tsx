@@ -8,7 +8,8 @@ import { sendPushNotification } from '../../services/notifications';
 import { useAuth } from '../../context/AuthContext';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
-import type { RootStackScreenProps } from '../../types';import { Image } from 'expo-image';
+import type { RootStackScreenProps } from '../../types';
+import { Image } from 'expo-image';
 
 
 const { height } = Dimensions.get('window');
@@ -105,7 +106,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(11, 13, 23, 0.7)',
   },
   bottomSheet: {

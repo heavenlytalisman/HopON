@@ -546,8 +546,8 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
       >
         {squadWallpaper && (
           <>
-            <Image source={{ uri: squadDetails?.wallpaper || squadWallpaper }} style={StyleSheet.absoluteFillObject} />
-            <View style={[StyleSheet.absoluteFillObject, { backgroundColor: `rgba(11, 13, 23, ${wallpaperOpacity})` }]} />
+            <Image source={{ uri: squadDetails?.wallpaper || squadWallpaper }} style={StyleSheet.absoluteFill} />
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: `rgba(11, 13, 23, ${wallpaperOpacity})` }]} />
           </>
         )}
         

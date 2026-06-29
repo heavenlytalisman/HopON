@@ -43,7 +43,7 @@ export default function LoginScreen({ navigation }: RootStackScreenProps<'Login'
     <View style={styles.container}>
       <LinearGradient
         colors={['#0B0D17', '#0A0A0A']}
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
       />
 
       {/* Background Glow Effect */}

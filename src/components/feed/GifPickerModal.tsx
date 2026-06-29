@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, Modal, TextInput, FlatList, TouchableOpacity, A
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
-import AsyncStorage from '@react-native-async-storage/async-storage';import { Image } from 'expo-image';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Image } from 'expo-image';
 
 
 // Standard public testing key for Tenor API

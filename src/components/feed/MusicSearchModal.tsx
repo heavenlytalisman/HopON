@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, Modal, TextInput, FlatList, TouchableOpacity, A
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { createAudioPlayer, AudioPlayer } from 'expo-audio';
-import { Colors, Spacing, BorderRadius } from '../../constants/theme';import { Image } from 'expo-image';
+import { Colors, Spacing, BorderRadius } from '../../constants/theme';
+import { Image } from 'expo-image';
 
 
 interface MusicSearchModalProps {

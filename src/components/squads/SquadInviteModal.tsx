@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, FlatList } from 'react
 import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
-import { useFriends } from '../../hooks/useFriends';import { Image } from 'expo-image';
+import { useFriends } from '../../hooks/useFriends';
+import { Image } from 'expo-image';
 
 
 interface SquadInviteModalProps {

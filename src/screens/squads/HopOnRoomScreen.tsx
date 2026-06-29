@@ -7,7 +7,8 @@ import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import { joinHopOnRoom, leaveHopOnRoom, subscribeToHopOnRoom } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { User } from '../../types';
-import type { RootStackScreenProps } from '../../types';import { Image } from 'expo-image';
+import type { RootStackScreenProps } from '../../types';
+import { Image } from 'expo-image';
 
 
 export default function HopOnRoomScreen({ navigation, route }: RootStackScreenProps<'HopOnRoom'>) {
@@ -56,8 +57,8 @@ export default function HopOnRoomScreen({ navigation, route }: RootStackScreenPr
     <SafeAreaView style={styles.container}>
       {squadWallpaper && (
         <>
-          <Image source={{ uri: squadWallpaper }} style={StyleSheet.absoluteFillObject} blurRadius={15} />
-          <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(11, 13, 23, 0.4)' }]} />
+          <Image source={{ uri: squadWallpaper }} style={StyleSheet.absoluteFill} blurRadius={15} />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(11, 13, 23, 0.4)' }]} />
         </>
       )}
 

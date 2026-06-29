@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     padding: Spacing.xs,
   },
   modalBackdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(11, 13, 23, 0.7)',
   },
   modalBottomSheet: {

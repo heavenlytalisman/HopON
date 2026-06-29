@@ -7,7 +7,8 @@ import { useUI } from '../../context/UIContext';
 import { sendMessage } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
-import type { RootStackScreenProps, CallerInfo } from '../../types';import { Image } from 'expo-image';
+import type { RootStackScreenProps, CallerInfo } from '../../types';
+import { Image } from 'expo-image';
 
 
 const QUICK_REPLIES = ['Busy rn', 'Give me 10 mins', 'In a match', 'Maybe later'];
@@ -75,8 +76,8 @@ export default function IncomingAlertScreen({ navigation, route }: RootStackScre
     <SafeAreaView style={styles.container}>
       {squadWallpaper && (
         <>
-          <Image source={{ uri: squadWallpaper }} style={StyleSheet.absoluteFillObject} blurRadius={15} />
-          <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(11, 13, 23, 0.4)' }]} />
+          <Image source={{ uri: squadWallpaper }} style={StyleSheet.absoluteFill} blurRadius={15} />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(11, 13, 23, 0.4)' }]} />
         </>
       )}
 

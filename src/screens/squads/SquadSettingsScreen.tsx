@@ -7,7 +7,8 @@ import { useUI } from '../../context/UIContext';
 import { removeMemberFromGroup, updateGroupDetails } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
-import type { RootStackScreenProps } from '../../types';import { Image } from 'expo-image';
+import type { RootStackScreenProps } from '../../types';
+import { Image } from 'expo-image';
 
 
 const SOUNDS = [

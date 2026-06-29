@@ -4,7 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
-import type { RootStackScreenProps } from '../../types';import { Image } from 'expo-image';
+import type { RootStackScreenProps } from '../../types';
+import { Image } from 'expo-image';
 
 
 const { width } = Dimensions.get('window');
@@ -80,16 +81,16 @@ export default function SquadWallpaperScreen({ route, navigation }: RootStackScr
 
       <View style={styles.previewContainer}>
         {squadWallpaper ? (
-          <Image source={{ uri: squadWallpaper }} style={StyleSheet.absoluteFillObject} />
+          <Image source={{ uri: squadWallpaper }} style={StyleSheet.absoluteFill} />
         ) : (
-          <View style={[StyleSheet.absoluteFillObject, { backgroundColor: Colors.surface, justifyContent: 'center', alignItems: 'center' }]}>
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: Colors.surface, justifyContent: 'center', alignItems: 'center' }]}>
             <Ionicons name="image-outline" size={48} color={Colors.border} />
             <Text style={{ color: Colors.textMuted, marginTop: 8 }}>No Wallpaper Selected</Text>
           </View>
         )}
         
         {/* Dark Overlay */}
-        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: `rgba(11, 13, 23, ${opacity})` }]} />
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: `rgba(11, 13, 23, ${opacity})` }]} />
         
         {/* Mock Chat Content for Preview */}
         <View style={styles.mockChat}>
