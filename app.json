@@ -29,6 +29,10 @@
             "enableProguardInReleaseBuilds": true,
             "enableShrinkResourcesInReleaseBuilds": true,
             "enableMinifyInReleaseBuilds": true
+          },
+          "ios": {
+            "swiftVersion": "5.9",
+            "extraSwiftFlags": ["-warn-concurrency"]
           }
         }
       ],
