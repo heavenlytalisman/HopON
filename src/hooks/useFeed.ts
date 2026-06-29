@@ -75,10 +75,10 @@ export function useFeed() {
     // Map the rest of the contents to a thread array if the user posts a multi-part thread
     const thread = validContents.slice(1).map((content, i) => ({
       id: `temp-${Date.now()}-${i}`,
-      authorId: profile.uid || 'unknown',
-      authorName: profile.nickname,
-      authorHandle: `@${profile.nickname.toLowerCase().replace(/\s+/g, '')}`,
-      authorAvatar: profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.nickname)}&background=7C3AED&color=FFF&size=150`,
+      authorId: profile.id || profile.uid || 'unknown',
+      authorName: profile.nickname || 'Unknown User',
+      authorHandle: profile.handle ? (profile.handle.startsWith('@') ? profile.handle : `@${profile.handle}`) : `@${(profile.nickname || 'user').toLowerCase().replace(/\s+/g, '')}`,
+      authorAvatar: profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.nickname || 'User')}&background=7C3AED&color=FFF&size=150`,
       content: content,
       timestamp: new Date().toISOString(),
       likes: 0,
@@ -96,10 +96,10 @@ export function useFeed() {
       }
 
       await createPostService({
-        authorId: profile.uid || 'unknown',
-        authorName: profile.nickname,
-        authorHandle: `@${profile.nickname.toLowerCase().replace(/\s+/g, '')}`,
-        authorAvatar: profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.nickname)}&background=7C3AED&color=FFF&size=150`,
+        authorId: profile.id || profile.uid || 'unknown',
+        authorName: profile.nickname || 'Unknown User',
+        authorHandle: profile.handle ? (profile.handle.startsWith('@') ? profile.handle : `@${profile.handle}`) : `@${(profile.nickname || 'user').toLowerCase().replace(/\s+/g, '')}`,
+        authorAvatar: profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.nickname || 'User')}&background=7C3AED&color=FFF&size=150`,
         content: validContents[0],
         timestamp: serverTimestamp(),
         thread: thread.length > 0 ? thread : undefined,
@@ -112,22 +112,22 @@ export function useFeed() {
   };
 
   const likePost = async (postId: string) => {
-    if (!profile?.uid) return;
+    if (!profile) return;
     try {
-      await togglePostLike(postId, profile.uid);
+      await togglePostLike(postId, profile.id || profile.uid || '');
     } catch (error) {
       console.error('Error liking post:', error);
     }
   };
 
   const replyToPost = async (postId: string, content: string) => {
-    if (!profile?.uid || !content.trim()) return;
+    if (!profile || !content.trim()) return;
     try {
       await addReplyToPost(postId, {
-        authorId: profile.uid,
-        authorName: profile.nickname,
-        authorHandle: `@${profile.nickname.toLowerCase().replace(/\s+/g, '')}`,
-        authorAvatar: profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.nickname)}&background=7C3AED&color=FFF`,
+        authorId: profile.id || profile.uid || 'unknown',
+        authorName: profile.nickname || 'Unknown User',
+        authorHandle: profile.handle ? (profile.handle.startsWith('@') ? profile.handle : `@${profile.handle}`) : `@${(profile.nickname || 'user').toLowerCase().replace(/\s+/g, '')}`,
+        authorAvatar: profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.nickname || 'User')}&background=7C3AED&color=FFF`,
         content: content.trim(),
         timestamp: serverTimestamp(),
       } as any);

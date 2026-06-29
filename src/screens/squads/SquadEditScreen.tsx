@@ -193,27 +193,27 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
 
             <View style={styles.membersList}>
               {memberProfiles.map((member) => (
-                <View key={member.uid} style={styles.memberRow}>
+                <View key={(member.id || member.uid)} style={styles.memberRow}>
                   <TouchableOpacity 
                     style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}
                     onPress={() => {
-                      if (profile?.uid === member.uid) {
+                      if ((profile?.id || profile?.uid) === (member.id || member.uid)) {
                         navigation.navigate('Profile' as any);
                       } else {
-                        navigation.navigate('FriendProfile', { friendId: member.uid, friendName: member.nickname || 'Unknown', friendAvatar: member.avatar || '' });
+                        navigation.navigate('FriendProfile', { friendId: (member.id || member.uid), friendName: member.nickname || 'Unknown', friendAvatar: member.avatar || '' });
                       }
                     }}
                   >
                     <Image source={{ uri: member.avatar }} style={styles.memberAvatar} />
                     <View style={styles.memberInfo}>
                       <Text style={styles.memberName}>{member.nickname || 'Unknown Member'}</Text>
-                      <Text style={styles.memberHandle}>@{member.handle || member.uid.slice(0, 4)}</Text>
+                      <Text style={styles.memberHandle}>@{member.handle || String((member.id || member.uid) || 'user').slice(0, 4)}</Text>
                     </View>
                   </TouchableOpacity>
-                  {profile?.uid !== member.uid && (
+                  {(profile?.id || profile?.uid) !== (member.id || member.uid) && (
                     <TouchableOpacity 
                       style={styles.removeBtn}
-                      onPress={() => handleRemoveMember(member.uid, member.nickname || 'Member')}
+                      onPress={() => handleRemoveMember((member.id || member.uid), member.nickname || 'Member')}
                     >
                       <Text style={styles.removeBtnText}>Remove</Text>
                     </TouchableOpacity>

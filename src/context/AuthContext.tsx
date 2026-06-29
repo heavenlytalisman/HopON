@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { AppState } from 'react-native';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { auth } from '../config/firebase';
-import { getUserProfile, loginAnonymously, updateUserPushToken, loginWithEmail, registerWithEmail, updateUserPresence } from '../services/firebase';
+import { getUserProfile, loginAnonymously, updateUserPushToken, loginWithEmail, registerWithEmail, updateUserPresence, updateUserProfile } from '../services/firebase';
 import { registerForPushNotificationsAsync } from '../services/notifications';
 import type { User } from '../types';
 
@@ -29,6 +29,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setFirebaseUser(user);
       if (user) {
         const data = await getUserProfile(user.uid);
+        if (data && !data.handle && data.nickname) {
+          const newHandle = data.nickname.toLowerCase().replace(/\s+/g, '');
+          await updateUserProfile(user.uid, { handle: newHandle });
+          data.handle = newHandle;
+        }
         setProfile(data);
         await updateUserPresence(user.uid, true);
       } else {

@@ -59,7 +59,7 @@ export default function IncomingAlertScreen({ navigation, route }: RootStackScre
     
     if (caller.squadId && profile) {
       const messageData = {
-        sender: profile.nickname,
+        sender: profile.nickname || 'Unknown User',
         avatar: profile.avatar || `https://ui-avatars.com/api/?name=Unknown`,
         text: message,
       };

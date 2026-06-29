@@ -65,6 +65,7 @@ export const loginAnonymously = async (nickname: string) => {
     await setDoc(doc(db, 'users', user.uid), {
       uid: user.uid,
       nickname: nickname,
+      handle: (nickname || 'guest').toLowerCase().replace(/\s+/g, ''), // Guest handle
       createdAt: new Date(),
     }, { merge: true });
 
@@ -304,6 +305,35 @@ export const updateGroupDetails = async (groupId: string, data: Partial<Group>):
 // ──────────────────────────────────────────────
 // Social Services
 // ──────────────────────────────────────────────
+
+export const checkHandleAvailability = async (handleToCheck: string, excludeUid?: string): Promise<boolean> => {
+  try {
+    const formattedHandle = handleToCheck.startsWith('@') ? handleToCheck : `@${handleToCheck}`;
+    const usersRef = collection(db, 'users');
+    const q = query(usersRef, where('handle', '==', formattedHandle));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      return true; // No one has this handle
+    }
+    
+    // If we're checking against our own handle, it's still "available" to us
+    if (excludeUid) {
+      let isAvailable = true;
+      querySnapshot.forEach((docSnap) => {
+        if (docSnap.id !== excludeUid && docSnap.data().uid !== excludeUid) {
+          isAvailable = false;
+        }
+      });
+      return isAvailable;
+    }
+    
+    return false; // Taken by someone else
+  } catch (error) {
+    console.error('Error checking handle availability:', error);
+    return false; // Default to not available on error to prevent overwrites
+  }
+};
 
 export const searchUsersByHandle = async (handleQuery: string): Promise<User[]> => {
   try {

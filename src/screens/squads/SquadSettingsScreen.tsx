@@ -120,7 +120,7 @@ export default function SquadSettingsScreen({ route, navigation }: RootStackScre
           style: 'destructive', 
           onPress: async () => {
             if (profile?.uid) {
-              await removeMemberFromGroup(squadId, profile.uid);
+              await removeMemberFromGroup(squadId, (profile.id || profile.uid));
               navigation.navigate('MainTabs', { screen: 'Squads' } as any);
             }
           } 

@@ -47,7 +47,7 @@ export default function FriendProfileScreen({ route, navigation }: RootStackScre
   }, [loadFriendData, friendId]);
 
   // Derive handle from name if not provided (for UI display only)
-  const friendHandle = friendProfile?.handle || `@${friendName.toLowerCase().replace(/\s+/g, '')}`;
+  const friendHandle = friendProfile?.handle || `@${(friendName || 'user').toLowerCase().replace(/\s+/g, '')}`;
 
   // Default banner fallback
   const bannerUri = friendProfile?.banner || null;

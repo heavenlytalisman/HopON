@@ -60,7 +60,9 @@ service cloud.firestore {
       // Allow the author to update anything, but allow any authenticated user to ONLY update social interaction fields
       allow update: if request.auth != null && (
         resource.data.authorId == request.auth.uid || 
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likedBy', 'likes', 'replies', 'comments', 'reposts'])
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likedBy', 'likes', 'replies', 'comments', 'reposts']) &&
+         (!('likes' in request.resource.data) || request.resource.data.likes == resource.data.likes + 1 || request.resource.data.likes == resource.data.likes - 1 || request.resource.data.likes == resource.data.likes)
+        )
       );
     }
 
@@ -68,7 +70,8 @@ service cloud.firestore {
     match /friendships/{friendshipId} {
       // Users can only read friendships where they are either user1 or user2
       allow read: if request.auth != null && (resource.data.user1Id == request.auth.uid || resource.data.user2Id == request.auth.uid);
-      allow create, update, delete: if request.auth != null && (request.resource.data.user1Id == request.auth.uid || request.resource.data.user2Id == request.auth.uid);
+      allow create: if request.auth != null && (request.resource.data.user1Id == request.auth.uid || request.resource.data.user2Id == request.auth.uid) && !exists(/databases/$(database)/documents/friendships/$(friendshipId));
+      allow update, delete: if request.auth != null && (resource.data.user1Id == request.auth.uid || resource.data.user2Id == request.auth.uid);
     }
     
     // Active Rooms collection
@@ -89,8 +92,8 @@ service cloud.firestore {
     match /notifications/{notificationId} {
       // Users can only read and manage their own notifications
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      // Left permissive because any squad member can trigger HopON calls/notifications
-      allow create: if request.auth != null; 
+      // Prevent Notification Spoofing: Sender ID must match authenticated user, or system-generated (no senderId)
+      allow create: if request.auth != null && (!('senderId' in request.resource.data) || request.resource.data.senderId == request.auth.uid); 
       allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 

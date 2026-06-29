@@ -11,6 +11,7 @@ import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme'
 import { EmptyState } from '../../components/ui/EmptyState';
 import FeedPost from '../../components/feed/FeedPost';
 import { useFeed } from '../../hooks/useFeed';
+import { checkHandleAvailability } from '../../services/firebase';
 import type { MainTabScreenProps, FeedPostData } from '../../types';
 import { Image } from 'expo-image';
 
@@ -28,6 +29,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
   const [tempBio, setTempBio] = useState('');
   const [tempBannerUri, setTempBannerUri] = useState<string | null>(null);
   const [tempAvatarUri, setTempAvatarUri] = useState<string | null>(null);
+  const [handleStatus, setHandleStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [isSaving, setIsSaving] = useState(false);
 
   const { posts, loading: feedLoading } = useFeed();
@@ -60,6 +62,31 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
       ]
     });
   };
+
+
+  React.useEffect(() => {
+    if (!isEditModalVisible) return;
+    const currentHandle = getHandle().replace('@', '');
+    const cleanTemp = tempHandle.trim().toLowerCase();
+    
+    if (cleanTemp === currentHandle) {
+      setHandleStatus('idle');
+      return;
+    }
+    
+    if (cleanTemp.length < 3) {
+      setHandleStatus('idle');
+      return;
+    }
+
+    setHandleStatus('checking');
+    const timeoutId = setTimeout(async () => {
+      const isAvailable = await checkHandleAvailability(cleanTemp, profile?.id || profile?.uid);
+      setHandleStatus(isAvailable ? 'available' : 'taken');
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [tempHandle, isEditModalVisible, profile]);
 
   const openEditModal = () => {
     setTempNickname(profile?.nickname || '');
@@ -221,8 +248,8 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
                 <Text style={styles.headerBtnText}>Cancel</Text>
               </TouchableOpacity>
               <Text style={styles.modalTitleText}>Edit Profile</Text>
-              <TouchableOpacity onPress={saveProfile} disabled={isSaving}>
-                {isSaving ? <ActivityIndicator size="small" color={Colors.primary} /> : <Text style={[styles.headerBtnText, {color: Colors.primary, fontWeight: 'bold'}]}>Save</Text>}
+              <TouchableOpacity onPress={saveProfile} disabled={isSaving || handleStatus === 'checking' || handleStatus === 'taken'}>
+                {isSaving ? <ActivityIndicator size="small" color={Colors.primary} /> : <Text style={[styles.headerBtnText, {color: (handleStatus === 'checking' || handleStatus === 'taken') ? Colors.textMuted : Colors.primary, fontWeight: 'bold'}]}>Save</Text>}
               </TouchableOpacity>
             </View>
             
@@ -253,10 +280,16 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
                   />
                 </View>
 
+                
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Username</Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text style={styles.inputLabel}>Username</Text>
+                    {handleStatus === 'checking' && <ActivityIndicator size="small" color={Colors.primaryLight} />}
+                    {handleStatus === 'available' && <Text style={{ color: Colors.success, fontSize: 12 }}>Available</Text>}
+                    {handleStatus === 'taken' && <Text style={{ color: Colors.error, fontSize: 12 }}>Taken</Text>}
+                  </View>
                   <TextInput 
-                    style={styles.textInput} 
+                    style={[styles.textInput, handleStatus === 'taken' && { borderColor: Colors.error, borderWidth: 1 }]} 
                     value={tempHandle} 
                     onChangeText={setTempHandle} 
                     maxLength={15} 
@@ -264,6 +297,7 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
                     placeholderTextColor={Colors.textMuted}
                   />
                 </View>
+
 
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>Bio</Text>

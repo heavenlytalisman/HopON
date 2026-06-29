@@ -138,9 +138,9 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
   const [repostedPosts, setRepostedPosts] = useState<Record<string, boolean>>({});
 
   const handleLike = async (id: string) => {
-    if (!profile?.uid) return;
+    if (!profile) return;
     try {
-      await togglePostLike(id, profile.uid);
+      await togglePostLike(id, profile.id || profile.uid || '');
     } catch (e) {
       console.error(e);
     }
@@ -168,9 +168,9 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
           mediaData: post.mediaData,
           thread: post.thread as any,
           repostedBy: {
-            name: profile.nickname,
-            handle: `@${profile.nickname.toLowerCase().replace(/\s+/g, '')}`,
-            uid: profile.uid,
+            name: profile.nickname || 'Unknown User',
+            handle: profile.handle ? (profile.handle.startsWith('@') ? profile.handle : `@${profile.handle}`) : `@${(profile.nickname || 'user').toLowerCase().replace(/\s+/g, '')}`,
+            uid: profile.id || profile.uid || 'unknown',
           }
         });
         
@@ -233,7 +233,7 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
 
   const executePostOption = async () => {
     if (!selectedPostOptions) return;
-    const isOwnPost = profile ? selectedPostOptions.author.handle === `@${profile.nickname.toLowerCase().replace(/\s+/g, '')}` : false;
+    const isOwnPost = profile ? selectedPostOptions.author.id === (profile.id || profile.uid) : false;
     
     const targetPostId = selectedPostOptions.id;
     setSelectedPostOptions(null);
@@ -285,7 +285,7 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
   };
 
   if (variant === 'detail') {
-    const isLiked = profile?.uid ? post.likedBy?.includes(profile.uid) : false;
+    const isLiked = profile ? post.likedBy?.includes(profile.id || profile.uid || '') : false;
     const isReposted = repostedPosts[post.id];
     const likesCount = post.likes || 0;
     const repostsCount = (post.reposts || 0) + (isReposted ? 1 : 0);
@@ -347,7 +347,7 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
   // --- Feed Variant Below ---
 
   const renderSinglePost = (p: FeedPostData, isLast: boolean, isThreadChild = false) => {
-    const isLiked = profile?.uid ? p.likedBy?.includes(profile.uid) : false;
+    const isLiked = profile ? p.likedBy?.includes(profile.id || profile.uid || '') : false;
     const isReposted = repostedPosts[p.id];
     const likesCount = p.likes || 0;
     const repostsCount = (p.reposts || 0) + (isReposted ? 1 : 0);
@@ -365,7 +365,7 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
             <View style={styles.repostHeaderFeed}>
               <Ionicons name="repeat" size={14} color={Colors.textMuted} />
               <Text style={styles.repostText}>
-                {profile?.uid === p.repostedBy.uid ? 'You reposted' : `${p.repostedBy.name} reposted`}
+                {(profile?.id || profile?.uid) === p.repostedBy.uid ? 'You reposted' : `${p.repostedBy.name} reposted`}
               </Text>
             </View>
           )}
@@ -436,8 +436,8 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
           <View style={styles.optionsSheet}>
             <View style={styles.optionsHandle} />
             <TouchableOpacity style={styles.optionRow} onPress={executePostOption}>
-              <Ionicons name={(selectedPostOptions && profile && selectedPostOptions.author.handle === `@${profile.nickname.toLowerCase().replace(/\s+/g, '')}`) ? "trash-outline" : "eye-off-outline"} size={22} color={Colors.error} />
-              <Text style={styles.optionTextError}>{(selectedPostOptions && profile && selectedPostOptions.author.handle === `@${profile.nickname.toLowerCase().replace(/\s+/g, '')}`) ? 'Delete Post' : 'Hide Post'}</Text>
+              <Ionicons name={(selectedPostOptions && profile && selectedPostOptions.author.id === (profile.id || profile.uid)) ? "trash-outline" : "eye-off-outline"} size={22} color={Colors.error} />
+              <Text style={styles.optionTextError}>{(selectedPostOptions && profile && selectedPostOptions.author.id === (profile.id || profile.uid)) ? 'Delete Post' : 'Hide Post'}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>

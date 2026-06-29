@@ -42,7 +42,7 @@ export function useProfile() {
     const trimmed = newNickname.trim();
     if (!trimmed) return false;
 
-    const newHandle = `@${trimmed.toLowerCase().replace(/\s+/g, '')}`;
+    const newHandle = `@${(trimmed || 'user').toLowerCase().replace(/\s+/g, '')}`;
     const success = await updateUserProfile(firebaseUser.uid, {
       nickname: trimmed,
       handle: newHandle,
@@ -85,7 +85,7 @@ export function useProfile() {
       }
       
       if (details.handle && details.handle.trim() !== '') {
-        let newHandle = details.handle.trim().toLowerCase().replace(/\s+/g, '');
+        let newHandle = (details.handle || 'user').trim().toLowerCase().replace(/\s+/g, '');
         if (!newHandle.startsWith('@')) {
           newHandle = `@${newHandle}`;
         }
@@ -121,7 +121,7 @@ export function useProfile() {
   };
 
   const getHandle = (): string => {
-    if (profile?.handle) return profile.handle;
+    if (profile?.handle) return profile.handle.startsWith('@') ? profile.handle : `@${profile.handle}`;
     return `@${(profile?.nickname || 'user').toLowerCase().replace(/\s+/g, '')}`;
   };
 

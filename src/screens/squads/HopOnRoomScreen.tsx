@@ -31,7 +31,7 @@ export default function HopOnRoomScreen({ navigation, route }: RootStackScreenPr
     if (!squadId || !profile?.uid) return;
     
     // Join the room on mount
-    joinHopOnRoom(squadId, profile.uid);
+    joinHopOnRoom(squadId, (profile.id || profile.uid));
     
     // Subscribe to active members
     const unsubscribe = subscribeToHopOnRoom(squadId, (members) => {
@@ -40,14 +40,14 @@ export default function HopOnRoomScreen({ navigation, route }: RootStackScreenPr
     
     // Leave room on unmount
     return () => {
-      leaveHopOnRoom(squadId, profile.uid);
+      leaveHopOnRoom(squadId, (profile.id || profile.uid));
       unsubscribe();
     };
   }, [squadId, profile?.uid]);
 
   const handleLeave = () => {
     if (squadId && profile?.uid) {
-      leaveHopOnRoom(squadId, profile.uid);
+      leaveHopOnRoom(squadId, (profile.id || profile.uid));
     }
     navigation.goBack();
   };

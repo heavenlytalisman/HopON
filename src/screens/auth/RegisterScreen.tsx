@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
+import { checkHandleAvailability } from '../../services/firebase';
 import { useResponsive } from '../../hooks/useResponsive';
 import { Colors, Spacing, FontSizes, BorderRadius } from '../../constants/theme';
 import type { RootStackScreenProps } from '../../types';
@@ -15,9 +16,28 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
   const [nickname, setNickname] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [handleStatus, setHandleStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   
   const { registerEmail } = useAuth();
   const { contentWidth, horizontalPadding } = useResponsive();
+
+
+  React.useEffect(() => {
+    const cleanHandle = handle.trim().toLowerCase();
+    
+    if (cleanHandle.length < 3) {
+      setHandleStatus('idle');
+      return;
+    }
+
+    setHandleStatus('checking');
+    const timeoutId = setTimeout(async () => {
+      const isAvailable = await checkHandleAvailability(cleanHandle);
+      setHandleStatus(isAvailable ? 'available' : 'taken');
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [handle]);
 
   const handleRegister = async () => {
     if (!email.trim() || !password.trim() || !handle.trim() || !nickname.trim()) {
@@ -93,8 +113,15 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
                 secureTextEntry
               />
 
-              <Text style={styles.label}>Username (Unique Handle)</Text>
-              <View style={styles.handleContainer}>
+              
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={styles.label}>Username (Unique Handle)</Text>
+                {handleStatus === 'checking' && <ActivityIndicator size="small" color={Colors.primaryLight} />}
+                {handleStatus === 'available' && <Text style={{ color: Colors.success, fontSize: 12, marginBottom: Spacing.xs }}>Available</Text>}
+                {handleStatus === 'taken' && <Text style={{ color: Colors.error, fontSize: 12, marginBottom: Spacing.xs }}>Taken</Text>}
+              </View>
+              <View style={[styles.handleContainer, handleStatus === 'taken' && { borderColor: Colors.error, borderWidth: 1 }]}>
+
                 <Text style={styles.handlePrefix}>@</Text>
                 <TextInput
                   style={[styles.input, styles.handleInput]}
@@ -116,9 +143,9 @@ export default function RegisterScreen({ navigation }: RootStackScreenProps<'Reg
               />
 
               <TouchableOpacity 
-                style={[styles.button, loading && styles.buttonDisabled]} 
+                style={[styles.button, (loading || handleStatus === 'checking' || handleStatus === 'taken') && styles.buttonDisabled]} 
                 onPress={handleRegister}
-                disabled={loading}
+                disabled={loading || handleStatus === 'checking' || handleStatus === 'taken'}
               >
                 {loading ? (
                   <ActivityIndicator color="#FFFFFF" />
