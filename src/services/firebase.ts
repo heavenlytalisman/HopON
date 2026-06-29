@@ -335,22 +335,42 @@ export const checkHandleAvailability = async (handleToCheck: string, excludeUid?
   }
 };
 
-export const searchUsersByHandle = async (handleQuery: string): Promise<User[]> => {
+export const searchUsersByHandle = async (searchQuery: string): Promise<User[]> => {
   try {
     const usersRef = collection(db, 'users');
-    const q = query(
+    
+    // Query by handle
+    const handleQ = query(
       usersRef,
-      where('handle', '>=', handleQuery),
-      where('handle', '<=', handleQuery + '\uf8ff'),
+      where('handle', '>=', searchQuery.toLowerCase()),
+      where('handle', '<=', searchQuery.toLowerCase() + '\uf8ff'),
     );
 
-    const querySnapshot = await getDocs(q);
-    const results: (User & { id: string })[] = [];
-    querySnapshot.forEach((docSnap) => {
-      results.push(ensureAvatar({ id: docSnap.id, ...docSnap.data() } as User & { id: string }) as User & { id: string });
+    // Query by nickname (case-sensitive as stored)
+    const nicknameQ = query(
+      usersRef,
+      where('nickname', '>=', searchQuery),
+      where('nickname', '<=', searchQuery + '\uf8ff'),
+    );
+
+    const [handleSnapshot, nicknameSnapshot] = await Promise.all([
+      getDocs(handleQ),
+      getDocs(nicknameQ)
+    ]);
+
+    const resultsMap = new Map<string, User & { id: string }>();
+
+    handleSnapshot.forEach((docSnap) => {
+      resultsMap.set(docSnap.id, ensureAvatar({ id: docSnap.id, ...docSnap.data() } as User & { id: string }) as User & { id: string });
     });
 
-    return results;
+    nicknameSnapshot.forEach((docSnap) => {
+      if (!resultsMap.has(docSnap.id)) {
+        resultsMap.set(docSnap.id, ensureAvatar({ id: docSnap.id, ...docSnap.data() } as User & { id: string }) as User & { id: string });
+      }
+    });
+
+    return Array.from(resultsMap.values());
   } catch (error) {
     console.error('Error searching users:', error);
     return [];
