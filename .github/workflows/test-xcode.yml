@@ -1,0 +1,9 @@
+
+name: Test Xcode
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - run: ls -la /Applications | grep Xcode
+
