@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-14
 
     steps:
       - name: Checkout Code
@@ -41,6 +41,7 @@ jobs:
 
       - name: Compile Unsigned App
         run: |
+          sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer || true
           cd ios
           # Strip the push notification entitlement since Apple strictly blocks unsigned builds with aps-environment
           /usr/libexec/PlistBuddy -c "Delete :aps-environment" HopON/HopON.entitlements || true
