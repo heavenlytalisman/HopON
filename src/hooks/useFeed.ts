@@ -69,7 +69,7 @@ export function useFeed() {
 
   const publishPost = async (contents: string[], attachedMediaType?: string, attachedMedia?: any) => {
     const validContents = contents.map(c => c.trim()).filter(c => c.length > 0);
-    if (validContents.length === 0 || !profile) return;
+    if ((validContents.length === 0 && !attachedMedia) || !profile) return;
     setIsPosting(true);
     
     // Map the rest of the contents to a thread array if the user posts a multi-part thread

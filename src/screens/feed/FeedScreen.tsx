@@ -58,8 +58,8 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
       setAttachedMedia(null);
       setAttachedMediaType(null);
       setIsComposeVisible(false);
-    } catch {
-      showToast({ title: 'Error', message: 'Could not create post. Please try again.', type: 'error' });
+    } catch (e: any) {
+      showToast({ title: 'Error', message: `Could not create post: ${e.message || 'Please try again.'}`, type: 'error' });
     }
   };
 
