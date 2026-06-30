@@ -73,7 +73,7 @@ export default function HopOnRoomScreen({ navigation, route }: RootStackScreenPr
             <Animated.View style={{ opacity: pulseAnim, alignItems: 'center' }}>
               <Ionicons name="radio-outline" size={64} color={Colors.primaryLight} />
               <Text style={{ color: Colors.textMuted, marginTop: Spacing.md, fontSize: 16, textAlign: 'center' }}>
-                You are in the lobby.\nWaiting for members to join...
+                {'You are in the lobby.\nWaiting for members to join...'}
               </Text>
             </Animated.View>
           ) : (

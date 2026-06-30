@@ -38,9 +38,10 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
     squad.members.some(memberId => memberId !== profile?.uid)
   );
 
-  const recentActivityPosts = posts.filter(post =>
-    post.author.name === profile?.nickname || friends.some(f => f.nickname === post.author.name)
-  );
+  const recentActivityPosts = posts.filter(post => {
+    const actorName = post.repostedBy ? post.repostedBy.name : post.author.name;
+    return actorName === profile?.nickname || friends.some(f => f.nickname === actorName);
+  });
 
   const isProfileSetup = !!profile?.avatar && !profile.avatar.includes('ui-avatars.com');
   const hasFriends = friends.length > 0;

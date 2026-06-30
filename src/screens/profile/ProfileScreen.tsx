@@ -42,7 +42,10 @@ export default function ProfileScreen({ navigation }: MainTabScreenProps<'Profil
     if (refreshProfile) await refreshProfile();
     setRefreshing(false);
   }, [refreshProfile]);
-  const myPosts = posts.filter((p) => p.author.handle === getHandle());
+  const myPosts = posts.filter((p) => {
+    const actorHandle = p.repostedBy ? p.repostedBy.handle : p.author.handle;
+    return actorHandle === getHandle();
+  });
 
   const handleLogout = () => {
     setSettingsVisible(false);

@@ -24,8 +24,8 @@ service cloud.firestore {
         ||
         (request.auth.uid != userId && 
          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers', 'following']) &&
-         (!('followers' in request.resource.data) || onlyAffectsAuthUser(resource.data.followers, request.resource.data.followers)) &&
-         (!('following' in request.resource.data) || onlyAffectsAuthUser(resource.data.following, request.resource.data.following))
+         (!('followers' in request.resource.data) || onlyAffectsAuthUser(resource.data.get('followers', []), request.resource.data.followers)) &&
+         (!('following' in request.resource.data) || onlyAffectsAuthUser(resource.data.get('following', []), request.resource.data.following))
         )
       );
       allow create, delete: if request.auth != null && request.auth.uid == userId;
@@ -44,7 +44,7 @@ service cloud.firestore {
         (
           request.auth.uid in resource.data.members && 
           resource.data.ownerId != request.auth.uid &&
-          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['ownerId']) &&
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['ownerId', 'avatar', 'name', 'wallpaper', 'wallpaperOpacity', 'ringtone']) &&
           request.resource.data.members.hasAll(resource.data.members.removeAll([request.auth.uid]))
         )
         ||

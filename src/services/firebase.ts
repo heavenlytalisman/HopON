@@ -462,6 +462,20 @@ export const acceptFriendRequest = async (requestId: string, user1Id: string, us
       createdAt: new Date().toISOString()
     }, { merge: true });
 
+    // Make them follow each other
+    const user1Ref = doc(db, 'users', user1Id);
+    const user2Ref = doc(db, 'users', user2Id);
+    
+    await updateDoc(user1Ref, {
+      following: arrayUnion(user2Id),
+      followers: arrayUnion(user2Id)
+    });
+    
+    await updateDoc(user2Ref, {
+      following: arrayUnion(user1Id),
+      followers: arrayUnion(user1Id)
+    });
+
     return true;
   } catch (error) {
     console.error('Error accepting friend request:', error);

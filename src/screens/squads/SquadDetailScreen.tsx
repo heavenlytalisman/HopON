@@ -557,7 +557,13 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.headerInfoTouchable}
-            onPress={() => navigation.navigate('SquadEdit', { squadId, squadName: squadDetails?.name || squadName, squadAvatar: squadDetails?.avatar || squadAvatar })}
+            onPress={() => {
+              if (squadDetails?.ownerId === (profile?.uid || profile?.id)) {
+                navigation.navigate('SquadEdit', { squadId, squadName: squadDetails?.name || squadName, squadAvatar: squadDetails?.avatar || squadAvatar })
+              } else {
+                showToast({ title: 'Restricted', message: 'Only the squad owner can edit squad details.', type: 'info' })
+              }
+            }}
             activeOpacity={0.7}
           >
             <Image source={{ uri: squadAvatar  }} style={styles.headerSquadAvatar} />

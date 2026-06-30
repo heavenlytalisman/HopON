@@ -24,13 +24,25 @@ export function useFeed() {
       const formattedPosts: FeedPostData[] = livePosts.map((post) => {
         const mapPost = (p: Post | FeedPostData): FeedPostData => {
           let timeString = 'Just now';
+          let dateObj: Date | null = null;
+          
           if (p.timestamp && (p as any).timestamp.toDate) {
+            dateObj = (p as any).timestamp.toDate();
+          } else if (typeof p.timestamp === 'string' || typeof p.timestamp === 'number') {
+            dateObj = new Date(p.timestamp);
+            if (isNaN(dateObj.getTime())) {
+              dateObj = null;
+            }
+          }
+
+          if (dateObj) {
             const diffSeconds = Math.floor(
-              (new Date().getTime() - (p as any).timestamp.toDate().getTime()) / 1000,
+              (new Date().getTime() - dateObj.getTime()) / 1000,
             );
             if (diffSeconds < 60) timeString = 'Just now';
             else if (diffSeconds < 3600) timeString = `${Math.floor(diffSeconds / 60)}m`;
-            else timeString = `${Math.floor(diffSeconds / 3600)}h`;
+            else if (diffSeconds < 86400) timeString = `${Math.floor(diffSeconds / 3600)}h`;
+            else timeString = `${Math.floor(diffSeconds / 86400)}d`;
           } else if (typeof p.timestamp === 'string') {
             timeString = p.timestamp;
           }

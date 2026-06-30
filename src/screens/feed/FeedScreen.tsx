@@ -27,8 +27,9 @@ export default function FeedScreen({ navigation }: MainTabScreenProps<'Feed'>) {
   const { showToast } = useUI();
 
   const feedPosts = posts.filter(post => {
-    if (post.author.name === profile?.nickname) return true;
-    return friends.some(friend => friend.nickname === post.author.name);
+    const actorName = post.repostedBy ? post.repostedBy.name : post.author.name;
+    if (actorName === profile?.nickname) return true;
+    return friends.some(friend => friend.nickname === actorName);
   });
   const { contentWidth, horizontalPadding } = useResponsive();
   const [postTexts, setPostTexts] = useState<string[]>(['']);

@@ -37,6 +37,11 @@ export const registerForPushNotificationsAsync = async (): Promise<string | null
         console.warn('Project ID not found. Ensure app.json is configured correctly.');
       }
 
+      if (Platform.OS === 'ios') {
+        console.log('Skipping push token generation on iOS (unsigned build does not support APNs).');
+        return null;
+      }
+
       token = (
         await Notifications.getExpoPushTokenAsync({
           projectId: projectId,

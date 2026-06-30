@@ -46,7 +46,7 @@ export default function IncomingAlertScreen({ navigation, route }: RootStackScre
 
     const initSound = async () => {
       try {
-        let soundUrl = 'https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg';
+        let soundUrl = 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/20/48/d7/2048d7ee-d89f-a841-d8cb-990193342db0/mzaf_1451830045636308578.plus.aac.p.m4a';
 
         if (caller.squadId) {
           const group = await getGroup(caller.squadId);
@@ -59,10 +59,10 @@ export default function IncomingAlertScreen({ navigation, route }: RootStackScre
               }
             } else {
               switch (group.ringtone) {
-                case 'radar': soundUrl = 'https://actions.google.com/sounds/v1/alarms/spaceship_alarm.ogg'; break;
-                case 'beacon': soundUrl = 'https://actions.google.com/sounds/v1/alarms/sonar_ping.ogg'; break;
-                case 'siren': soundUrl = 'https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg'; break;
-                case 'chime': soundUrl = 'https://actions.google.com/sounds/v1/alarms/dinner_bell_triangle.ogg'; break;
+                case 'radar': soundUrl = 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/20/48/d7/2048d7ee-d89f-a841-d8cb-990193342db0/mzaf_1451830045636308578.plus.aac.p.m4a'; break;
+                case 'beacon': soundUrl = 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/2f/b5/20/2fb5202c-93ee-84e9-4123-e83b13679f5c/mzaf_10836930080464392255.plus.aac.p.m4a'; break;
+                case 'siren': soundUrl = 'https://audio-ssl.itunes.apple.com/itunes-assets/Music/41/ae/ad/mzi.ysffxxmc.aac.p.m4a'; break;
+                case 'chime': soundUrl = 'https://audio-ssl.itunes.apple.com/itunes-assets/Music/04/bf/9f/mzm.ubxmhngh.aac.p.m4a'; break;
               }
             }
           }

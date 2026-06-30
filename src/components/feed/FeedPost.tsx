@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, Share, Modal } from 'react-na
 import { Ionicons } from '@expo/vector-icons';
 import { createAudioPlayer, AudioPlayer } from 'expo-audio';
 import { useNavigation } from '@react-navigation/native';
-import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
@@ -193,18 +192,7 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
       setTimeout(async () => {
         try {
           if (shareCardRef.current) {
-            const uri = await captureRef(shareCardRef.current, {
-              format: 'png',
-              quality: 1,
-            });
-            if (await Sharing.isAvailableAsync()) {
-              await Sharing.shareAsync(uri, {
-                dialogTitle: 'Share to Instagram Story',
-                mimeType: 'image/png',
-              });
-            } else {
-              showToast({ title: 'Share Debug', message: 'Sharing is not available on this device/platform.', type: 'error' });
-            }
+            showToast({ title: 'Share', message: 'Sharing to Instagram Story is temporarily disabled.', type: 'info' });
           } else {
             showToast({ title: 'Share Debug', message: 'shareCardRef is missing.', type: 'error' });
           }
@@ -419,7 +407,7 @@ export default function FeedPost({ post, depth = 0, variant = 'feed', onCommentP
       )}
 
       {/* Nested Replies Rendering (Child threads with branching lines) */}
-      {hasReplies && (
+      {hasReplies && variant === 'detail' && (
         <View style={styles.repliesContainer}>
           <View style={styles.branchLine} />
           {post.replies!.map(reply => (

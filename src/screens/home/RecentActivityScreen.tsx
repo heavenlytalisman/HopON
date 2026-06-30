@@ -24,8 +24,9 @@ export default function RecentActivityScreen({ navigation }: RootStackScreenProp
   }, [refreshFriends]);
 
   const recentActivityPosts = posts.filter(post => {
-    if (post.author.name === profile?.nickname) return true;
-    return friends.some(friend => friend.nickname === post.author.name);
+    const actorName = post.repostedBy ? post.repostedBy.name : post.author.name;
+    if (actorName === profile?.nickname) return true;
+    return friends.some(friend => friend.nickname === actorName);
   });
 
   return (
@@ -47,7 +48,12 @@ export default function RecentActivityScreen({ navigation }: RootStackScreenProp
         ) : (
           <View style={styles.listContainer}>
             {recentActivityPosts.map((post, index) => (
-              <View key={post.id} style={[styles.listItem, index === recentActivityPosts.length - 1 && { borderBottomWidth: 0 }]}>
+              <TouchableOpacity 
+                key={post.id} 
+                style={[styles.listItem, index === recentActivityPosts.length - 1 && { borderBottomWidth: 0 }]}
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('PostDetail', { postId: post.id, postData: post })}
+              >
                 <Image source={{ uri: post.author.avatar  }} style={styles.activityAvatar} />
                 <View style={styles.listInfo}>
                   <Text style={styles.activityUserText}>
@@ -58,7 +64,7 @@ export default function RecentActivityScreen({ navigation }: RootStackScreenProp
                 <View style={styles.activityRight}>
                   <Text style={styles.activityTime}>{post.timestamp}</Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         )}

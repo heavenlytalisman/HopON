@@ -55,7 +55,10 @@ export default function FriendProfileScreen({ route, navigation }: RootStackScre
   // No bio implemented in route yet
   const bio = friendProfile?.bio || null;
 
-  const friendPosts = posts.filter(p => p.author.id === friendId);
+  const friendPosts = posts.filter(p => {
+    const actorId = p.repostedBy ? p.repostedBy.uid : p.author.id;
+    return actorId === friendId;
+  });
 
   return (
     <SafeAreaView style={styles.container}>

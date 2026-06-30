@@ -19,8 +19,7 @@ export default function QuickSquadSelectScreen({ navigation }: RootStackScreenPr
   const { profile, firebaseUser } = useAuth();
 
   const handleSelectSquad = async (squadId: string, squadName: string, squadWallpaper?: string) => {
-    navigation.goBack();
-    navigation.navigate('HopOnRoom', { squadName, squadWallpaper, squadId });
+    navigation.replace('HopOnRoom', { squadName, squadWallpaper, squadId });
     
     try {
       if (firebaseUser) {
