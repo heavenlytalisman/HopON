@@ -1,4 +1,4 @@
-## Changelog (v0.0.5)
+## Changelog (v0.0.6)
 
 ### New Features & Fixes
 - **Push Notifications on iOS**: Gracefully bypass push notification registration on iOS unsigned builds to prevent APNs entitlement errors.
@@ -23,4 +23,5 @@
 - **Expo SDK 56 Upgrade**: Upgraded the project to Expo SDK 56 and React Native 0.85 to resolve Swift 6 concurrency issues in Xcode 16 on the iOS build pipeline.
 - **Dependency Fixes**: Fixed missing `@expo/vector-icons` dependency that caused Metro bundler crashes during iOS IPA generation.
 - **Android Build Fix**: Injected `google-services.json` into the CI/CD pipeline to ensure successful Android APK generation.
+
 
