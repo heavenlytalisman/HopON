@@ -4,8 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useResponsive } from '../../hooks/useResponsive';
 import { useUI } from '../../context/UIContext';
-import { sendMessage } from '../../services/firebase';
+import { sendMessage, getGroup } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
+import { createAudioPlayer, AudioPlayer } from 'expo-audio';
 import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
 import type { RootStackScreenProps, CallerInfo } from '../../types';
 import { Image } from 'expo-image';
@@ -30,6 +31,8 @@ export default function IncomingAlertScreen({ navigation, route }: RootStackScre
   const { showToast, showDialog } = useUI();
   const { profile } = useAuth();
 
+  const [player, setPlayer] = useState<AudioPlayer | null>(null);
+
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
@@ -37,6 +40,54 @@ export default function IncomingAlertScreen({ navigation, route }: RootStackScre
         Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
       ]),
     ).start();
+
+    let newPlayer: AudioPlayer | null = null;
+    let isMounted = true;
+
+    const initSound = async () => {
+      try {
+        let soundUrl = 'https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg';
+
+        if (caller.squadId) {
+          const group = await getGroup(caller.squadId);
+          if (group && group.ringtone) {
+            if (!isNaN(Number(group.ringtone))) {
+              const res = await fetch(`https://itunes.apple.com/lookup?id=${group.ringtone}`);
+              const data = await res.json();
+              if (data.results && data.results.length > 0 && data.results[0].previewUrl) {
+                soundUrl = data.results[0].previewUrl;
+              }
+            } else {
+              switch (group.ringtone) {
+                case 'radar': soundUrl = 'https://actions.google.com/sounds/v1/alarms/spaceship_alarm.ogg'; break;
+                case 'beacon': soundUrl = 'https://actions.google.com/sounds/v1/alarms/sonar_ping.ogg'; break;
+                case 'siren': soundUrl = 'https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg'; break;
+                case 'chime': soundUrl = 'https://actions.google.com/sounds/v1/alarms/dinner_bell_triangle.ogg'; break;
+              }
+            }
+          }
+        }
+
+        if (isMounted) {
+          newPlayer = createAudioPlayer(soundUrl);
+          newPlayer.loop = true;
+          newPlayer.play();
+          setPlayer(newPlayer);
+        }
+      } catch (error) {
+        console.error("Error loading alert sound", error);
+      }
+    };
+
+    initSound();
+
+    return () => {
+      isMounted = false;
+      if (newPlayer) {
+        newPlayer.pause();
+        newPlayer.remove();
+      }
+    };
   }, []);
 
   const handleAccept = () => {

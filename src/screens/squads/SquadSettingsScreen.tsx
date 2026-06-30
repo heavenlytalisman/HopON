@@ -159,6 +159,17 @@ export default function SquadSettingsScreen({ route, navigation }: RootStackScre
                   setPlayer(null);
                   setPlayingTrackId(null);
                 }
+                
+                let soundUrl = 'https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg';
+                switch (sound.id) {
+                  case 'radar': soundUrl = 'https://actions.google.com/sounds/v1/alarms/spaceship_alarm.ogg'; break;
+                  case 'beacon': soundUrl = 'https://actions.google.com/sounds/v1/alarms/sonar_ping.ogg'; break;
+                  case 'siren': soundUrl = 'https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg'; break;
+                  case 'chime': soundUrl = 'https://actions.google.com/sounds/v1/alarms/dinner_bell_triangle.ogg'; break;
+                }
+                const newPlayer = createAudioPlayer(soundUrl);
+                setPlayer(newPlayer);
+                newPlayer.play();
               }}
             >
               <View style={styles.soundItemLeft}>

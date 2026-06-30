@@ -5,8 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useNotifications } from '../../hooks/useNotifications';
-import { acceptFriendRequest, deleteNotification } from '../../services/firebase';
+import { acceptFriendRequest, deleteNotification, createNotification, joinGroup } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
+import { useUI } from '../../context/UIContext';
 import type { RootStackScreenProps } from '../../types';
 import { Image } from 'expo-image';
 
@@ -20,12 +21,13 @@ export default function NotificationsScreen({ navigation }: RootStackScreenProps
     setTimeout(() => setRefreshing(false), 1000);
   }, []);
 
-  const [activeTab, setActiveTab] = useState<'activity' | 'follows'>('follows');
+  const [activeTab, setActiveTab] = useState<'activity' | 'requests'>('requests');
   const { notifications, loading } = useNotifications();
-  const { firebaseUser } = useAuth();
+  const { firebaseUser, profile } = useAuth();
+  const { showToast } = useUI();
 
-  const activityNotifs = notifications.filter(n => n.type !== 'friend_request' && n.type !== 'follow');
-  const followNotifs = notifications.filter(n => n.type === 'friend_request' || n.type === 'follow');
+  const activityNotifs = notifications.filter(n => n.type !== 'friend_request' && n.type !== 'follow' && n.type !== 'squad_invite');
+  const requestNotifs = notifications.filter(n => n.type === 'friend_request' || n.type === 'follow' || n.type === 'squad_invite');
 
   return (
     <SafeAreaView style={styles.container}>
@@ -39,10 +41,10 @@ export default function NotificationsScreen({ navigation }: RootStackScreenProps
 
       <View style={styles.tabContainer}>
         <TouchableOpacity 
-          style={[styles.tab, activeTab === 'follows' && styles.activeTab]} 
-          onPress={() => setActiveTab('follows')}
+          style={[styles.tab, activeTab === 'requests' && styles.activeTab]} 
+          onPress={() => setActiveTab('requests')}
         >
-          <Text style={[styles.tabText, activeTab === 'follows' && styles.activeTabText]}>Follows</Text>
+          <Text style={[styles.tabText, activeTab === 'requests' && styles.activeTabText]}>Requests</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
@@ -58,39 +60,101 @@ export default function NotificationsScreen({ navigation }: RootStackScreenProps
           <View style={{ marginTop: 80, alignItems: 'center' }}>
             <Text style={{ color: Colors.textMuted }}>Loading...</Text>
           </View>
-        ) : activeTab === 'follows' ? (
-          followNotifs.length === 0 ? (
+        ) : activeTab === 'requests' ? (
+          requestNotifs.length === 0 ? (
             <View style={{ marginTop: 80 }}>
               <EmptyState 
                 iconName="person-add-outline" 
-                title="No follows yet" 
-                subtitle="You have no pending friend requests." 
+                title="No requests yet" 
+                subtitle="You have no pending requests." 
               />
             </View>
           ) : (
-            followNotifs.map(follow => (
+            requestNotifs.map(follow => (
               <View key={follow.id} style={styles.notificationItem}>
                 <Image source={{ uri: follow.data?.avatar  }} style={styles.notificationAvatar} />
                 <View style={styles.notificationInfo}>
                   <Text style={styles.notificationUser}>{follow.title} <Text style={styles.notificationAction}>{follow.body}</Text></Text>
                 </View>
                 {follow.type === 'friend_request' && (
-                  <TouchableOpacity 
-                    style={styles.followBtn}
-                    onPress={async () => {
-                      if (firebaseUser && follow.data?.requestId && follow.data?.senderId) {
-                        const success = await acceptFriendRequest(follow.data.requestId, firebaseUser.uid, follow.data.senderId);
-                        if (success) {
-                          await deleteNotification(follow.id);
-                          alert('Friend request accepted!');
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <TouchableOpacity 
+                      style={styles.followBtn}
+                      onPress={async () => {
+                        if (firebaseUser && follow.data?.requestId && follow.data?.senderId) {
+                          const success = await acceptFriendRequest(follow.data.requestId, firebaseUser.uid, follow.data.senderId);
+                          if (success) {
+                            await deleteNotification(follow.id);
+                            if (profile) {
+                              await createNotification(follow.data.senderId, {
+                                type: 'friend_request_accepted',
+                                title: profile.nickname || 'Someone',
+                                body: 'accepted your friend request',
+                                data: {
+                                  userId: firebaseUser.uid,
+                                  avatar: profile.avatar,
+                                },
+                                senderId: firebaseUser.uid
+                              });
+                            }
+                          }
                         }
-                      }
-                    }}
-                  >
-                    <Text style={styles.followBtnText}>
-                      Accept
-                    </Text>
-                  </TouchableOpacity>
+                      }}
+                    >
+                      <Text style={styles.followBtnText}>Accept</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={[styles.followBtn, { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.borderLight }]}
+                      onPress={async () => {
+                        await deleteNotification(follow.id);
+                      }}
+                    >
+                      <Text style={[styles.followBtnText, { color: Colors.textPrimary }]}>Decline</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+                {follow.type === 'squad_invite' && (
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <TouchableOpacity 
+                      style={styles.followBtn}
+                      onPress={async () => {
+                        if (firebaseUser && follow.data?.squadId) {
+                          try {
+                            await joinGroup(follow.data.squadId, firebaseUser.uid);
+                            await deleteNotification(follow.id);
+                            showToast({ title: 'Success', message: `You joined ${follow.data.squadName || 'the squad'}!`, type: 'success' });
+                            
+                            if (profile && follow.data?.senderId) {
+                              await createNotification(follow.data.senderId, {
+                                type: 'squad_invite_accepted',
+                                title: profile.nickname || 'Someone',
+                                body: `joined ${follow.data.squadName || 'your squad'}`,
+                                data: {
+                                  squadId: follow.data.squadId,
+                                  squadName: follow.data.squadName || '',
+                                  userId: firebaseUser.uid,
+                                  avatar: profile.avatar || ''
+                                },
+                                senderId: firebaseUser.uid
+                              });
+                            }
+                          } catch (error) {
+                            showToast({ title: 'Error', message: 'Failed to join squad.', type: 'error' });
+                          }
+                        }
+                      }}
+                    >
+                      <Text style={styles.followBtnText}>Join</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={[styles.followBtn, { backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.borderLight }]}
+                      onPress={async () => {
+                        await deleteNotification(follow.id);
+                      }}
+                    >
+                      <Text style={[styles.followBtnText, { color: Colors.textPrimary }]}>Decline</Text>
+                    </TouchableOpacity>
+                  </View>
                 )}
               </View>
             ))

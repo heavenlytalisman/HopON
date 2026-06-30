@@ -25,7 +25,9 @@ export default function FriendListScreen({ navigation }: RootStackScreenProps<'F
           <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Friends</Text>
-        <View style={{ width: 40 }} />
+        <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('SearchUsers')}>
+          <Ionicons name="person-add" size={20} color={Colors.textPrimary} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primaryLight} colors={[Colors.primaryLight]} />} showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: Spacing.lg }}>
@@ -80,6 +82,14 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.border,
   },
   backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.surfaceAlt,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionButton: {
     width: 40,
     height: 40,
     borderRadius: 20,

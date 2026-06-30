@@ -4,6 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import QRCode from 'react-native-qrcode-svg';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import { useFriends } from '../../hooks/useFriends';
+import { useAuth } from '../../context/AuthContext';
+import { useUI } from '../../context/UIContext';
+import { createNotification } from '../../services/firebase';
 import { Image } from 'expo-image';
 
 
@@ -19,6 +22,8 @@ export default function SquadInviteModal({ visible, onClose, squadId, squadName,
   const [inviteTab, setInviteTab] = useState<'friends' | 'qr'>('qr');
   const [invitedFriends, setInvitedFriends] = useState<Set<string>>(new Set());
   const { friends } = useFriends();
+  const { firebaseUser, profile } = useAuth();
+  const { showToast } = useUI();
 
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
@@ -64,9 +69,29 @@ export default function SquadInviteModal({ visible, onClose, squadId, squadName,
                     </View>
                     <TouchableOpacity 
                       style={[styles.inviteButton, isInvited && styles.invitedButton]}
-                      onPress={() => {
+                      onPress={async () => {
                         if (!isInvited) {
-                          setInvitedFriends(prev => new Set(prev).add(item.uid));
+                          if (firebaseUser && profile) {
+                            try {
+                              await createNotification(item.uid, {
+                                type: 'squad_invite',
+                                title: profile.nickname || 'Someone',
+                                body: `invited you to join ${squadName}`,
+                                data: {
+                                  squadId,
+                                  squadName,
+                                  squadAvatar: squadAvatar || '',
+                                  senderId: firebaseUser.uid,
+                                  avatar: profile.avatar || ''
+                                },
+                                senderId: firebaseUser.uid
+                              });
+                              setInvitedFriends(prev => new Set(prev).add(item.uid));
+                              showToast({ title: 'Success', message: 'Invite sent!', type: 'success' });
+                            } catch (error) {
+                              showToast({ title: 'Error', message: 'Failed to send invite.', type: 'error' });
+                            }
+                          }
                         }
                       }}
                     >

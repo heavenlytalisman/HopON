@@ -1,6 +1,8 @@
 name: Build Android APK
 
 on:
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
@@ -53,3 +55,11 @@ jobs:
         with:
           name: HopON-Android-App
           path: android/app/build/outputs/apk/release/app-release.apk
+
+      - name: Upload APK to Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: android/app/build/outputs/apk/release/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

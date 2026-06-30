@@ -10,8 +10,24 @@ service cloud.firestore {
     // Users collection
     match /users/{userId} {
       allow read: if request.auth != null;
-      // Users can update their own profile, but cannot change their UID or createdAt
-      allow update: if request.auth != null && request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'createdAt']);
+      
+      // Function to check if array modification only affects the current user
+      function onlyAffectsAuthUser(oldArray, newArray) {
+        let added = newArray.removeAll(oldArray);
+        let removed = oldArray.removeAll(newArray);
+        return (added.size() == 0 || (added.size() == 1 && added[0] == request.auth.uid)) &&
+               (removed.size() == 0 || (removed.size() == 1 && removed[0] == request.auth.uid));
+      }
+
+      allow update: if request.auth != null && (
+        (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'createdAt']))
+        ||
+        (request.auth.uid != userId && 
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers', 'following']) &&
+         (!('followers' in request.resource.data) || onlyAffectsAuthUser(resource.data.followers, request.resource.data.followers)) &&
+         (!('following' in request.resource.data) || onlyAffectsAuthUser(resource.data.following, request.resource.data.following))
+        )
+      );
       allow create, delete: if request.auth != null && request.auth.uid == userId;
     }
 
@@ -21,21 +37,24 @@ service cloud.firestore {
       allow create: if request.auth != null && request.resource.data.members.hasAny([request.auth.uid]);
       
       allow update: if request.auth != null && (
-        // Case 1: Existing member updating the group
-        (request.auth.uid in resource.data.members && (
-          // If they are the owner, they can do anything (including kicking others)
-          (resource.data.ownerId == request.auth.uid) ||
-          // If they are not the owner, they cannot remove OTHER members.
-          // They can only remove themselves, or add new people.
-          request.resource.data.members.hasAll(resource.data.members.removeAll([request.auth.uid]))
-        ))
+        // Case 1: Owner updating the group
+        (request.auth.uid in resource.data.members && resource.data.ownerId == request.auth.uid)
         ||
-        // Case 2: Non-member joining the group
+        // Case 2: Non-owner member updating the group
+        (
+          request.auth.uid in resource.data.members && 
+          resource.data.ownerId != request.auth.uid &&
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['ownerId']) &&
+          request.resource.data.members.hasAll(resource.data.members.removeAll([request.auth.uid]))
+        )
+        ||
+        // Case 3: Non-member joining the group
         (
           !(request.auth.uid in resource.data.members) &&
           (request.auth.uid in request.resource.data.members) &&
-          // They can ONLY change the members array
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members'])
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members']) &&
+          request.resource.data.members.hasAll(resource.data.members) &&
+          request.resource.data.members.size() == resource.data.members.size() + 1
         )
       );
       

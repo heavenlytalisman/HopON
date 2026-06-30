@@ -1,7 +1,9 @@
 name: Build Unsigned iOS IPA
 
 on:
-  workflow_dispatch: # This allows you to trigger the build manually
+  release:
+    types: [published]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -84,3 +86,11 @@ jobs:
         with:
           name: HopON-iOS-App
           path: ios/HopON.ipa
+
+      - name: Upload IPA to Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ios/HopON.ipa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

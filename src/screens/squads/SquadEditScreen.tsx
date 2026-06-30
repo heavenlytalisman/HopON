@@ -210,7 +210,7 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
                       <Text style={styles.memberHandle}>@{member.handle || String((member.id || member.uid) || 'user').slice(0, 4)}</Text>
                     </View>
                   </TouchableOpacity>
-                  {(profile?.id || profile?.uid) !== (member.id || member.uid) && (
+                  {(profile?.id || profile?.uid) === squad?.ownerId && (profile?.id || profile?.uid) !== (member.id || member.uid) && (
                     <TouchableOpacity 
                       style={styles.removeBtn}
                       onPress={() => handleRemoveMember((member.id || member.uid), member.nickname || 'Member')}
