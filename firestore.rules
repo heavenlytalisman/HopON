@@ -68,7 +68,12 @@ service cloud.firestore {
       allow read: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
       // Users can only send messages if they are a member of the group
       allow create: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
-      allow update, delete: if false;
+      allow delete: if request.auth != null && request.auth.uid == resource.data.senderId;
+      allow update: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members &&
+        (
+          request.auth.uid == resource.data.senderId ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewedBy', 'viewOnceViewed'])
+        );
     }
 
     // Posts collection

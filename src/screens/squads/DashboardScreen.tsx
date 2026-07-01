@@ -38,13 +38,15 @@ export default function SquadsScreen({ navigation }: MainTabScreenProps<'Squads'
       onPress={() => navigation.navigate('SquadDetail', { squadId: item.id, squadName: item.name, squadAvatar: item.avatar })}
     >
       <View style={styles.groupIcon}>
-        {item.readOnly && !item.avatar ? (
-          <Ionicons name="megaphone-outline" size={18} color="#A78BFA" />
-        ) : (
+        {item.avatar ? (
           <Image 
-            source={{ uri: item.avatar  }} 
+            source={{ uri: item.avatar }} 
             style={styles.squadAvatar} 
           />
+        ) : item.readOnly ? (
+          <Ionicons name="megaphone-outline" size={20} color="#A78BFA" />
+        ) : (
+          <Ionicons name="people-outline" size={20} color={Colors.textMuted} />
         )}
       </View>
       <View style={styles.groupInfo}>

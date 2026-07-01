@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView , RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import { EmptyState } from '../../components/ui/EmptyState';
 import { useNotifications } from '../../hooks/useNotifications';
-import { acceptFriendRequest, deleteNotification, createNotification, joinGroup } from '../../services/firebase';
+import { acceptFriendRequest, deleteNotification, createNotification, joinGroup, markNotificationAsRead } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useUI } from '../../context/UIContext';
 import type { RootStackScreenProps } from '../../types';
@@ -28,6 +28,14 @@ export default function NotificationsScreen({ navigation }: RootStackScreenProps
 
   const activityNotifs = notifications.filter(n => n.type !== 'friend_request' && n.type !== 'follow' && n.type !== 'squad_invite');
   const requestNotifs = notifications.filter(n => n.type === 'friend_request' || n.type === 'follow' || n.type === 'squad_invite');
+
+  useEffect(() => {
+    // Mark all unread notifications as read when opening the screen
+    const unreadNotifications = notifications.filter(n => !n.read);
+    unreadNotifications.forEach(n => {
+      markNotificationAsRead(n.id);
+    });
+  }, [notifications]);
 
   return (
     <SafeAreaView style={styles.container}>

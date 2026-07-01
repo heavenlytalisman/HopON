@@ -17,8 +17,7 @@ export default function CreateSquadScreen({ navigation }: RootStackScreenProps<'
     try {
       const groupId = await createSquad(squadName);
       if (groupId) {
-        const defaultAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(squadName)}&background=random`;
-        navigation.replace('SquadDetail', { squadId: groupId, squadName, squadAvatar: defaultAvatar });
+        navigation.replace('SquadDetail', { squadId: groupId, squadName });
       } else {
         navigation.goBack();
       }

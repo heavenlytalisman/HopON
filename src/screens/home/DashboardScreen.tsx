@@ -26,6 +26,7 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
   const { friends, loadingFriends , refreshFriends } = useFriends();
   const { posts, loading: feedLoading } = useFeed();
   const { notifications } = useNotifications();
+  const unreadNotificationsCount = notifications.filter(n => !n.read).length;
 
   const [showFriends, setShowFriends] = useState(false);
 
@@ -35,7 +36,9 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
 
   const { squads , refreshSquads } = useSquads();
   const isSquadOnline = squads.some(squad =>
-    squad.members.some(memberId => memberId !== profile?.uid)
+    squad.members.some(memberId => 
+      memberId !== profile?.uid && onlineFriends.some((f: any) => f.uid === memberId)
+    )
   );
 
   const recentActivityPosts = posts.filter(post => {
@@ -65,9 +68,9 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
           <View style={styles.headerRight}>
             <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Notifications' as any)}>
               <Ionicons name="notifications-outline" size={24} color={Colors.textPrimary} />
-              {notifications.length > 0 && (
+              {unreadNotificationsCount > 0 && (
                 <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{notifications.length}</Text>
+                  <Text style={styles.badgeText}>{unreadNotificationsCount}</Text>
                 </View>
               )}
             </TouchableOpacity>
@@ -124,9 +127,9 @@ export default function DashboardScreen({ navigation }: MainTabScreenProps<'Home
 
         {onlineFriends.length === 0 && !loadingFriends ? (
           <EmptyState
-            iconName="people-outline"
-            title="No friends yet"
-            subtitle="Add friends to see who's online and hop into games together!"
+            iconName={hasFriends ? "moon-outline" : "people-outline"}
+            title={hasFriends ? "No one is online" : "No friends yet"}
+            subtitle={hasFriends ? "Your friends are offline right now." : "Add friends to see who's online and hop into games together!"}
           />
         ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalList}>

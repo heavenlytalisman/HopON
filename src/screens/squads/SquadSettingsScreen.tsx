@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { createAudioPlayer, AudioPlayer } from 'expo-audio';
+import { useAudioPlayer, createAudioPlayer, AudioPlayer } from 'expo-audio';
 import { useUI } from '../../context/UIContext';
 import { removeMemberFromGroup, updateGroupDetails } from '../../services/firebase';
 import { useAuth } from '../../context/AuthContext';
@@ -45,9 +45,7 @@ export default function SquadSettingsScreen({ route, navigation }: RootStackScre
 
   useEffect(() => {
     return () => {
-      if (player) {
-        player.remove();
-      }
+      if (player) { player.remove(); }
     };
   }, [player]);
 
@@ -71,11 +69,7 @@ export default function SquadSettingsScreen({ route, navigation }: RootStackScre
 
   const playPreview = async (track: Track) => {
     try {
-      if (player) {
-        player.pause();
-        player.remove();
-        setPlayer(null);
-      }
+      if (player) { player.remove(); setPlayer(null); }
       if (playingTrackId === track.trackId) {
         setPlayingTrackId(null);
         return; // Toggle off
@@ -153,19 +147,14 @@ export default function SquadSettingsScreen({ route, navigation }: RootStackScre
               ]}
               onPress={() => {
                 setSelectedSound(sound.id);
-                if (player) {
-                  player.pause();
-                  player.remove();
-                  setPlayer(null);
-                  setPlayingTrackId(null);
-                }
+                if (player) { player.remove(); setPlayer(null); setPlayingTrackId(null); }
                 
-                let soundUrl = 'https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg';
+                let soundUrl = 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/20/48/d7/2048d7ee-d89f-a841-d8cb-990193342db0/mzaf_1451830045636308578.plus.aac.p.m4a';
                 switch (sound.id) {
-                  case 'radar': soundUrl = 'https://actions.google.com/sounds/v1/alarms/spaceship_alarm.ogg'; break;
+                  case 'radar': soundUrl = 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/2f/b5/20/2fb5202c-93ee-84e9-4123-e83b13679f5c/mzaf_10836930080464392255.plus.aac.p.m4a'; break;
                   case 'beacon': soundUrl = 'https://actions.google.com/sounds/v1/alarms/sonar_ping.ogg'; break;
-                  case 'siren': soundUrl = 'https://actions.google.com/sounds/v1/alarms/phone_alerts_and_rings.ogg'; break;
-                  case 'chime': soundUrl = 'https://actions.google.com/sounds/v1/alarms/dinner_bell_triangle.ogg'; break;
+                  case 'siren': soundUrl = 'https://audio-ssl.itunes.apple.com/itunes-assets/Music/41/ae/ad/mzi.ysffxxmc.aac.p.m4a'; break;
+                  case 'chime': soundUrl = 'https://audio-ssl.itunes.apple.com/itunes-assets/Music/04/bf/9f/mzm.ubxmhngh.aac.p.m4a'; break;
                 }
                 const newPlayer = createAudioPlayer(soundUrl);
                 setPlayer(newPlayer);
@@ -383,3 +372,5 @@ const styles = StyleSheet.create({
     marginLeft: Spacing.xs,
   },
 });
+
+

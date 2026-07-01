@@ -142,7 +142,13 @@ export default function SquadEditScreen({ route, navigation }: RootStackScreenPr
           
           <View style={styles.topProfileSection}>
             <TouchableOpacity onPress={handlePickImage} style={styles.avatarWrapper} activeOpacity={0.8}>
-              <Image source={{ uri: squadAvatar }} style={styles.squadAvatar} />
+              {squadAvatar ? (
+                <Image source={{ uri: squadAvatar }} style={styles.squadAvatar} />
+              ) : (
+                <View style={[styles.squadAvatar, { backgroundColor: Colors.surfaceAlt, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: Colors.border }]}>
+                  <Ionicons name="people-outline" size={40} color={Colors.textMuted} />
+                </View>
+              )}
               <View style={styles.avatarOverlay}>
                 <Ionicons name="camera" size={32} color="rgba(255,255,255,0.8)" />
               </View>

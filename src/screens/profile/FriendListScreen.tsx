@@ -50,13 +50,15 @@ export default function FriendListScreen({ navigation }: RootStackScreenProps<'F
                 friendAvatar: user.avatar || '' 
               })}
             >
-              <View style={[styles.avatarRing, { borderColor: Colors.success }]}>
+              <View style={[styles.avatarRing, { borderColor: user.isOnline ? Colors.success : Colors.border }]}>
                 <Image source={{ uri: user.avatar }} style={styles.avatarImage} />
-                <View style={[styles.statusDot, { backgroundColor: Colors.success }]} />
+                <View style={[styles.statusDot, { backgroundColor: user.isOnline ? Colors.success : Colors.textMuted }]} />
               </View>
               <View style={styles.friendListInfo}>
                 <Text style={styles.friendListName}>{user.nickname}</Text>
-                <Text style={[styles.friendListStatus, { color: Colors.success }]}>Online</Text>
+                <Text style={[styles.friendListStatus, { color: user.isOnline ? Colors.success : Colors.textMuted }]}>
+                  {user.isOnline ? 'Online' : 'Offline'}
+                </Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
             </TouchableOpacity>

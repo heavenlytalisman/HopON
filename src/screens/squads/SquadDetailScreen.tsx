@@ -6,8 +6,9 @@ import QRCode from 'react-native-qrcode-svg';
 import * as ImagePicker from 'expo-image-picker';
 import * as Clipboard from 'expo-clipboard';
 import { LinearGradient } from 'expo-linear-gradient';
+import { createAudioPlayer } from 'expo-audio';
 import { sendPushNotification } from '../../services/notifications';
-import { getGroupMemberTokens, getGroup, sendMessage, subscribeToGroupMessages, subscribeToGroupDetails } from '../../services/firebase';
+import { getGroupMemberTokens, sendMessage, uploadViewOncePhoto, markViewOnceAsViewed, getGroup, getSquadWallpapers, getSquadRingtones, deleteMessage, subscribeToGroupMessages, subscribeToGroupDetails, markMessageAsRead } from '../../services/firebase';
 import { uploadToCloudinary } from '../../services/cloudinary';
 import { useAuth } from '../../context/AuthContext';
 import { useResponsive } from '../../hooks/useResponsive';
@@ -28,11 +29,13 @@ interface Message {
   viewOncePhotoUrl?: string;
   viewOnceViewed?: boolean;
   isMe: boolean;
+  senderId?: string;
   system?: boolean;
   replyTo?: {
     sender: string;
     text: string;
   };
+  viewedBy?: string[];
 }
 
 interface StickerPack {
@@ -45,7 +48,7 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import { Image } from 'expo-image';
 
 
-const SwipeableMessage = ({ item, onReply, onLongPress, children }: any) => {
+const SwipeableMessage = ({ item, onReply, onLongPress, onPress, children }: any) => {
   const pan = useRef(new Animated.ValueXY()).current;
   
   const panResponder = useRef(
@@ -90,6 +93,7 @@ const SwipeableMessage = ({ item, onReply, onLongPress, children }: any) => {
     >
       <TouchableOpacity 
         onLongPress={() => onLongPress(item)}
+        onPress={() => onPress && onPress(item)}
         delayLongPress={200}
         activeOpacity={0.8}
       >
@@ -109,7 +113,9 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
   }, []);
 
   const { squadName, squadId, squadAvatar, squadWallpaper, wallpaperOpacity = 0.6 } = route.params as any;
+  const cleanAvatar = squadAvatar && !squadAvatar.includes('ui-avatars.com') ? squadAvatar : undefined;
   const { firebaseUser, profile } = useAuth();
+  const { showToast } = useUI();
   const { contentWidth, horizontalPadding } = useResponsive();
   const flatListRef = useRef<FlatList>(null);
 
@@ -125,9 +131,38 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
       const unsubscribeMessages = subscribeToGroupMessages(squadId, (fetchedMessages) => {
         const processed = fetchedMessages.map(msg => ({
           ...msg,
-          isMe: msg.sender === (profile?.nickname || 'Unknown'),
+          isMe: (msg.senderId && msg.senderId === (profile?.uid || profile?.id)) || msg.sender === (profile?.nickname || 'Unknown'),
         }));
-        setMessages(processed as Message[]);
+        
+        const myUid = profile?.uid || profile?.id;
+        if (myUid) {
+          if (!(global as any).markedMessages) (global as any).markedMessages = new Set();
+          
+          fetchedMessages.forEach(msg => {
+            if (msg.senderId !== myUid && (!msg.viewedBy || !msg.viewedBy.includes(myUid))) {
+              if (!(global as any).markedMessages.has(msg.id)) {
+                (global as any).markedMessages.add(msg.id);
+                markMessageAsRead(squadId, msg.id, myUid).catch(console.error);
+              }
+            }
+          });
+        }
+
+        setMessages(prev => {
+          if (prev.length > 0 && processed.length > prev.length) {
+            const newMsg = processed[processed.length - 1];
+            if (newMsg && !newMsg.isMe) {
+              if (squadDetails?.ringtone) {
+                const ringtonePlayer = createAudioPlayer(squadDetails.ringtone);
+                ringtonePlayer.play();
+              } else {
+                const receiveSound = createAudioPlayer(require('../../../assets/sounds/send.mp3'));
+                receiveSound.play();
+              }
+            }
+          }
+          return processed as Message[];
+        });
       });
 
       return () => {
@@ -166,6 +201,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [viewingPhoto, setViewingPhoto] = useState<string | null>(null);
+  const [tappedMessageId, setTappedMessageId] = useState<string | null>(null);
 
   const myAvatar = profile?.avatar || '';
 
@@ -244,12 +280,21 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
               callerName: profile?.nickname || 'Someone',
               callerAvatar: profile?.avatar || '',
               squadName
-            },
+            }
           );
         }
       }
     } catch (error) {
       console.error('Error sending push alert:', error);
+    }
+  };
+
+  const playSendSound = () => {
+    try {
+      const player = createAudioPlayer(require('../../../assets/sounds/send.mp3'));
+      player.play();
+    } catch (e) {
+      console.warn('Could not play send sound', e);
     }
   };
 
@@ -262,6 +307,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
     } : undefined;
 
     const messageData = {
+      senderId: profile?.uid || profile?.id,
       sender: profile?.nickname || 'Unknown',
       avatar: profile?.avatar || `https://ui-avatars.com/api/?name=Unknown&background=2D3748&color=FFF`,
       text: inputText.trim(),
@@ -274,6 +320,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
     setReplyingTo(null);
     
     await sendMessage(squadId, messageData);
+    playSendSound();
   };
 
   const handleSendGif = async (gifUrl: string) => {
@@ -283,8 +330,10 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
     } : undefined;
 
     const messageData = {
+      senderId: profile?.uid || profile?.id,
       sender: profile?.nickname || 'Unknown',
       avatar: profile?.avatar || `https://ui-avatars.com/api/?name=Unknown&background=2D3748&color=FFF`,
+
       gifUrl,
       replyTo: replyData,
     };
@@ -297,6 +346,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
     setReplyingTo(null);
     
     await sendMessage(squadId, messageData);
+    playSendSound();
   };
 
   const toggleFavoriteGif = (gifUrl: string) => {
@@ -313,6 +363,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
     } : undefined;
 
     const messageData = {
+      senderId: profile?.uid || profile?.id,
       sender: profile?.nickname || 'Unknown',
       avatar: profile?.avatar || `https://ui-avatars.com/api/?name=Unknown&background=2D3748&color=FFF`,
       stickerUrl,
@@ -323,6 +374,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
     setReplyingTo(null);
     
     await sendMessage(squadId, messageData);
+    playSendSound();
   };
 
   const pickStickerImage = async () => {
@@ -379,6 +431,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
       }
 
       const messageData = {
+        senderId: profile?.uid || profile?.id,
         sender: profile?.nickname || 'Unknown',
         avatar: profile?.avatar || `https://ui-avatars.com/api/?name=Unknown&background=2D3748&color=FFF`,
         viewOncePhotoUrl: finalUri,
@@ -386,6 +439,7 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
       };
       
       await sendMessage(squadId, messageData);
+    playSendSound();
     } catch (error) {
       console.error('Error uploading view once photo', error);
     } finally {
@@ -465,6 +519,16 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
 
   const displayedGifs = getGifsForTab();
 
+  let lastMyMessageId: string | undefined;
+  if (messages && messages.length) {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].isMe) {
+        lastMyMessageId = messages[i].id;
+        break;
+      }
+    }
+  }
+
   const renderMessage = ({ item }: { item: Message }) => {
     if (item.system) {
       return (
@@ -488,11 +552,11 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
         <View style={[styles.messageContent, item.isMe ? { alignItems: 'flex-end' } : null]}>
           {!item.isMe && <Text style={styles.senderName}>{item.sender}</Text>}
           
-          <SwipeableMessage item={item} onReply={(msg: Message) => setReplyingTo(msg)} onLongPress={(msg: Message) => setSelectedMessage(msg)}>
-            <View style={[
-              item.isMe ? styles.bubbleRight : styles.bubbleLeft, 
-              (item.gifUrl || item.stickerUrl || item.viewOncePhotoUrl) ? { backgroundColor: 'transparent', paddingHorizontal: 0, paddingVertical: 0, borderWidth: 0 } : {}
-            ]}>
+          <SwipeableMessage item={item} onReply={(msg: Message) => setReplyingTo(msg)} onLongPress={(msg: Message) => setSelectedMessage(msg)} onPress={() => setTappedMessageId(prev => prev === item.id ? null : item.id)}>
+              <View style={[
+                item.isMe ? styles.bubbleRight : styles.bubbleLeft, 
+                (item.gifUrl || item.stickerUrl || item.viewOncePhotoUrl) ? { backgroundColor: 'transparent', paddingHorizontal: 0, paddingVertical: 0, borderWidth: 0 } : {}
+              ]}>
               {item.replyTo && (
                 <View style={[styles.replyQuoteBubble, item.isMe ? styles.replyQuoteBubbleRight : styles.replyQuoteBubbleLeft]}>
                   <Text style={styles.replyQuoteSender}>Replying to {item.replyTo.sender}</Text>
@@ -528,10 +592,21 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
               ) : (
                 <Text style={item.isMe ? styles.textRight : styles.textLeft}>{item.text}</Text>
               )}
-            </View>
+              </View>
           </SwipeableMessage>
           
-          {item.isMe && <Text style={styles.readReceipt}>Delivered</Text>}
+          {item.isMe && (item.id === lastMyMessageId || item.id === tappedMessageId) && (() => {
+            try {
+              const membersCount = squadDetails?.members?.length || 1;
+              const otherMembersCount = membersCount - 1;
+              const viewedList = Array.isArray(item.viewedBy) ? item.viewedBy : [];
+              const viewedCount = viewedList.filter(id => id !== profile?.uid && id !== profile?.id).length;
+              const isSeen = otherMembersCount > 0 && viewedCount >= otherMembersCount;
+              return <Text style={styles.readReceipt}>{isSeen ? 'Seen' : 'Delivered'}</Text>;
+            } catch (e) {
+              return <Text style={styles.readReceipt}>Delivered</Text>;
+            }
+          })()}
         </View>
       </View>
     );
@@ -566,10 +641,16 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
             }}
             activeOpacity={0.7}
           >
-            <Image source={{ uri: squadAvatar  }} style={styles.headerSquadAvatar} />
+            {cleanAvatar ? (
+              <Image source={{ uri: cleanAvatar }} style={styles.headerSquadAvatar} />
+            ) : (
+              <View style={styles.headerSquadAvatarFallback}>
+                <Ionicons name="people-outline" size={16} color={Colors.textMuted} />
+              </View>
+            )}
             <View style={styles.headerCenter}>
               <Text style={styles.headerTitle} numberOfLines={1}>{squadName}</Text>
-              </View>
+            </View>
           </TouchableOpacity>
           <View style={styles.headerRight}>
             <TouchableOpacity style={styles.headerIconButton} onPress={handleHopOn}>
@@ -863,9 +944,11 @@ export default function SquadDetailScreen({ route, navigation }: RootStackScreen
               </TouchableOpacity>
 
               {selectedMessage?.isMe && (
-                <TouchableOpacity style={[styles.messageActionOption, { borderBottomWidth: 0 }]} onPress={() => {
-                  setMessages(prev => prev.filter(m => m.id !== selectedMessage.id));
+                <TouchableOpacity style={[styles.messageActionOption, { borderBottomWidth: 0 }]} onPress={async () => {
+                  const msgId = selectedMessage.id;
+                  setMessages(prev => prev.filter(m => m.id !== msgId));
                   setSelectedMessage(null);
+                  await deleteMessage(squadId, msgId);
                 }}>
                   <Ionicons name="trash-outline" size={20} color={Colors.error} />
                   <Text style={[styles.messageActionOptionText, { color: Colors.error }]}>Unsend</Text>
@@ -905,8 +988,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   header: { flexDirection: 'row', alignItems: 'center', paddingVertical: Spacing.md, paddingHorizontal: Spacing.lg, borderBottomWidth: 1, borderBottomColor: Colors.border, backgroundColor: Colors.surface },
   backButton: { paddingRight: Spacing.md },
-  headerSquadAvatar: { width: 36, height: 36, borderRadius: 18, marginRight: Spacing.md, borderWidth: 1, borderColor: Colors.border },
-  headerSquadAvatarFallback: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.surfaceAlt, justifyContent: 'center', alignItems: 'center', marginRight: Spacing.md, borderWidth: 1, borderColor: Colors.border },
+  headerSquadAvatar: { width: 28, height: 28, borderRadius: 14, marginRight: 10, borderWidth: 1, borderColor: Colors.border },
+  headerSquadAvatarFallback: { width: 28, height: 28, borderRadius: 14, backgroundColor: Colors.surfaceAlt, justifyContent: 'center', alignItems: 'center', marginRight: 10, borderWidth: 1, borderColor: Colors.border },
   headerCenter: { flex: 1 },
   headerInfoTouchable: {
     flex: 1,
@@ -935,11 +1018,11 @@ const styles = StyleSheet.create({
   gifMessage: { width: 200, height: 150, borderRadius: BorderRadius.lg },
   stickerMessage: { width: 120, height: 120, resizeMode: 'contain' },
 
-  replyQuoteBubble: { padding: Spacing.sm, borderRadius: BorderRadius.sm, marginBottom: Spacing.xs, borderLeftWidth: 3 },
-  replyQuoteBubbleLeft: { backgroundColor: Colors.surfaceAlt, borderLeftColor: Colors.primaryLight },
-  replyQuoteBubbleRight: { backgroundColor: 'rgba(255,255,255,0.2)', borderLeftColor: '#FFFFFF' },
-  replyQuoteSender: { fontSize: 11, fontWeight: 'bold', color: Colors.textPrimary, marginBottom: 2 },
-  replyQuoteText: { fontSize: 12, color: Colors.textMuted },
+  replyQuoteBubble: { padding: Spacing.sm, backgroundColor: 'rgba(0,0,0,0.1)', borderRadius: 8, borderTopLeftRadius: 4, borderBottomLeftRadius: 4, marginBottom: Spacing.sm, borderLeftWidth: 4 },
+  replyQuoteBubbleLeft: { backgroundColor: 'rgba(255,255,255,0.05)', borderLeftColor: Colors.primaryLight },
+  replyQuoteBubbleRight: { backgroundColor: 'rgba(255,255,255,0.15)', borderLeftColor: 'rgba(255,255,255,0.8)' },
+  replyQuoteSender: { fontSize: 12, fontWeight: '700', color: '#FFFFFF', marginBottom: 2 },
+  replyQuoteText: { fontSize: 13, color: 'rgba(255,255,255,0.85)' },
 
   replyBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surfaceAlt, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border },
   replyBannerContent: { flex: 1 },
@@ -1021,3 +1104,8 @@ const styles = StyleSheet.create({
   viewOnceBadgeText: { fontSize: 13, fontWeight: 'bold', color: '#000' },
   viewOnceCloseBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
 });
+
+
+
+
+

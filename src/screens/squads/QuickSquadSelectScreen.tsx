@@ -80,10 +80,14 @@ export default function QuickSquadSelectScreen({ navigation }: RootStackScreenPr
             renderItem={({ item }) => (
               <TouchableOpacity style={styles.squadItem} onPress={() => handleSelectSquad(item.id, item.name, item.wallpaper)}>
                 <View style={styles.squadIconBox}>
-                  <Image 
-                    source={{ uri: item.avatar  }} 
-                    style={styles.squadAvatar} 
-                  />
+                  {item.avatar ? (
+                    <Image 
+                      source={{ uri: item.avatar }} 
+                      style={styles.squadAvatar} 
+                    />
+                  ) : (
+                    <Ionicons name="people-outline" size={24} color={Colors.textMuted} />
+                  )}
                 </View>
                 <View style={styles.squadInfo}>
                   <Text style={styles.squadName}>{item.name}</Text>

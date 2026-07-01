@@ -31,7 +31,7 @@ export default function IncomingAlertScreen({ navigation, route }: RootStackScre
   const { showToast, showDialog } = useUI();
   const { profile } = useAuth();
 
-  const [player, setPlayer] = useState<AudioPlayer | null>(null);
+  
 
   useEffect(() => {
     Animated.loop(
@@ -41,7 +41,7 @@ export default function IncomingAlertScreen({ navigation, route }: RootStackScre
       ]),
     ).start();
 
-    let newPlayer: AudioPlayer | null = null;
+    let soundObj: Audio.Sound | null = null;
     let isMounted = true;
 
     const initSound = async () => {
@@ -69,10 +69,7 @@ export default function IncomingAlertScreen({ navigation, route }: RootStackScre
         }
 
         if (isMounted) {
-          newPlayer = createAudioPlayer(soundUrl);
-          newPlayer.loop = true;
-          newPlayer.play();
-          setPlayer(newPlayer);
+          Audio.Sound.createAsync({ uri: soundUrl }, { shouldPlay: true, isLooping: true }).then(({ sound }) => { soundObj = sound; });
         }
       } catch (error) {
         console.error("Error loading alert sound", error);
@@ -83,10 +80,7 @@ export default function IncomingAlertScreen({ navigation, route }: RootStackScre
 
     return () => {
       isMounted = false;
-      if (newPlayer) {
-        newPlayer.pause();
-        newPlayer.remove();
-      }
+      if (soundObj) { soundObj.stopAsync(); soundObj.unloadAsync(); }
     };
   }, []);
 
@@ -201,3 +195,5 @@ const styles = StyleSheet.create({
   cancelReplyButton: { marginTop: 20, paddingVertical: 10, alignItems: 'center' },
   cancelReplyText: { color: Colors.textMuted, fontSize: 14, fontWeight: '600' },
 });
+
+

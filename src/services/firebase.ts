@@ -263,6 +263,25 @@ export const sendMessage = async (groupId: string, messageData: any): Promise<bo
   }
 };
 
+export const deleteMessage = async (groupId: string, messageId: string): Promise<boolean> => {
+  try {
+    await deleteDoc(doc(db, 'groups', groupId, 'messages', messageId));
+    return true;
+  } catch (error) {
+    console.error('Error deleting message:', error);
+    return false;
+  }
+};
+
+export const markMessageAsRead = async (groupId: string, messageId: string, userUid: string): Promise<void> => {
+  try {
+    await updateDoc(doc(db, 'groups', groupId, 'messages', messageId), {
+      viewedBy: arrayUnion(userUid),
+    });
+  } catch (error) {
+    console.error('Error marking message as read:', error);
+  }
+};
 export const subscribeToGroupMessages = (groupId: string, callback: (messages: any[]) => void): Unsubscribe => {
   const q = query(collection(db, 'groups', groupId, 'messages'), orderBy('timestamp', 'asc'));
   return onSnapshot(q, (querySnapshot) => {
@@ -597,6 +616,16 @@ export const subscribeToNotifications = (userId: string, callback: (notification
     }
     if (onError) onError(error);
   });
+};
+
+export const markNotificationAsRead = async (notificationId: string): Promise<boolean> => {
+  try {
+    await updateDoc(doc(db, 'notifications', notificationId), { read: true });
+    return true;
+  } catch (error) {
+    console.error('Error marking notification as read: ', error);
+    return false;
+  }
 };
 
 export const deleteNotification = async (notificationId: string): Promise<boolean> => {
@@ -976,3 +1005,5 @@ export const checkIsFollowing = async (followerId: string, followingId: string):
     return false;
   }
 };
+
+
